@@ -1,0 +1,23 @@
+Name: Yifei Yin
+Student Number: 1004910670
+Group Members: Yifei Yin, Jathavan Sellathurai, Litao Chen
+Sprint: 0
+
+Contributions:
+
+Yifei Yin 35%
+- wrote language & lex spec for list, tuple, if-block
+- wrote 2 example code snippets
+- did final review on the two documents together
+- formatted the language spec document
+
+Jathavan Sellathurai 30%
+- wrote language & lex spec for str, function declaration, function call
+- did final review on the two documents together
+
+Litao Chen 35%
+- wrote language & lex spec for int, float, bool, while, for
+- formatted the lex spec document
+- did final review on the two documents together
+
+
