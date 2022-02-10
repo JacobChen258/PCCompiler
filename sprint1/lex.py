@@ -30,8 +30,8 @@ tokens = [
     'RBRACKET',
     'EQGREATER',
     'EQLESS',
-    'EQUAL',
     'NOTEQUAL',
+    'EQUAL',
     'ASSIGN',
     'GREATER',
     'LESS',
@@ -45,13 +45,13 @@ tokens = [
     'FLOAT',
     'INTEGER',
     'ID',
-         ]+list(reserved.values())
+    'COLON',
+] + list(reserved.values())
 
 # NOTICE: STRING INCLUDES THE QUOTATION MARKS AS WELL
 
 
 class pythonLexer():
-
     t_PLUS = r'\+'
     t_MINUS = r'-'
     t_MODULE = r'%'
@@ -72,6 +72,7 @@ class pythonLexer():
     t_OR = r'(or)|(\|)'
     t_NOT = r'(not)|!'
     t_XOR = r'\^'
+    t_COLON = r':'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' \t'
     literals = ":,.!@-`~\\|/{}"
@@ -82,7 +83,7 @@ class pythonLexer():
         return t
 
     def t_BOOL(self,t):
-        r'(true)|(false)'
+        r'(True)|(False)'
         t.value = bool(t.value)
         return t
 
@@ -94,12 +95,12 @@ class pythonLexer():
         return t
 
     def t_FLOAT(self,t):
-        r'-?([1-9]\d*)|(0)\.\d+'
+        r'-?(([1-9]\d*)|(0))\.\d*'
         t.value = float(t.value)
         return t
 
     def t_INTEGER(self,t):
-        r'(-?[1-9]\d+)|(0)'
+        r'-?(([1-9]\d*)|0)'
         t.value = int(t.value)
         return t
 
@@ -122,11 +123,13 @@ class pythonLexer():
 
     def test(self, data):
         self.lexer.input(data)
+        result = []
         while True:
             tok = self.lexer.token()
             if not tok:
                 break
-            print(tok)
+            result.append(tok)
+        return result
 
 if __name__=="__main__":
 
@@ -140,4 +143,4 @@ if __name__=="__main__":
 
     m = pythonLexer()
     m.build()
-    m.test(data)
+    print(m.test(data), sep='\n')
