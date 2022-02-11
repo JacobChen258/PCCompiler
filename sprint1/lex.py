@@ -39,6 +39,10 @@ tokens = [
     'OR',
     'NOT',
     'XOR',
+    'PERIOD',
+    'COMMA',
+    'COLON',
+    'FUNCTIONANNOTATION',
     'NONE',
     'BOOL',
     'STRING',
@@ -72,9 +76,17 @@ class pythonLexer():
     t_OR = r'(or)|(\|)'
     t_NOT = r'(not)|!'
     t_XOR = r'\^'
+    t_PERIOD = r'.'
+    t_COMMA = r','
+    t_COLON = r':'
+    t_FUNCTIONANNOTATION = r'(-\>)'
     t_ignore_COMMENT = r'\#.*'
-    t_ignore = ' \t'
-    literals = ":,.!@-`~\\|/{}"
+    #t_ignore = ' \t'
+    t_ignore = ' '
+    literals = ":.!@-`~\\|/{}"
+
+    #keeps trakf number of tabs for each line number
+    tab_list = []
 
     def t_NONE(self,t):
         r'None'
@@ -111,6 +123,10 @@ class pythonLexer():
     def t_newline(self,t):
         r'\n+'
         t.lexer.lineno += len(t.value)
+
+    def t_tab(self, t):
+        r'\t+'
+        tab_list.append([t.lexer.lineno, len(t.value)]) 
 
     def t_error(self,t):
         print("Illegal character '%s'" % t.value[0])

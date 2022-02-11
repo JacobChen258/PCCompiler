@@ -84,6 +84,33 @@ class pythonParser:
         'expression : NOT expression %prec UNOT'
         p[0] = not p[2]
 
+    def p_function_dec(self, p):
+        """function_dec : DEF ID LPAREN paramter_or_empty RPAREN COLON FUNCTIONANNOTATION type"""
+
+    def p_parameter_or_empty(self, p):
+        """paramter_or_empty: paramter_lst | empty
+
+        """
+
+    def p_parameter_lst(self, p):
+        """parameter_lst : parameter_lst COMMA parameter
+                     | parameter
+        """
+
+    def p_function_call(self, p):
+        """function_call : ID LPAREN argument_or_empty RPAREN
+        
+        """
+    def p_argument_or_empty(self, p):
+        """argument_or_empty : argument_lst | emtpy
+
+        """
+    
+    def p_argument_lst(self, p):
+        """argument_lst : argument_lst COMMA expression | expression
+
+        """
+
     # Build the parser
     def build(self, **kwargs):
         self.tokens = tokens
