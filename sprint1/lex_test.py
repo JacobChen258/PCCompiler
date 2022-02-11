@@ -47,7 +47,7 @@ cases = {
     "not": "NOT",
     "else": "ELSE",
     "-": "MINUS",
-    "int": "TINTEGER",
+    "int": "TINT",
     "'hi'": "STRING",
     "\"hi\"": "STRING",
     r"'hi\''": "STRING",
