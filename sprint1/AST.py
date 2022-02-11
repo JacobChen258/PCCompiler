@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 from dataclasses import dataclass
 
 class Node():
@@ -49,6 +49,7 @@ class Type(Node):
 @dataclass
 class Expression(Node):
     value: any #Union[BinaryOperation, UnaryOperation, Id, PrimitiveLiteral, NonPrimitiveLiteral]
+               # Commented out because python wants them to be defined first, which results in a circular dependency
 
 @dataclass
 class PrimitiveLiteral(Node):
@@ -58,7 +59,7 @@ class PrimitiveLiteral(Node):
 @dataclass
 class NonPrimitiveLiteral(Node):
     name: Union['tuple', 'list']
-    children: Expression
+    children: List[Expression]
 
 @dataclass
 class Id(Node):
