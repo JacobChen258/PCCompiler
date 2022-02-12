@@ -17,27 +17,39 @@ precedence = (
      'TIMES',
      'DIVIDE',
      'MODULE'),
-    ('right',
-     'UMINUS',
-     'UNONT'),
+    # ('right',
+    #  'UMINUS',
+    #  'UNONT'),
 )
 
 
 class pythonParser:
 
     def p_program(self,p):
-        """program  : expression
-                    | block"""
+        """program  : expression"""
+        # """program  : expression
+                    # | block"""
         p[0] = p[1]
 
-    def p_block(self,p):
-        """block    : while_block
-                    | for_block
-                    | if_block"""
+    # def p_block(self,p):
+    #     """block    : while_block
+    #                 | for_block
+    #                 | if_block"""
+    #     p[0] = p[1]
+
+    def p_expression(self,p):
+        """expression : ID
+                      | FLOAT
+                      | INTEGER
+                      | STRING"""
         p[0] = p[1]
+
+    def p_assignment(self,p):
+        """assignment : ID ASSIGN expression"""
+        p[0] = p[1] + "=" + p[3]
 
     def p_parameter(self,p):
-        """parameter    : ID : type"""
+        """parameter    : ID COLON type"""
         p[0] = p[1] + ":" + p[2]
 
     def p_type(self,p):
@@ -76,13 +88,13 @@ class pythonParser:
                                 | STRING"""
         p[0] = p[1]
 
-    def p_expr_uminus(self,p):
-        'expression : MINUS expression %prec UMINUS'
-        p[0] = -p[2]
+    # def p_expr_uminus(self,p):
+    #     'expression : MINUS expression %prec UMINUS'
+    #     p[0] = -p[2]
 
-    def p_expr_unot(self,p):
-        'expression : NOT expression %prec UNOT'
-        p[0] = not p[2]
+    # def p_expr_unot(self,p):
+    #     'expression : NOT expression %prec UNOT'
+    #     p[0] = not p[2]
 
     def p_function_dec(self, p):
         """function_dec : DEF ID LPAREN paramter_or_empty RPAREN COLON FUNCTIONANNOTATION type"""
@@ -117,6 +129,9 @@ class pythonParser:
         self.lexer = pythonLexer()
         self.lexer.build()
         self.parser = yacc.yacc(module=self, **kwargs)
+
+    def parse(self, data):
+        return self.parser.parse(data)
 
     # Show the prompt for user input
     def prompt(self):
