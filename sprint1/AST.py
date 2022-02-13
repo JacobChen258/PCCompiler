@@ -27,7 +27,9 @@ class Node():
 
 #         return output
 
-
+@dataclass
+class block(Node):
+    pass
 
 @dataclass
 class PrimitiveType(Node):
@@ -81,3 +83,80 @@ class Assignment(Node):
     left: Id
     type: Union[Type, None]
     right: Node
+
+@dataclass
+class IfStmt(Node):
+    ifCond: Expression
+    ifBody: block
+
+@dataclass
+class elifStmt(Node):
+    elifCond: Expression
+    elifBody: block
+
+@dataclass
+class elseStmt(Node):
+    elseBody: block
+
+@dataclass
+class whileStmt(Node):
+    cond: Expression
+    body: block
+
+@dataclass
+class rangeValues(Node):
+    stop: Union[int, None]
+    start: Union[int, None]
+    step: Union[int, None]
+
+@dataclass
+class forLoopRange(Node):
+    var: Id 
+    rangeVal: rangeValues
+    body: block
+
+@dataclass
+class forLoopList(Node):
+    var: Id
+    Lst: NonPrimitiveLiteral
+    body: block
+    
+@dataclass
+class parameter(Node):
+    paramType: Type
+    var: Id
+
+@dataclass
+class parameterLst(Node):
+    lst: Union[List[parameter], None]
+
+@dataclass
+class argumentLst(Node):
+    lst: Union[List[Expression], None]
+
+@dataclass
+class functionDef(Node):
+    name: Id
+    lst: parameterLst
+    body: block
+    returnType: Union[Type, None]
+
+@dataclass
+class returnStmt(Node):
+    stmt: Expression
+    
+
+@dataclass
+class functionCall(Node):
+    name: Id
+    lst: argumentLst
+
+@dataclass
+class block(Node):
+    lst: List[Union[functionDef, returnStmt, functionCall, forLoopRange, forLoopList, whileStmt, \
+                    IfStmt, elifStmt, elseStmt, Assignment]]
+
+
+
+
+    

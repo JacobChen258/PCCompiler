@@ -10,8 +10,8 @@ reserved = {
     'elif': "ELIF",
     'else': "ELSE",
     'return': 'RETURN',
-    'int': 'TINT',
-    'str': 'TSTR',
+    'int': 'TINTEGER',
+    'str': 'TSTRING',
     'float': "TFLOAT",
     'bool': "TBOOL",
     'def': "DEF",
@@ -49,7 +49,7 @@ tokens = [
     'FLOAT',
     'INTEGER',
     'ID',
-    'COLON',
+    'NEWLINE',
 ] + list(reserved.values())
 
 # NOTICE: STRING INCLUDES THE QUOTATION MARKS AS WELL
@@ -80,10 +80,9 @@ class pythonLexer():
     t_COMMA = r','
     t_COLON = r':'
     t_FUNCTIONANNOTATION = r'(-\>)'
-    t_COLON = r':'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' '
-    literals = ":.!@-`~\\|/{}"
+    literals = ".!@-`~\\/{}"
 
     #keeps trakf number of tabs for each line number
     tab_list = []
@@ -120,9 +119,10 @@ class pythonLexer():
         t.type = reserved.get(t.value, 'ID')  # Check for reserved words
         return t
 
-    def t_newline(self,t):
+    def t_NEWLINE(self,t):
         r'\n+'
         t.lexer.lineno += len(t.value)
+        return t
 
     def t_tab(self, t):
         r'\t+'
@@ -131,6 +131,12 @@ class pythonLexer():
     def t_error(self,t):
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
+
+    def getTabCount(self, lineNo):
+        for i in tab_list:
+            if i[0] == lineNo:
+                return i[1]
+            return 0
 
     def build(self, **kwargs):
         self.tokens = tokens
