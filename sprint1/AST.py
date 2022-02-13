@@ -61,7 +61,7 @@ class PrimitiveLiteral(Node):
 @dataclass
 class NonPrimitiveLiteral(Node):
     name: Union['tuple', 'list']
-    children: List[Expression]
+    children: List[Union[any, None]]
 
 @dataclass
 class Id(Node):
@@ -70,8 +70,8 @@ class Id(Node):
 @dataclass
 class BinaryOperation(Node):
     left: Expression
-    right: Expression
     operator: str
+    right: Expression
 
 @dataclass
 class UnaryOperation(Node):

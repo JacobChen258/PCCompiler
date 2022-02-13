@@ -11,6 +11,10 @@ cases = {
     "a = 10": "Assignment(left=Id(name='a'), type=None, right=PrimitiveLiteral(name='int', value=10))",
     "bbb = 10.0": "Assignment(left=Id(name='bbb'), type=None, right=PrimitiveLiteral(name='float', value=10.0))",
     "bbb: int = 10.0": "Assignment(left=Id(name='bbb'), type=Type(value=PrimitiveType(value='int')), right=PrimitiveLiteral(name='float', value=10.0))",
+    "[]" : "NonPrimitiveLiteral(name='list', children=[])",
+    "[1,2,3]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)])",
+    "[1,[1,2]]" :"NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])",
+    "[1,[1,2],[1,2,3],[[[1]]],1]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)]), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)]), NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1)])])]), PrimitiveLiteral(name='int', value=1)])",
 }
 
 @pytest.mark.parametrize("input_data, expected", cases.items())
