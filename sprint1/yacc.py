@@ -31,8 +31,7 @@ class pythonParser:
     def p_expression(self, p):
         """expression : ID
                       | assignment
-                      | primitive_literal
-                      | non_primitive_literal"""
+                      | primitive_literal"""
         if type(p[1]) == str:  # It is ID
             p[0] = AST.Id(name=p[1])
         else:  # Anything else
@@ -67,11 +66,6 @@ class pythonParser:
                                 | STRING
                                 | BOOL"""
         p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
-
-    def p_non_primitive_literal(self, p):
-        """non_primitive_literal : list
-                                 | tuple"""  # TODO: This needs to be a list
-        p[0] = p[1]
 
     def p_assignment(self, p):
         """assignment :  ID ASSIGN expression
@@ -208,7 +202,7 @@ class pythonParser:
         self.tokens = tokens
         self.lexer = pythonLexer()
         self.lexer.build()
-        self.parser = yacc.yacc(module=self, **kwargs)
+        self.parser = yacc.yacc(module=self,debug=True, **kwargs)
 
     def parse(self, data):
         return self.parser.parse(data)
@@ -223,6 +217,7 @@ class pythonParser:
     #             continue
     #         result = self.parser.parse(s)
     #         print(result)
+
 
 
 if __name__ == "__main__":
