@@ -37,9 +37,9 @@ def test_simple_token(parser, test_name):
 
     if output_str is not None:
         if received_str != output_str:
-            diff = difflib.unified_diff(output_str, received_str, f"./tests/{test_name}_output.json", f"./tests/{test_name}_received.json")
+            diff = difflib.unified_diff(output_str.split('\n'), received_str.split('\n'), f"./tests/{test_name}_output.json", f"./tests/{test_name}_received.json", lineterm='')
             with open(f'./tests/{test_name}_received.diff', 'w+') as f:
-                f.write(''.join(diff) + '\n')
+                f.write('\n'.join(diff) + '\n')
             raise AssertionError(f'{test_name} failed')
         else:
             try:
