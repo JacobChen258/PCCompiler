@@ -16,7 +16,7 @@ reserved = {
     'bool': "TBOOL",
     'def': "DEF",
     'print': "PRINT",
-    '.append': "APPEND"
+    'append': "APPEND"
 }
 
 tokens = [
@@ -47,7 +47,8 @@ tokens = [
     'INTEGER',
     'ID',
     'COLON',
-    'COMMA'
+    'COMMA',
+    'DOT'
 ] + list(reserved.values())
 
 # NOTICE: STRING INCLUDES THE QUOTATION MARKS AS WELL
@@ -72,6 +73,7 @@ class pythonLexer():
     t_XOR = r'\^'
     t_COLON = r':'
     t_COMMA = r','
+    t_DOT = r'\.'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' \t'
     literals = ":,.!@-`~\\|/{}?'\""

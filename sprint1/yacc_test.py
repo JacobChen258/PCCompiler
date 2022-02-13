@@ -15,6 +15,17 @@ cases = {
     "[1,2,3]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)])",
     "[1,[1,2]]" :"NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])",
     "[1,[1,2],[1,2,3],[[[1]]],1]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)]), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)]), NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1)])])]), PrimitiveLiteral(name='int', value=1)])",
+    "(((1,2)))" : "NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])",
+    "(1)" : "PrimitiveLiteral(name='int', value=1)",
+    "[(1,2)]" : "NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])",
+    "([[[1,2]]])" : "NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])])",
+    "[1,2,(3,4),5]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=3), PrimitiveLiteral(name='int', value=4)]), PrimitiveLiteral(name='int', value=5)])",
+    "(1,2,[3,4],5)" : "NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=3), PrimitiveLiteral(name='int', value=4)]), PrimitiveLiteral(name='int', value=5)])",
+    "1+(1+2)" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=PrimitiveLiteral(name='int', value=2)))",
+    "1+1*2" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='*', right=PrimitiveLiteral(name='int', value=2)))",
+    "1<=2" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='<=', right=PrimitiveLiteral(name='int', value=2))",
+    "1+(-2)" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=PrimitiveLiteral(name='int', value=-2))",
+    "!2"    : "UnaryOperation(operator='!', right=PrimitiveLiteral(name='int', value=2))",
 }
 
 @pytest.mark.parametrize("input_data, expected", cases.items())

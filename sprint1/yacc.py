@@ -11,7 +11,7 @@ precedence = (
 )
 
 lst_stack = []
-tup = []
+tup_stack = []
 
 
 class pythonParser:
@@ -60,6 +60,7 @@ class pythonParser:
         else:
             assert False
 
+
     def p_primitive_literal(self, p):
         """primitive_literal    : INTEGER
                                 | FLOAT
@@ -69,11 +70,8 @@ class pythonParser:
 
     def p_non_primitive_literal(self, p):
         """non_primitive_literal : list
-                                 | LPAREN expression RPAREN"""  # TODO: This needs to be a list
-        if p[1] == '[':
-            p[0] = p[1]
-        elif p[1] == '(':
-            p[0] = AST.NonPrimitiveLiteral(name='tuple', children=p[2])
+                                 | tuple"""  # TODO: This needs to be a list
+        p[0] = p[1]
 
     def p_assignment(self, p):
         """assignment :  ID ASSIGN expression
@@ -105,18 +103,14 @@ class pythonParser:
         """
         expression  : MINUS expression
                     | NOT expression"""
-        p[0] = AST.UnaryOperation(operator=p[1], right=[2])
-
-    def p_expr_paren(self, p):
-        """
-        expression  : LPAREN expression RPAREN"""
-        p[0] = p[2]
+        p[0] = AST.UnaryOperation(operator=p[1], right=p[2])
 
     def p_lst_empty(self,p):
         """
         expression : LBRACKET RBRACKET
         """
         p[0] = AST.NonPrimitiveLiteral(name='list', children=[])
+
     def p_lst_head(self, p):
         """
         list    : LBRACKET expression
@@ -127,8 +121,6 @@ class pythonParser:
         else:
             lst = AST.NonPrimitiveLiteral(name='list', children=[p[2]])
         lst_stack.append(lst)
-        #print("++++++ head ++++++++")
-        #print(lst_stack)
 
 
     def p_lst_body(self, p):
@@ -139,8 +131,6 @@ class pythonParser:
         global lst_stack
         if p[3]:
             lst_stack[-1].children.append(p[3])
-            #print("++++++++++ append ++++++++++")
-            #print(p[3])
 
     def p_lst_tail(self, p):
         """
@@ -149,17 +139,63 @@ class pythonParser:
         global lst_stack
         if len(lst_stack) > 1:
             lst_stack[-2].children.append(lst_stack.pop())
-            #print("+++++++++ tail ++++++++++")
-            #print(lst_stack)
         else:
             p[0] = lst_stack.pop()
 
     def p_lst_append(self, p):
         """
-        list    : list APPEND LPAREN expression RPAREN
+        expression    : expression DOT APPEND LPAREN expression RPAREN
         """
-        p[0] = p[1].children.append(p[4])
+        if isinstance(p[1],AST.NonPrimitiveLiteral) and p[1].name == 'list':
+            p[1].children.append(p[5])
+        else:
+            self.p_error(p)
 
+    def p_tuple_empty(self,p):
+        """
+        expression : LPAREN RPAREN
+        """
+        p[0] = AST.NonPrimitiveLiteral(name='tuple',children=[])
+
+    def p_tuple_head(self,p):
+        """
+        tuple   : LPAREN expression COMMA expression
+        """
+        # tuple must have either 0 or more than 1 expression
+        global tup_stack
+        if not p[2]:
+            tup = AST.NonPrimitiveLiteral(name='tuple', children=[tup_stack[-1].children.pop()])
+        else:
+            tup = AST.NonPrimitiveLiteral(name='tuple', children=[p[2], p[4]])
+        tup_stack.append(tup)
+
+    def p_tuple_body(self,p):
+        """
+        tuple   : tuple COMMA expression
+                | tuple COMMA tuple
+        """
+        global tup_stack
+        if p[3]:
+            tup_stack[-1].children.append(p[3])
+
+    def p_tuple_tail(self, p):
+        """
+        expression      : tuple RPAREN
+        """
+        global tup_stack
+        if len(tup_stack) > 1:
+            tup_stack[-2].children.append(tup_stack.pop())
+        else:
+            p[0] = tup_stack.pop()
+
+    def p_expr_paren(self,p):
+        """
+        expression  : LPAREN expression RPAREN
+        """
+        p[0] = p[2]
+
+    def p_error(self, p):
+        print("Syntax error at token", p)
     # def p_expr_uminus(self,p):
     #     'expression : MINUS expression %prec UMINUS'
     #     p[0] = -p[2]
