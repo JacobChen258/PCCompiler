@@ -49,7 +49,7 @@ cases = {
     "-": "MINUS",
     "int": "TINT",
     "'hi'": "STRING",
-    "\"hi\"": "STRING",
+    '"hi"': "STRING",
     r"'hi\''": "STRING",
 }
 

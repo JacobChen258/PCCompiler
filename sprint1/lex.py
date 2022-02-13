@@ -15,7 +15,8 @@ reserved = {
     'float': "TFLOAT",
     'bool': "TBOOL",
     'def': "DEF",
-    'print': "PRINT"
+    'print': "PRINT",
+    '.append': "APPEND"
 }
 
 tokens = [
@@ -46,6 +47,7 @@ tokens = [
     'INTEGER',
     'ID',
     'COLON',
+    'COMMA'
 ] + list(reserved.values())
 
 # NOTICE: STRING INCLUDES THE QUOTATION MARKS AS WELL
@@ -64,18 +66,15 @@ class pythonLexer():
     t_EQGREATER = r'\>='
     t_EQLESS = r'\<='
     t_EQUAL = r'=='
-    t_NOTEQUAL = r'!='
     t_ASSIGN = r'='
     t_GREATER = r'\>'
     t_LESS = r'\<'
-    t_AND = r'(and)|(&)'
-    t_OR = r'(or)|(\|)'
-    t_NOT = r'(not)|!'
     t_XOR = r'\^'
     t_COLON = r':'
+    t_COMMA = r','
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' \t'
-    literals = ":,.!@-`~\\|/{}"
+    literals = ":,.!@-`~\\|/{}?'\""
 
     def t_NONE(self,t):
         r'None'
@@ -87,10 +86,25 @@ class pythonLexer():
         t.value = bool(t.value)
         return t
 
+    def t_NOTEQUAL(self,t):
+        r'\!='
+        return t
+
+    def t_AND(self,t):
+        r'(and)|(&)'
+        return t
+
+    def t_OR(self,t):
+        r'(or)|\|'
+        return t
+
+    def t_NOT(self,t):
+        r'(not)|!'
+        return t
+
     # NOT HANDLE ESCAPE STRING YET
     def t_STRING(self,t):
-        r'(\'[^\']*\')|(\"[^\"]*\")'
-        #r"('([^\\']+|\\'|\\\\)*')|(\"([^\\\"]+|\\|\\\\)*\")"
+        r'("(?:\\.|[^"\\])*")|(\'(?:\\.|[^\'\\])*\')'
         t.value = str(t.value)
         return t
 
