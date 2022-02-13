@@ -1,4 +1,6 @@
 import pytest
+import os
+import difflib
 from yacc import pythonParser
 
 @pytest.fixture
@@ -7,51 +9,42 @@ def parser():
     p.build()
     return p
 
-cases = {
-    "a = 10": "Assignment(left=Id(name='a'), type=None, right=PrimitiveLiteral(name='int', value=10))",
-    "bbb = 10.0": "Assignment(left=Id(name='bbb'), type=None, right=PrimitiveLiteral(name='float', value=10.0))",
-    "bbb: int = 10.0": "Assignment(left=Id(name='bbb'), type=Type(value=PrimitiveType(value='int')), right=PrimitiveLiteral(name='float', value=10.0))",
-    "[]" : "NonPrimitiveLiteral(name='list', children=[])",
-    "[1,2,3]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)])",
-    "[1,[1,2]]" :"NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])",
-    "[1,[1,2],[1,2,3],[[[1]]],1]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)]), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), PrimitiveLiteral(name='int', value=3)]), NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1)])])]), PrimitiveLiteral(name='int', value=1)])",
-    "(((1,2)))" : "NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])",
-    "(1)" : "PrimitiveLiteral(name='int', value=1)",
-    "[(1,2)]" : "NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])",
-    "([[[1,2]]])" : "NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2)])])])",
-    "[1,2,(3,4),5]" : "NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=3), PrimitiveLiteral(name='int', value=4)]), PrimitiveLiteral(name='int', value=5)])",
-    "(1,2,[3,4],5)" : "NonPrimitiveLiteral(name='tuple', children=[PrimitiveLiteral(name='int', value=1), PrimitiveLiteral(name='int', value=2), NonPrimitiveLiteral(name='list', children=[PrimitiveLiteral(name='int', value=3), PrimitiveLiteral(name='int', value=4)]), PrimitiveLiteral(name='int', value=5)])",
-    "1+(1+2)" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=PrimitiveLiteral(name='int', value=2)))",
-    "1+1*2" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='*', right=PrimitiveLiteral(name='int', value=2)))",
-    "1<=2" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='<=', right=PrimitiveLiteral(name='int', value=2))",
-    "1+(-2)" : "BinaryOperation(left=PrimitiveLiteral(name='int', value=1), operator='+', right=PrimitiveLiteral(name='int', value=-2))",
-    "!2"    : "UnaryOperation(operator='!', right=PrimitiveLiteral(name='int', value=2))",
-}
-
-@pytest.mark.parametrize("input_data, expected", cases.items())
-def test_simple_token(parser, input_data, expected):
-    result = parser.parse(input_data)
-    assert str(result) == expected, f"Expect {expected}, got {str(result)}"
+files = os.listdir('./tests/')
+test_names = [f.replace('_input.txt', '') for f in files if f.endswith('_input.txt')]
 
 
-"""
-## Experimenting with alternative stringify method
+def format_parser_output(o):
+    import json
+    return json.dumps(o, default=lambda x: { 'NODE': x.__class__.__name__, **x.__dict__}, indent=2)
 
-So instead of
 
-Assignment(left=Id(name='bbb'), type=Type(value=PrimitiveType(value='int')), right=PrimitiveLiteral(name='float', value=10.0))
+@pytest.mark.parametrize("test_name", test_names)
+def test_simple_token(parser, test_name):
+    with open(f'./tests/{test_name}_input.txt', 'r') as f:
+        input_str = f.read().strip()
+    try:
+        with open(f'./tests/{test_name}_output.json', 'r') as f:
+            output_str = f.read().strip()
+    except FileNotFoundError:
+        print(f'No output file for {test_name}')
+        output_str = None
 
-We have
-{'NODE': 'Assignment',
- 'left': {'NODE': 'Id', 'name': 'bbb'},
- 'right': {'NODE': 'PrimitiveLiteral', 'name': 'float', 'value': 10.0},
- 'type': {'NODE': 'Type', 'value': {'NODE': 'PrimitiveType', 'value': 'int'}}}
+    received = parser.parse(input_str)
+    received_str = format_parser_output(received)
 
-# def test_simple_token_error(parser):
-#     import json
-#     from pprint import pprint
-#     result = parser.parse('bbb: int = 10.0')
-#     pprint(json.loads(json.dumps(result, default=lambda x: { 'NODE': x.__class__.__name__, **x.__dict__})))
-#     assert False
+    with open(f'./tests/{test_name}_received.json', 'w+') as f:
+        f.write(received_str + '\n')
 
-"""
+    if output_str is not None:
+        if received_str != output_str:
+            diff = difflib.unified_diff(output_str, received_str, f"./tests/{test_name}_output.json", f"./tests/{test_name}_received.json")
+            with open(f'./tests/{test_name}_received.diff', 'w+') as f:
+                f.write(''.join(diff) + '\n')
+            raise AssertionError(f'{test_name} failed')
+        else:
+            try:
+                os.remove(f'./tests/{test_name}_received.diff')
+            except FileNotFoundError:
+                pass
+    else:
+        raise AssertionError(f'{test_name} missing output file')
