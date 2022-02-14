@@ -53,9 +53,6 @@ tokens = [
     'COMMA',
 ] + list(reserved.values())
 
-# NOTICE: STRING INCLUDES THE QUOTATION MARKS AS WELL
-
-
 class pythonLexer():
     t_PLUS = r'\+'
     t_MINUS = r'-'

@@ -1,0 +1,134 @@
+Created by PLY (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    DEF
+    ELIF
+    ELSE
+    FOR
+    FUNCTIONANNOTATION
+    IF
+    IN
+    NEWLINE
+    NONE
+    PERIOD
+    PRINT
+    RANGE
+    RETURN
+    TAB
+    TINTEGER
+    TSTRING
+    WHILE
+
+Grammar
+
+Rule 0     S' -> expression
+Rule 1     expression -> ID
+Rule 2     expression -> assignment
+Rule 3     expression -> primitive_literal
+Rule 4     type -> primitive_type
+Rule 5     type -> non_primitive_type
+Rule 6     primitive_type -> TINT
+Rule 7     primitive_type -> TSTR
+Rule 8     primitive_type -> TFLOAT
+Rule 9     primitive_type -> TBOOL
+Rule 10    non_primitive_type -> LBRACKET type RBRACKET
+Rule 11    non_primitive_type -> LPAREN type RPAREN
+Rule 12    primitive_literal -> INTEGER
+Rule 13    primitive_literal -> FLOAT
+Rule 14    primitive_literal -> STRING
+Rule 15    primitive_literal -> BOOL
+Rule 16    assignment -> ID ASSIGN expression
+Rule 17    assignment -> ID COLON type ASSIGN expression
+Rule 18    expression -> expression PLUS expression
+Rule 19    expression -> expression MINUS expression
+Rule 20    expression -> expression TIMES expression
+Rule 21    expression -> expression DIVIDE expression
+Rule 22    expression -> expression MODULE expression
+Rule 23    expression -> expression EQGREATER expression
+Rule 24    expression -> expression EQLESS expression
+Rule 25    expression -> expression GREATER expression
+Rule 26    expression -> expression LESS expression
+Rule 27    expression -> expression EQUAL expression
+Rule 28    expression -> expression NOTEQUAL expression
+Rule 29    expression -> expression OR expression
+Rule 30    expression -> expression AND expression
+Rule 31    expression -> expression XOR expression
+Rule 32    expression -> MINUS expression
+Rule 33    expression -> NOT expression
+Rule 34    expression -> LBRACKET RBRACKET
+Rule 35    list -> LBRACKET expression
+Rule 36    list -> list COMMA expression
+Rule 37    expression -> list RBRACKET
+Rule 38    expression -> expression DOT APPEND LPAREN expression RPAREN
+Rule 39    expression -> LPAREN RPAREN
+Rule 40    tuple -> LPAREN expression COMMA expression
+Rule 41    tuple -> tuple COMMA expression
+Rule 42    expression -> tuple RPAREN
+Rule 43    expression -> LPAREN expression RPAREN
+
+Terminals, with rules where they appear
+
+AND                  : 30
+APPEND               : 38
+ASSIGN               : 16 17
+BOOL                 : 15
+COLON                : 17
+COMMA                : 36 40 41
+DEF                  : 
+DIVIDE               : 21
+ELIF                 : 
+ELSE                 : 
+EQGREATER            : 23
+EQLESS               : 24
+EQUAL                : 27
+FLOAT                : 13
+FOR                  : 
+FUNCTIONANNOTATION   : 
+GREATER              : 25
+ID                   : 1 16 17
+IF                   : 
+IN                   : 
+INTEGER              : 12
+LBRACKET             : 10 34 35
+LESS                 : 26
+LPAREN               : 11 38 39 40 43
+MINUS                : 19 32
+MODULE               : 22
+NEWLINE              : 
+NONE                 : 
+NOT                  : 33
+NOTEQUAL             : 28
+OR                   : 29
+PERIOD               : 
+PLUS                 : 18
+PRINT                : 
+RANGE                : 
+RBRACKET             : 10 34 37
+RETURN               : 
+RPAREN               : 11 38 39 42 43
+STRING               : 14
+TAB                  : 
+TBOOL                : 9
+TFLOAT               : 8
+TIMES                : 20
+TINTEGER             : 
+TSTRING              : 
+WHILE                : 
+XOR                  : 31
+error                : 
+
+Nonterminals, with rules where they appear
+
+DOT                  : 38
+TINT                 : 6
+TSTR                 : 7
+assignment           : 2
+expression           : 16 17 18 18 19 19 20 20 21 21 22 22 23 23 24 24 25 25 26 26 27 27 28 28 29 29 30 30 31 31 32 33 35 36 38 38 40 40 41 43 0
+list                 : 36 37
+non_primitive_type   : 5
+primitive_literal    : 3
+primitive_type       : 4
+tuple                : 41 42
+type                 : 10 11 17
+
