@@ -1,7 +1,7 @@
 Name: Yifei Yin
 Student Number: 1004910670
 Group Members: Yifei Yin, Jathavan Sellathurai, Litao Chen
-Sprint: 0
+Sprint: 1
 
 Contributions:
 
