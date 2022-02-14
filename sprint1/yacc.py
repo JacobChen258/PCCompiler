@@ -1,31 +1,25 @@
+#!/usr/bin/env python3
 from ply import yacc
 from lex import pythonLexer
 from lex import tokens
 import AST
 
-precedence = (
-    ('nonassoc', 'EQGREATER', 'EQLESS', 'GREATER', 'LESS', 'EQUAL', 'NOTEQUAL'),
-    ('left', 'OR', 'XOR', 'AND'),
-    ('left', 'PLUS', 'MINUS'),
-    ('left', 'TIMES', 'DIVIDE', 'MODULE')
-)
 
 lst_stack = []
 tup_stack = []
 
 
 class pythonParser:
-    # def p_program(self,p):
-    #     """program  : expression"""
-    #     # """program  : expression
-    #                 # | block"""
-    #     p[0] = p[1]
+    precedence = (
+        ('nonassoc', 'EQGREATER', 'EQLESS', 'GREATER', 'LESS', 'EQUAL', 'NOTEQUAL','XOR'),
+        ('left', 'OR', 'AND'),
+        ('left', 'PLUS', 'MINUS'),
+        ('left', 'TIMES', 'DIVIDE', 'MODULE'),
+        ('right','ASSIGN'),
+        ('right', 'UNARY'),
+    )
 
-    # def p_block(self,p):
-    #     """block    : while_block
-    #                 | for_block
-    #                 | if_block"""
-    #     p[0] = p[1]
+
     start = 'expression'
 
     def p_expression(self, p):
@@ -95,8 +89,8 @@ class pythonParser:
 
     def p_expr_unary(self, p):
         """
-        expression  : MINUS expression
-                    | NOT expression"""
+        expression  : MINUS expression %prec UNARY
+                    | NOT expression %prec UNARY"""
         p[0] = AST.UnaryOperation(operator=p[1], right=p[2])
 
     def p_lst_empty(self,p):
@@ -119,8 +113,7 @@ class pythonParser:
 
     def p_lst_body(self, p):
         """
-        list    : list COMMA list
-                | list COMMA expression
+        list    : list COMMA expression
         """
         global lst_stack
         if p[3]:
@@ -166,7 +159,6 @@ class pythonParser:
     def p_tuple_body(self,p):
         """
         tuple   : tuple COMMA expression
-                | tuple COMMA tuple
         """
         global tup_stack
         if p[3]:
@@ -190,13 +182,6 @@ class pythonParser:
 
     def p_error(self, p):
         print("Syntax error at token", p)
-    # def p_expr_uminus(self,p):
-    #     'expression : MINUS expression %prec UMINUS'
-    #     p[0] = -p[2]
-
-    # def p_expr_unot(self,p):
-    #     'expression : NOT expression %prec UNOT'
-    #     p[0] = not p[2]
 
     def build(self, **kwargs):
         self.tokens = tokens
@@ -207,20 +192,8 @@ class pythonParser:
     def parse(self, data):
         return self.parser.parse(data)
 
-    # def prompt(self):
-    #     while True:
-    #         try:
-    #             s = input('calc > ')
-    #         except EOFError:
-    #             break
-    #         if not s:
-    #             continue
-    #         result = self.parser.parse(s)
-    #         print(result)
-
 
 
 if __name__ == "__main__":
     m = pythonParser()
     m.build()
-    # m.prompt()
