@@ -31,7 +31,7 @@ def statementBodyGenerator():
                 expected_tab_count -= 1
             if statement.tabCount != 0 and current_statement_with_body != None:
                 current_statement_with_body.astNode.body.append(statement.astNode)
-                
+
         if statement.tabCount == 0:
             final_result.append(statement.astNode)
         if statement.astNode.__class__.__name__ in statements_with_body:
@@ -110,7 +110,7 @@ class pythonParser:
         p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
 
     def p_assignment(self, p):
-        """assignment :  ID ASSIGN expression NEWLINE 
+        """assignment :  ID ASSIGN expression NEWLINE
                       |  ID COLON type ASSIGN expression NEWLINE"""
         if len(p) == 5:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
@@ -228,7 +228,7 @@ class pythonParser:
         """
         p[0] = p[2]
 
-    
+
     def p_statement(self, p):
         """statement : statement_no_new_line NEWLINE
                      | assignment
@@ -252,12 +252,12 @@ class pythonParser:
 
 
     def p_function_dec(self, p):
-        """function_dec : DEF ID LPAREN paramter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
+        """function_dec : DEF ID LPAREN parameter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
 
         p[0] = AST.functionDef(name=p[2], lst=p[4], body=None, returnType=p[7])
 
     def p_parameter_or_empty(self, p):
-        """paramter_or_empty : parameter_lst
+        """parameter_or_empty : parameter_lst
                             | empty"""
         if len(p) == 1:
             p[0] = AST.paramterLst(lst=None)
@@ -271,16 +271,16 @@ class pythonParser:
             p[0] = [p[1]]
         else:
             p[0] = p[1] + [p[3]]
-            
+
     def p_parameter(self, p):
         """parameter : ID COLON type"""
-        
+
         p[0] = AST.parameter(paramType=p[3], var=p[1])
 
     def p_function_call(self, p):
         """function_call : ID LPAREN argument_or_empty RPAREN"""
         p[0] = AST.functionCall(name=p[1], lst=p[3])
-        
+
     def p_argument_or_empty(self, p):
         """argument_or_empty : argument_lst
                              | empty"""
@@ -288,7 +288,7 @@ class pythonParser:
             p[0] = AST.argumentLst(lst=None)
         else:
             p[0] = AST.argumentLst(lst=p[1])
-    
+
     def p_argument_lst(self, p):
         """argument_lst : argument_lst COMMA expression
                         | expression"""
@@ -315,7 +315,7 @@ class pythonParser:
     def p_for_loop_range(self, p):
         """for_loop_range : FOR ID IN range COLON"""
         p[0] = AST.forLoopRange(var=p[2], rangeVal=p[4], body=None)
-        
+
     def p_range(self, p):
         """range : RANGE LPAREN expression RPAREN
                  | RANGE LPAREN expression COMMA expression RPAREN
@@ -337,7 +337,7 @@ class pythonParser:
     def p_while_statement(self, p):
         """while_statement : WHILE expression COLON"""
         p[0] = AST.whileStmt(cond=p[2], body=None)
-            
+
     def p_empty(self, p):
         """empty :"""
         pass
@@ -365,5 +365,5 @@ class pythonParser:
 if __name__ == "__main__":
     m = pythonParser()
     m.build()
-    
+
 
