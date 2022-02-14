@@ -11,7 +11,7 @@ def parser():
     return p
 
 files = os.listdir('./tests/')
-test_names = [f.replace('_input.txt', '') for f in files if f.endswith('_input.txt')]
+test_names = [f.replace('_input.py', '') for f in files if f.endswith('_input.py')]
 
 
 def format_parser_output(o):
@@ -21,8 +21,8 @@ def format_parser_output(o):
 
 @pytest.mark.parametrize("test_name", test_names)
 def test_simple_token(parser, test_name):
-    with open(f'./tests/{test_name}_input.txt', 'r') as f:
-        input_str = f.read().strip()
+    with open(f'./tests/{test_name}_input.py', 'r') as f:
+        input_str = f.read()
     try:
         with open(f'./tests/{test_name}_output.json', 'r') as f:
             output_str = f.read().strip()
@@ -31,13 +31,17 @@ def test_simple_token(parser, test_name):
         output_str = None
 
     received = parser.parse(input_str)
-    received_str = format_parser_output(received)
+    print("received")
+    print(received)
+    received_str = ""
+    for i in received:
+        received_str += format_parser_output(i)  + ' \n'
 
     with open(f'./tests/{test_name}_received.json', 'w+') as f:
-        f.write(received_str + '\n')
-
+        f.write(received_str)
+    
     if output_str is not None:
-        if received_str != output_str:
+        if received_str.strip().strip("\n") != output_str.strip().strip("\n"):
             diff = difflib.unified_diff(output_str.split('\n'), received_str.split('\n'), f"./tests/{test_name}_output.json", f"./tests/{test_name}_received.json", lineterm='')
             with open(f'./tests/{test_name}_received.diff', 'w+') as f:
                 f.write('\n'.join(diff) + '\n')

@@ -6,26 +6,19 @@
   },
   "type": null,
   "right": {
-    "NODE": "BinaryOperation",
-    "left": {
-      "NODE": "PrimitiveLiteral",
-      "name": "int",
-      "value": 1
-    },
-    "operator": "+",
-    "right": {
-      "NODE": "BinaryOperation",
-      "left": {
+    "NODE": "NonPrimitiveLiteral",
+    "name": "tuple",
+    "children": [
+      {
         "NODE": "PrimitiveLiteral",
         "name": "int",
         "value": 1
       },
-      "operator": "+",
-      "right": {
+      {
         "NODE": "PrimitiveLiteral",
         "name": "int",
         "value": 2
       }
-    }
+    ]
   }
 } 

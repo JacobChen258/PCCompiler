@@ -9,8 +9,8 @@ reserved = {
     'elif': "ELIF",
     'else': "ELSE",
     'return': 'RETURN',
-    'int': 'TINTEGER',
-    'str': 'TSTRING',
+    'int': 'TINT',
+    'str': 'TSTR',
     'float': "TFLOAT",
     'bool': "TBOOL",
     'def': "DEF",
@@ -73,7 +73,6 @@ class pythonLexer():
     t_PERIOD = r'.'
     t_COMMA = r','
     t_COLON = r':'
-    #t_FUNCTIONANNOTATION = r'(-\>)'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' '
     literals = ".!@-`~\\|/{}?'\""
@@ -134,14 +133,10 @@ class pythonLexer():
         r'\n+'
         t.lexer.lineno += len(t.value)
         self.lexLineNo = t.lexer.lineno
-        print("NewLine Stufffffff")
-        print(len(t.value))
-        print(t.lexer.lineno)
         return t
 
     def t_TAB(self, t):
         r'\t+'
-        print("TAB TAB TAB TAB STUFFFFFF")
         self.tab_list.append([t.lexer.lineno + 1, len(t.value)])
         print(self.tab_list)
 

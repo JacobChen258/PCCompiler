@@ -1,10 +1,11 @@
 {
-  "NODE": "Assignment",
+  "NODE": "BinaryOperation",
   "left": {
-    "NODE": "Id",
-    "name": "a"
+    "NODE": "PrimitiveLiteral",
+    "name": "int",
+    "value": 1
   },
-  "type": null,
+  "operator": "+",
   "right": {
     "NODE": "BinaryOperation",
     "left": {
@@ -12,11 +13,11 @@
       "name": "int",
       "value": 1
     },
-    "operator": "<=",
+    "operator": "+",
     "right": {
       "NODE": "PrimitiveLiteral",
       "name": "int",
       "value": 2
     }
   }
-} 
+}

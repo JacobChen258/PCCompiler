@@ -1,0 +1,27 @@
+{
+  "NODE": "NonPrimitiveLiteral",
+  "name": "list",
+  "children": [
+    {
+      "NODE": "PrimitiveLiteral",
+      "name": "int",
+      "value": 1
+    },
+    {
+      "NODE": "NonPrimitiveLiteral",
+      "name": "list",
+      "children": [
+        {
+          "NODE": "PrimitiveLiteral",
+          "name": "int",
+          "value": 1
+        },
+        {
+          "NODE": "PrimitiveLiteral",
+          "name": "int",
+          "value": 2
+        }
+      ]
+    }
+  ]
+}

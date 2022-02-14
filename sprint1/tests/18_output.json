@@ -1,9 +1,17 @@
 {
-  "NODE": "UnaryOperation",
-  "operator": "!",
+  "NODE": "Assignment",
+  "left": {
+    "NODE": "Id",
+    "name": "a"
+  },
+  "type": null,
   "right": {
-    "NODE": "PrimitiveLiteral",
-    "name": "int",
-    "value": 2
+    "NODE": "UnaryOperation",
+    "operator": "!",
+    "right": {
+      "NODE": "PrimitiveLiteral",
+      "name": "int",
+      "value": 2
+    }
   }
 }

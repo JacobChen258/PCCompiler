@@ -2,12 +2,12 @@
   "NODE": "Assignment",
   "left": {
     "NODE": "Id",
-    "name": "a"
+    "name": "bbb"
   },
   "type": null,
   "right": {
     "NODE": "PrimitiveLiteral",
-    "name": "int",
-    "value": 1
+    "name": "float",
+    "value": 10.0
   }
 } 

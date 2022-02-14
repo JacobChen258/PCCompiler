@@ -12,7 +12,7 @@
       "name": "int",
       "value": 1
     },
-    "operator": "<=",
+    "operator": "+",
     "right": {
       "NODE": "PrimitiveLiteral",
       "name": "int",

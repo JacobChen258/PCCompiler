@@ -8,6 +8,6 @@
   "right": {
     "NODE": "PrimitiveLiteral",
     "name": "int",
-    "value": 1
+    "value": 10
   }
-} 
+}

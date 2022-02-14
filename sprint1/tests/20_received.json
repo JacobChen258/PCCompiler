@@ -1,0 +1,168 @@
+{
+  "NODE": "Assignment",
+  "left": {
+    "NODE": "Id",
+    "name": "a"
+  },
+  "type": null,
+  "right": {
+    "NODE": "NonPrimitiveLiteral",
+    "name": "list",
+    "children": [
+      {
+        "NODE": "PrimitiveLiteral",
+        "name": "int",
+        "value": 1
+      },
+      {
+        "NODE": "PrimitiveLiteral",
+        "name": "int",
+        "value": 2
+      },
+      {
+        "NODE": "PrimitiveLiteral",
+        "name": "int",
+        "value": 3
+      }
+    ]
+  }
+} 
+{
+  "NODE": "forLoopList",
+  "var": "i",
+  "Lst": "a",
+  "body": [
+    {
+      "NODE": "whileStmt",
+      "cond": {
+        "NODE": "BinaryOperation",
+        "left": {
+          "NODE": "Id",
+          "name": "b"
+        },
+        "operator": "<",
+        "right": {
+          "NODE": "PrimitiveLiteral",
+          "name": "int",
+          "value": 6
+        }
+      },
+      "body": [
+        {
+          "NODE": "IfStmt",
+          "ifCond": {
+            "NODE": "BinaryOperation",
+            "left": {
+              "NODE": "Id",
+              "name": "c"
+            },
+            "operator": "==",
+            "right": {
+              "NODE": "PrimitiveLiteral",
+              "name": "int",
+              "value": 3
+            }
+          },
+          "body": [
+            {
+              "NODE": "functionCall",
+              "name": "bar",
+              "lst": {
+                "NODE": "argumentLst",
+                "lst": [
+                  {
+                    "NODE": "Id",
+                    "name": "c"
+                  }
+                ]
+              }
+            },
+            {
+              "NODE": "elifStmt",
+              "elifCond": {
+                "NODE": "BinaryOperation",
+                "left": {
+                  "NODE": "Id",
+                  "name": "d"
+                },
+                "operator": ">=",
+                "right": {
+                  "NODE": "PrimitiveLiteral",
+                  "name": "int",
+                  "value": 7
+                }
+              },
+              "body": [
+                {
+                  "NODE": "functionCall",
+                  "name": "foo",
+                  "lst": {
+                    "NODE": "argumentLst",
+                    "lst": [
+                      {
+                        "NODE": "Id",
+                        "name": "d"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "NODE": "elseStmt",
+                  "body": [
+                    {
+                      "NODE": "Assignment",
+                      "left": {
+                        "NODE": "Id",
+                        "name": "b"
+                      },
+                      "type": null,
+                      "right": {
+                        "NODE": "BinaryOperation",
+                        "left": {
+                          "NODE": "Id",
+                          "name": "b"
+                        },
+                        "operator": "+",
+                        "right": {
+                          "NODE": "PrimitiveLiteral",
+                          "name": "int",
+                          "value": 5
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "NODE": "functionCall",
+          "name": "foobar",
+          "lst": {
+            "NODE": "argumentLst",
+            "lst": [
+              {
+                "NODE": "Id",
+                "name": "i"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+} 
+{
+  "NODE": "Assignment",
+  "left": {
+    "NODE": "Id",
+    "name": "f"
+  },
+  "type": null,
+  "right": {
+    "NODE": "PrimitiveLiteral",
+    "name": "float",
+    "value": 10.0
+  }
+} 

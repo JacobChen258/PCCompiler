@@ -15,30 +15,20 @@
         "value": 1
       },
       {
-        "NODE": "PrimitiveLiteral",
-        "name": "int",
-        "value": 2
-      },
-      {
         "NODE": "NonPrimitiveLiteral",
-        "name": "tuple",
+        "name": "list",
         "children": [
           {
             "NODE": "PrimitiveLiteral",
             "name": "int",
-            "value": 3
+            "value": 1
           },
           {
             "NODE": "PrimitiveLiteral",
             "name": "int",
-            "value": 4
+            "value": 2
           }
         ]
-      },
-      {
-        "NODE": "PrimitiveLiteral",
-        "name": "int",
-        "value": 5
       }
     ]
   }
