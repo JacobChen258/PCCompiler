@@ -87,16 +87,16 @@ class Assignment(Node):
 @dataclass
 class IfStmt(Node):
     ifCond: Expression
-    ifBody: block
+    body: block
 
 @dataclass
 class elifStmt(Node):
     elifCond: Expression
-    elifBody: block
+    body: block
 
 @dataclass
 class elseStmt(Node):
-    elseBody: block
+    body: block
 
 @dataclass
 class whileStmt(Node):

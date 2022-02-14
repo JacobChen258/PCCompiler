@@ -1,4 +1,3 @@
-import argparse
 from ply import lex
 
 reserved = {
@@ -41,8 +40,6 @@ tokens = [
     'NOT',
     'XOR',
     'PERIOD',
-    'COMMA',
-    'COLON',
     'FUNCTIONANNOTATION',
     'NONE',
     'BOOL',
@@ -51,6 +48,7 @@ tokens = [
     'INTEGER',
     'ID',
     'NEWLINE',
+    'TAB', 
     'COLON',
     'COMMA',
 ] + list(reserved.values())
@@ -78,13 +76,14 @@ class pythonLexer():
     t_PERIOD = r'.'
     t_COMMA = r','
     t_COLON = r':'
-    t_FUNCTIONANNOTATION = r'(-\>)'
+    #t_FUNCTIONANNOTATION = r'(-\>)'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' '
-    literals = ".!@-`~\\/{}"
+    literals = ".!@-`~\\|/{}?'\""
 
     #keeps track number of tabs for each line number
     tab_list = []
+    lexLineNo = 1
 
 
     def t_NONE(self,t):
@@ -137,21 +136,32 @@ class pythonLexer():
     def t_NEWLINE(self,t):
         r'\n+'
         t.lexer.lineno += len(t.value)
+        self.lexLineNo = t.lexer.lineno
+        print("NewLine Stufffffff")
+        print(len(t.value))
+        print(t.lexer.lineno)
         return t
 
-    def t_tab(self, t):
+    def t_TAB(self, t):
         r'\t+'
-        tab_list.append([t.lexer.lineno, len(t.value)]) 
+        print("TAB TAB TAB TAB STUFFFFFF")
+        self.tab_list.append([t.lexer.lineno + 1, len(t.value)])
+        print(self.tab_list)
+
+    def t_FUNCTIONANNOTATION(self, t):
+        r'(-\>)'
+        return t
+
 
     def t_error(self,t):
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
 
     def getTabCount(self, lineNo):
-        for i in tab_list:
+        for i in self.tab_list:
             if i[0] == lineNo:
                 return i[1]
-            return 0
+        return 0
 
     def build(self, **kwargs):
         self.tokens = tokens
