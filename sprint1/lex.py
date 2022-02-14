@@ -153,6 +153,9 @@ class pythonLexer():
             if i[0] == lineNo:
                 return i[1]
         return 0
+    
+    def clearTabCount(self):
+        self.tab_list.clear()
 
     def build(self, **kwargs):
         self.tokens = tokens

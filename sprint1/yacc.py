@@ -324,9 +324,9 @@ class pythonParser:
         if len(p) == 5:
             p[0] = AST.rangeValues(stop=p[3], start=None, step=None)
         elif len(p) == 7:
-            p[0] = AST.rangeValues(stop=p[3], start=[5], step=None)
+            p[0] = AST.rangeValues(stop=p[3], start=p[5], step=None)
         else:
-            p[0] = AST.rangeValues(stop=p[3], start=[5], step=p[7])
+            p[0] = AST.rangeValues(stop=p[3], start=p[5], step=p[7])
 
     #for list and tuples
     def p_for_loop_lst(self, p):
@@ -356,7 +356,9 @@ class pythonParser:
         final_result.clear()
         result = self.parser.parse(data)
         statementBodyGenerator()
+        self.lexer.clearTabCount()
         return final_result
+
 
 
 
