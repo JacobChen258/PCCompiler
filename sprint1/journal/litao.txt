@@ -4,9 +4,9 @@ Group Members: Jathavan Sellathurai, Yifei Yin, and Litao Chen
 Sprint: 1
 
 Contributions:
- Yifei Yin (0%)
+ Yifei Yin (30%) did lex and yacc testing. set up the testing files and environment, give the AST.py and yacc.py starter code.
+ 
+ Jathavan Sellathurai (40%) did functions and statements in yacc.py, handled the space sensitivity in python language.
 
- Jathavan Sellathurai (0%)
-
- Litao Chen (0%)
+ Litao Chen (30%) did lex.py and primitive, non-primitive types in yacc.py, as well as the corresponding documentation.
 

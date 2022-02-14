@@ -1,13 +1,28 @@
 Name: Yifei Yin
 Student Number: 1004910670
 Group Members: Yifei Yin, Jathavan Sellathurai, Litao Chen
-Sprint: 0
+Sprint: 1
 
 Contributions:
 
-Yifei Yin 0%
+Yifei Yin 30%
+- Modified initial lex & parser file so they are useable
+- Created initial AST file, data structures
+- Created basic parsing parser file so that it produces an AST
+- Created initial testing setup and a few test cases
+- Modified testing to the file-oriented setup
+- Wrote documentation for the testing section
 
-Jathavan Sellathurai 0%
+Jathavan Sellathurai 40%
+- Created the parsing the indents
+- Created AST for parsing if/else/while/etc statements
+- Added tests for complex input structure
+- Wrote documentation for the abstract syntax tree section
 
-Litao Chen 0%
-
+Litao Chen 30%
+- Created initial lexer & parser file
+- Created and modified lexer to fix failed test cases
+- Added more test cases
+- Modified lexer so that the grammar is unambiguous
+- Wrote documentation for the abstract syntax tree section
+- Update BNF file to reflect our current grammar
