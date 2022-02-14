@@ -31,8 +31,6 @@ def test_simple_token(parser, test_name):
         output_str = None
 
     received = parser.parse(input_str)
-    print("received")
-    print(received)
     received_str = ""
     for i in received:
         received_str += format_parser_output(i)  + ' \n'

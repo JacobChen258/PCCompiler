@@ -18,7 +18,6 @@ statementNodeLst = []
 final_result = []
 
 def statementBodyGenerator():
-    #print("dsfsaddfasdadadsasdas")
     stack = []
     current_statement_with_body = None # the statement that is being considered for any child statements
     expected_tab_count = 0
@@ -26,7 +25,6 @@ def statementBodyGenerator():
     for statement in statementNodeLst:
         if statement.tabCount == expected_tab_count and current_statement_with_body != None:
             current_statement_with_body.astNode.body.append(statement.astNode)
-            print(current_statement_with_body.astNode.body)
         elif statement.tabCount < expected_tab_count:
             while statement.tabCount < expected_tab_count:
                 current_statement_with_body = stack.pop()
@@ -36,11 +34,7 @@ def statementBodyGenerator():
                 
         if statement.tabCount == 0:
             final_result.append(statement.astNode)
-            print("YESYESYESYES", statement.astNode)
-        else:
-            print("NONONOONONONO", statement.astNode)
         if statement.astNode.__class__.__name__ in statements_with_body:
-            print("DSFDADSSASADDAS")
             stack.append(statement)
             current_statement_with_body = statement
             if current_statement_with_body.astNode.body == None:
@@ -118,14 +112,11 @@ class pythonParser:
     def p_assignment(self, p):
         """assignment :  ID ASSIGN expression NEWLINE 
                       |  ID COLON type ASSIGN expression NEWLINE"""
-        print("Assignment")
-        print(p[3])
         if len(p) == 5:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
             # should the type be p[3].__class__.__name__?
         else:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
-        print(p[0])
 
     def p_expr_binary(self, p):
         """expression   : expression PLUS expression
@@ -242,11 +233,9 @@ class pythonParser:
         """statement : statement_no_new_line NEWLINE
                      | assignment
         """
-        print("STATEMENT STATEMENT STATEMENT STATEMENT STATEMENT")
         lineNo = self.lexer.lexLineNo
         tabCount = self.lexer.getTabCount(lineNo)
         statementNodeLst.append(statementNode(lineNo, tabCount, p[1]))
-        print("STATEMENT STATEMENT STATEMENT STATEMENT STATEMENT")
         p[0] = p[1]
 
     def p_statement_no_new_line(self, p):
@@ -365,24 +354,9 @@ class pythonParser:
     def parse(self, data):
         statementNodeLst.clear()
         final_result.clear()
-        print("DATA")
-        print(data)
         result = self.parser.parse(data)
-        print("Result")
-        print(result)
-        print("statementNodeList")
-        for i in statementNodeLst:
-            print("lineNo: ", i.lineNo)
-            print("tabCount: ", i.tabCount)
-            print("astNode: ", i.astNode)
-        print("Now body generator")
         statementBodyGenerator()
-        print("Final Result")
-        print(final_result)
-
-        print("Done parsing")
         return final_result
-        #return self.parser.parse(data)
 
 
 

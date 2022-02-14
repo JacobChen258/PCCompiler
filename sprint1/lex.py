@@ -138,7 +138,6 @@ class pythonLexer():
     def t_TAB(self, t):
         r'\t+'
         self.tab_list.append([t.lexer.lineno + 1, len(t.value)])
-        print(self.tab_list)
 
     def t_FUNCTIONANNOTATION(self, t):
         r'(-\>)'
