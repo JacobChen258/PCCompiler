@@ -12,10 +12,10 @@
   }
 } 
 {
-  "NODE": "forLoopRange",
+  "NODE": "ForLoopRange",
   "var": "i",
   "rangeVal": {
-    "NODE": "rangeValues",
+    "NODE": "RangeValues",
     "stop": {
       "NODE": "PrimitiveLiteral",
       "name": "int",
@@ -28,27 +28,13 @@
     },
     "step": null
   },
-  "body": [
-    {
-      "NODE": "functionCall",
-      "name": "bar",
-      "lst": {
-        "NODE": "argumentLst",
-        "lst": [
-          {
-            "NODE": "Id",
-            "name": "i"
-          }
-        ]
-      }
-    }
-  ]
+  "body": null
 } 
 {
-  "NODE": "functionCall",
+  "NODE": "FunctionCall",
   "name": "foo",
   "lst": {
-    "NODE": "argumentLst",
+    "NODE": "ArgumentLst",
     "lst": [
       {
         "NODE": "Id",

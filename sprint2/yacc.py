@@ -254,7 +254,7 @@ class pythonParser:
     def p_function_dec(self, p):
         """function_dec : DEF ID LPAREN parameter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
 
-        p[0] = AST.functionDef(name=p[2], lst=p[4], body=None, returnType=p[7])
+        p[0] = AST.FunctionDef(name=p[2], lst=p[4], body=None, returnType=p[7])
 
     def p_parameter_or_empty(self, p):
         """parameter_or_empty : parameter_lst
@@ -262,7 +262,7 @@ class pythonParser:
         if len(p) == 1:
             p[0] = AST.paramterLst(lst=None)
         else:
-            p[0] = AST.parameterLst(lst=p[1])
+            p[0] = AST.ParameterLst(lst=p[1])
 
     def p_parameter_lst(self, p):
         """parameter_lst : parameter_lst COMMA parameter
@@ -275,19 +275,19 @@ class pythonParser:
     def p_parameter(self, p):
         """parameter : ID COLON type"""
 
-        p[0] = AST.parameter(paramType=p[3], var=p[1])
+        p[0] = AST.Parameter(paramType=p[3], var=p[1])
 
     def p_function_call(self, p):
         """function_call : ID LPAREN argument_or_empty RPAREN"""
-        p[0] = AST.functionCall(name=p[1], lst=p[3])
+        p[0] = AST.FunctionCall(name=p[1], lst=p[3])
 
     def p_argument_or_empty(self, p):
         """argument_or_empty : argument_lst
                              | empty"""
         if len(p) == 1:
-            p[0] = AST.argumentLst(lst=None)
+            p[0] = AST.ArgumentLst(lst=None)
         else:
-            p[0] = AST.argumentLst(lst=p[1])
+            p[0] = AST.ArgumentLst(lst=p[1])
 
     def p_argument_lst(self, p):
         """argument_lst : argument_lst COMMA expression
@@ -299,7 +299,7 @@ class pythonParser:
 
     def p_return_stmt(self, p):
         """return_stmt : RETURN expression"""
-        p[0] = AST.returnStmt(stmt=p[2])
+        p[0] = AST.ReturnStmt(stmt=p[2])
 
     def p_if_statement(self, p):
         """if_statement : IF expression COLON"""
@@ -307,14 +307,14 @@ class pythonParser:
 
     def p_elif_statement(self, p):
         """elif_statement : ELIF expression COLON"""
-        p[0] = AST.elifStmt(elifCond=p[2], body=None)
+        p[0] = AST.ElifStmt(elifCond=p[2], body=None)
     def p_else_statement(self, p):
         """else_statement : ELSE COLON"""
-        p[0] = AST.elseStmt(body=None)
+        p[0] = AST.ElseStmt(body=None)
 
     def p_for_loop_range(self, p):
         """for_loop_range : FOR ID IN range COLON"""
-        p[0] = AST.forLoopRange(var=p[2], rangeVal=p[4], body=None)
+        p[0] = AST.ForLoopRange(var=p[2], rangeVal=p[4], body=None)
 
     def p_range(self, p):
         """range : RANGE LPAREN expression RPAREN
@@ -322,21 +322,21 @@ class pythonParser:
                  | RANGE LPAREN expression COMMA expression COMMA expression RPAREN"""
 
         if len(p) == 5:
-            p[0] = AST.rangeValues(stop=p[3], start=None, step=None)
+            p[0] = AST.RangeValues(stop=p[3], start=None, step=None)
         elif len(p) == 7:
-            p[0] = AST.rangeValues(stop=p[3], start=p[5], step=None)
+            p[0] = AST.RangeValues(stop=p[3], start=p[5], step=None)
         else:
-            p[0] = AST.rangeValues(stop=p[3], start=p[5], step=p[7])
+            p[0] = AST.RangeValues(stop=p[3], start=p[5], step=p[7])
 
     #for list and tuples
     def p_for_loop_lst(self, p):
         """for_loop_lst : FOR ID IN non_primitive_type COLON
                         | FOR ID IN ID COLON"""
-        p[0] = AST.forLoopList(var=p[2], Lst=p[4], body=None)
+        p[0] = AST.ForLoopList(var=p[2], Lst=p[4], body=None)
 
     def p_while_statement(self, p):
         """while_statement : WHILE expression COLON"""
-        p[0] = AST.whileStmt(cond=p[2], body=None)
+        p[0] = AST.WhileStmt(cond=p[2], body=None)
 
     def p_empty(self, p):
         """empty :"""

@@ -28,7 +28,7 @@ class Node():
 #         return output
 
 @dataclass
-class block(Node):
+class Block(Node):
     pass
 
 @dataclass
@@ -87,76 +87,76 @@ class Assignment(Node):
 @dataclass
 class IfStmt(Node):
     ifCond: Expression
-    body: block
+    body: Block
 
 @dataclass
-class elifStmt(Node):
+class ElifStmt(Node):
     elifCond: Expression
-    body: block
+    body: Block
 
 @dataclass
-class elseStmt(Node):
-    body: block
+class ElseStmt(Node):
+    body: Block
 
 @dataclass
-class whileStmt(Node):
+class WhileStmt(Node):
     cond: Expression
-    body: block
+    body: Block
 
 @dataclass
-class rangeValues(Node):
+class RangeValues(Node):
     stop: Union[int, None]
     start: Union[int, None]
     step: Union[int, None]
 
 @dataclass
-class forLoopRange(Node):
-    var: Id 
-    rangeVal: rangeValues
-    body: block
+class ForLoopRange(Node):
+    var: Id
+    rangeVal: RangeValues
+    body: Block
 
 @dataclass
-class forLoopList(Node):
+class ForLoopList(Node):
     var: Id
     Lst: NonPrimitiveLiteral
-    body: block
-    
+    body: Block
+
 @dataclass
-class parameter(Node):
+class Parameter(Node):
     paramType: Type
     var: Id
 
 @dataclass
-class parameterLst(Node):
-    lst: Union[List[parameter], None]
+class ParameterLst(Node):
+    lst: Union[List[Parameter], None]
 
 @dataclass
-class argumentLst(Node):
+class ArgumentLst(Node):
     lst: Union[List[Expression], None]
 
 @dataclass
-class functionDef(Node):
+class FunctionDef(Node):
     name: Id
-    lst: parameterLst
-    body: block
+    lst: ParameterLst
+    body: Block
     returnType: Union[Type, None]
 
 @dataclass
-class returnStmt(Node):
+class ReturnStmt(Node):
     stmt: Expression
-    
+
 
 @dataclass
-class functionCall(Node):
+class FunctionCall(Node):
     name: Id
-    lst: argumentLst
+    lst: ArgumentLst
 
 @dataclass
-class block(Node):
-    lst: List[Union[functionDef, returnStmt, functionCall, forLoopRange, forLoopList, whileStmt, \
-                    IfStmt, elifStmt, elseStmt, Assignment]]
+class Block(Node):
+    lst: List[Union[FunctionDef, ReturnStmt, FunctionCall, ForLoopRange, ForLoopList, WhileStmt, \
+                    IfStmt, ElifStmt, ElseStmt, Assignment]]
 
 
 
 
-    
+

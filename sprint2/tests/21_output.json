@@ -1,11 +1,11 @@
 {
-  "NODE": "functionDef",
+  "NODE": "FunctionDef",
   "name": "foo",
   "lst": {
-    "NODE": "parameterLst",
+    "NODE": "ParameterLst",
     "lst": [
       {
-        "NODE": "parameter",
+        "NODE": "Parameter",
         "paramType": {
           "NODE": "Type",
           "value": {
@@ -16,7 +16,7 @@
         "var": "x"
       },
       {
-        "NODE": "parameter",
+        "NODE": "Parameter",
         "paramType": {
           "NODE": "Type",
           "value": {
@@ -28,35 +28,7 @@
       }
     ]
   },
-  "body": [
-    {
-      "NODE": "Assignment",
-      "left": {
-        "NODE": "Id",
-        "name": "x"
-      },
-      "type": null,
-      "right": {
-        "NODE": "BinaryOperation",
-        "left": {
-          "NODE": "Id",
-          "name": "x"
-        },
-        "operator": "+",
-        "right": {
-          "NODE": "Id",
-          "name": "y"
-        }
-      }
-    },
-    {
-      "NODE": "returnStmt",
-      "stmt": {
-        "NODE": "Id",
-        "name": "x"
-      }
-    }
-  ],
+  "body": null,
   "returnType": {
     "NODE": "Type",
     "value": {
