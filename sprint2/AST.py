@@ -68,81 +68,81 @@ class Id(Node):
     name: str
 
 @dataclass
-class BinaryOperation(Node):
+class BinaryOperation(Node): # Jat
     left: Expression
     operator: str
     right: Expression
 
 @dataclass
-class UnaryOperation(Node):
+class UnaryOperation(Node): # Jat
     operator: str
     right: Expression
 
 @dataclass
-class Assignment(Node):
+class Assignment(Node): # Mostly done already
     left: Id
     type: Union[Type, None]
     right: Node
 
 @dataclass
-class IfStmt(Node):
+class IfStmt(Node): # Jat
     ifCond: Expression
     body: Block
 
 @dataclass
-class ElifStmt(Node):
+class ElifStmt(Node): # Jat
     elifCond: Expression
     body: Block
 
 @dataclass
-class ElseStmt(Node):
+class ElseStmt(Node): # Jat
     body: Block
 
 @dataclass
-class WhileStmt(Node):
+class WhileStmt(Node): # Jat
     cond: Expression
     body: Block
 
 @dataclass
-class RangeValues(Node):
+class RangeValues(Node): # Yifei
     stop: Union[int, None]
     start: Union[int, None]
     step: Union[int, None]
 
 @dataclass
-class ForLoopRange(Node):
+class ForLoopRange(Node): # Yifei
     var: Id
     rangeVal: RangeValues
     body: Block
 
 @dataclass
-class ForLoopList(Node):
+class ForLoopList(Node): # Yifei
     var: Id
     Lst: NonPrimitiveLiteral
     body: Block
 
 @dataclass
-class Parameter(Node):
+class Parameter(Node): # Jocob
     paramType: Type
     var: Id
 
 @dataclass
-class ParameterLst(Node):
+class ParameterLst(Node): # Jocob
     lst: Union[List[Parameter], None]
 
 @dataclass
-class ArgumentLst(Node):
+class ArgumentLst(Node): # Jocob
     lst: Union[List[Expression], None]
 
 @dataclass
-class FunctionDef(Node):
+class FunctionDef(Node): # Jocob
     name: Id
     lst: ParameterLst
     body: Block
     returnType: Union[Type, None]
 
 @dataclass
-class ReturnStmt(Node):
+class ReturnStmt(Node): # Jocob
     stmt: Expression
 
 
