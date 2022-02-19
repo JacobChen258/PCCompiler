@@ -1,0 +1,59 @@
+{
+  "NODE": "Assignment",
+  "left": {
+    "NODE": "Id",
+    "name": "a"
+  },
+  "type": null,
+  "right": {
+    "NODE": "PrimitiveLiteral",
+    "name": "int",
+    "value": 4
+  }
+} 
+{
+  "NODE": "forLoopRange",
+  "var": "i",
+  "rangeVal": {
+    "NODE": "rangeValues",
+    "stop": {
+      "NODE": "PrimitiveLiteral",
+      "name": "int",
+      "value": 10
+    },
+    "start": {
+      "NODE": "PrimitiveLiteral",
+      "name": "int",
+      "value": 3
+    },
+    "step": null
+  },
+  "body": [
+    {
+      "NODE": "functionCall",
+      "name": "bar",
+      "lst": {
+        "NODE": "argumentLst",
+        "lst": [
+          {
+            "NODE": "Id",
+            "name": "i"
+          }
+        ]
+      }
+    }
+  ]
+} 
+{
+  "NODE": "functionCall",
+  "name": "foo",
+  "lst": {
+    "NODE": "argumentLst",
+    "lst": [
+      {
+        "NODE": "Id",
+        "name": "a"
+      }
+    ]
+  }
+} 
