@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 
-from numpy import isin
-
-
 class ParseError(Exception): pass
 
 @dataclass

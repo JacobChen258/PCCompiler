@@ -105,9 +105,9 @@ class WhileStmt(Node): # Jat
 
 @dataclass
 class RangeValues(Node): # Yifei
-    stop: Union[int, None]
-    start: Union[int, None]
-    step: Union[int, None]
+    stop: Union[Expression, None]
+    start: Union[Expression, None]
+    step: Union[Expression, None]
 
 @dataclass
 class ForLoopRange(Node): # Yifei
@@ -118,7 +118,7 @@ class ForLoopRange(Node): # Yifei
 @dataclass
 class ForLoopList(Node): # Yifei
     var: Id
-    Lst: NonPrimitiveLiteral
+    Lst: Expression
     body: Block
 
 @dataclass

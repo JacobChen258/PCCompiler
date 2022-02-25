@@ -1,4 +1,5 @@
 import AST
+from sprint1.AST import PrimitiveType
 from symbol_table import SymbolTable, ParseError
 
 class TypeChecker:
@@ -38,9 +39,43 @@ class TypeChecker:
             variable_type = node.type
             assert variable_type is not None, f"When declaring {node.left.name}, type is missing"
             st.declare_variable(variable_name, variable_type)
-            assert variable_type == self.typecheck(node.right)
+            assert variable_type.type == self.typecheck(node.right)
         else:
             # Variable already exists, check the type of RHS
-            assert variable_type == self.typecheck(node.right)
+            assert variable_type.type == self.typecheck(node.right)
+
+        return variable_type.type
+
+
+    def check_RangeValues(self, node: AST.RangeValues, st: SymbolTable):
+        self.assert_same_type(AST.PrimitiveType(value='int'), self.typecheck(node.start.value))
+        if node.stop is not None:
+            self.assert_same_type(AST.PrimitiveType(value='int'), self.typecheck(node.stop.value))
+        if node.step is not None:
+            self.assert_same_type(AST.PrimitiveType(value='int'), self.typecheck(node.step.value))
+
+        return 'special:range_value'
+
+
+    def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable):
+        list_type = self.typecheck(node.Lst)
+        assert isinstance(list_type, AST.NonPrimitiveType)
+        assert isinstance(list_type.value, AST.PrimitiveType) # Does not allow nested list for now
+        st.push_scope()
+        st.declare_variable(node.var.name, list_type.value)
+
+        self.typecheck(node.body) # Block
+
+        return None
+
+
+    def check_ForLoopRange(self, node: AST.ForLoopRange, st: SymbolTable):
+        assert self.typecheck(node.rangeVal) == 'special:range_value'
+        st.push_scope()
+        st.declare_variable(node.var.name, PrimitiveType(value='int'))
+
+        self.typecheck(node.body) # Block
+
+        return None
 
 
