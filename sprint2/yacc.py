@@ -21,7 +21,7 @@ def statementBodyGenerator():
     stack = []
     current_statement_with_body = None # the statement that is being considered for any child statements
     expected_tab_count = 0
-    statements_with_body = ["IfStmt", "elifStmt", "elseStmt", "whileStmt", "forLoopRange", "forLoopList", "functionDef"]
+    statements_with_body = ["IfStmt", "ElifStmt", "ElseStmt", "WhileStmt", "ForLoopRange", "ForLoopList", "FunctionDef"]
     for statement in statementNodeLst:
         if statement.tabCount == expected_tab_count and current_statement_with_body != None:
             current_statement_with_body.astNode.body.append(statement.astNode)

@@ -28,7 +28,35 @@
       }
     ]
   },
-  "body": null,
+  "body": [
+    {
+      "NODE": "Assignment",
+      "left": {
+        "NODE": "Id",
+        "name": "x"
+      },
+      "type": null,
+      "right": {
+        "NODE": "BinaryOperation",
+        "left": {
+          "NODE": "Id",
+          "name": "x"
+        },
+        "operator": "+",
+        "right": {
+          "NODE": "Id",
+          "name": "y"
+        }
+      }
+    },
+    {
+      "NODE": "ReturnStmt",
+      "stmt": {
+        "NODE": "Id",
+        "name": "x"
+      }
+    }
+  ],
   "returnType": {
     "NODE": "Type",
     "value": {

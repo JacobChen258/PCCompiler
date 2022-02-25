@@ -28,7 +28,21 @@
     },
     "step": null
   },
-  "body": null
+  "body": [
+    {
+      "NODE": "FunctionCall",
+      "name": "bar",
+      "lst": {
+        "NODE": "ArgumentLst",
+        "lst": [
+          {
+            "NODE": "Id",
+            "name": "i"
+          }
+        ]
+      }
+    }
+  ]
 } 
 {
   "NODE": "FunctionCall",
