@@ -1,5 +1,6 @@
 from typing import Union, List
 from dataclasses import dataclass
+from __future__ import annotations
 
 class Node():
     pass
@@ -28,10 +29,6 @@ class Node():
 #         return output
 
 @dataclass
-class Block(Node):
-    pass
-
-@dataclass
 class PrimitiveType(Node):
     value: Union['str', 'int', 'float', 'bool']
 
@@ -50,7 +47,7 @@ class Type(Node):
 
 @dataclass
 class Expression(Node):
-    value: any #Union[BinaryOperation, UnaryOperation, Id, PrimitiveLiteral, NonPrimitiveLiteral]
+    value: Union[BinaryOperation, UnaryOperation, Id, PrimitiveLiteral, NonPrimitiveLiteral]
                # Commented out because python wants them to be defined first, which results in a circular dependency
 
 @dataclass
