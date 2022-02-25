@@ -66,23 +66,6 @@ class TypeChecker:
                 f"at node: {repr(node)}")
 
 
-    # def get_ParameterLst(self, node: AST.ParameterLst):
-    #     types = []
-    #     if node.lst:
-    #         for i in node.lst:
-    #             types.append(self.get_GenericType(i))
-    #     return types
-
-    # def get_Parameter(self, node: AST.Parameter):
-    #     return self.get_GenericType(node.paramType)
-
-    # def get_PrimitiveType(self, node: AST.PrimitiveType):
-    #     return Type(value=node)
-
-    # def get_NonPrimitiveType(self, node: AST.NonPrimitiveType):
-    #     return Type(value=node)
-
-
     def assert_same_type(self, t1: Type, t2: Type):
         """
         Helper function to check if two given type node is that of the
@@ -145,16 +128,5 @@ class TypeChecker:
             self.typecheck(body_statement, st)
         st.pop_scope()
         return None
-
-
-"""
-
-for a in [1,2,3]:
-    pass
-
-
-list_list_list_int
-
-"""
 
 

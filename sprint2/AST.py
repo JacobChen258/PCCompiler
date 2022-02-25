@@ -1,6 +1,6 @@
+from __future__ import annotations
 from typing import Union, List
 from dataclasses import dataclass
-from __future__ import annotations
 
 class Node():
     pass
