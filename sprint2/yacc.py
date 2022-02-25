@@ -95,9 +95,9 @@ class pythonParser:
         """non_primitive_type   : LBRACKET type RBRACKET
                                 | LPAREN type RPAREN"""
         if p[1] == '[':
-            p[0] = AST.NonPrimitiveType(name='list', type=p[2])
+            p[0] = AST.NonPrimitiveType(name='list', value=p[2])
         elif p[1] == '(':
-            p[0] = AST.NonPrimitiveType(name='tuple', type=p[2])
+            p[0] = AST.NonPrimitiveType(name='tuple', value=p[2])
         else:
             assert False
 

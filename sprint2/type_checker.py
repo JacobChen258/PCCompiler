@@ -12,7 +12,7 @@ class TypeChecker:
         return result_type
 
     def generic_typecheck(self, node, st=None):
-        assert False, '??'
+        raise Exception(f"Missing function check_{node.__class__.__name__}. Trying to process {node}")
         # if node is None:
         #     return ''
         # else:
@@ -27,12 +27,12 @@ class TypeChecker:
         else:
             return_type = None
 
-        st.declare_function(node.name.name, param_lst, return_type)
+        st.declare_function(node.name, param_lst, return_type)
         st.func_call_stack.append(return_type)
 
         st.push_scope()
 
-        for function_body_statement in node.body.lst:
+        for function_body_statement in node.body:
             self.typecheck(function_body_statement, st)
 
         st.pop_scope()
@@ -92,12 +92,12 @@ class TypeChecker:
             variable_type = node.type
             assert variable_type is not None, f"When declaring {node.left.name}, type is missing"
             st.declare_variable(variable_name, variable_type)
-            assert variable_type.type == self.typecheck(node.right, st)
+            assert variable_type == self.typecheck(node.right, st)
         else:
             # Variable already exists, check the type of RHS
-            assert variable_type.type == self.typecheck(node.right, st)
+            assert variable_type == self.typecheck(node.right, st)
 
-        return variable_type.type
+        return variable_type
 
 
     def check_RangeValues(self, node: AST.RangeValues, st: SymbolTable) -> None:
@@ -129,4 +129,19 @@ class TypeChecker:
         st.pop_scope()
         return None
 
+    def check_PrimitiveLiteral(self, node: AST.PrimitiveLiteral, st: SymbolTable) -> Type:
+        return Type(PrimitiveType(node.name))
 
+    def check_NonPrimitiveLiteral(self, node: AST.NonPrimitiveLiteral, st: SymbolTable) -> Type:
+        first_elem_type = None
+        for i, child in enumerate(node.children):
+            t = self.typecheck(child, st)
+            if first_elem_type is None:
+                first_elem_type = t
+            else:
+                try:
+                    self.assert_same_type(first_elem_type, t)
+                except ParseError:
+                    raise ParseError(f'Mismatched types in list literal, first element is of type {first_elem_type}, {i}-th element is of type {t}')
+
+        return Type(NonPrimitiveType(node.name, first_elem_type))
