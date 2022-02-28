@@ -145,3 +145,94 @@ class TypeChecker:
                     raise ParseError(f'Mismatched types in list literal, first element is of type {first_elem_type}, {i}-th element is of type {t}')
 
         return Type(NonPrimitiveType(node.name, first_elem_type))
+
+    #assert two node values are either int or float type
+    def assert_both_numbers(self, left: Type, right:Type) -> Type:
+        int_type = Type(PrimitiveType('int'))
+        float_type = Type(PrimitiveType('float'))
+
+        try:
+            self.assert_same_type(left, int_type)
+        except ParseError:
+            try:
+                self.assert_same_type(left, float_type)
+                is_float = True
+            except ParseError:
+                raise ParseError(f"Invalid Type on Binary Operator left={left}")
+        try:
+            self.assert_same_type(right, int_type)
+        except ParseError:
+            try:
+                self.assert_same_type(right, float_type)
+                is_float = True
+            except ParseError:
+                raise ParseError(f"Invalid Type on Binary Operator right={right}")
+        if is_float:
+            return float_type
+        return int_type
+
+    def check_BinaryOperation(self, node: AST.BinaryOperation, st: SymbolTable) -> Type:
+        numbers_only_operations = ["+", "-", "*", "/", "<", "<=", "=>", ">"]
+        int_type = Type(PrimitiveType('int'))
+        float_type = Type(PrimitiveType('float'))
+        
+        left = self.typecheck(node.left,  st)
+        right = self.typecheck(node.right, st)
+        if node.operator in numbers_only_operations:
+            is_float = False
+            t = self.assert_both_numbers(left, right)
+            return t       
+        else:
+            try:
+                #case when comparing numbers
+                t = self.assert_both_numbers(left, right)
+                return t
+            except ParseError:
+                try:
+                    #case when comparing bool, str etc
+                    t = self.assert_same_type(left, right)
+                    return t
+                except ParseError:
+                    raise ParseError(f"Type mismatch on Binary Operator left={left} right={right}")
+            
+    def check_UnaryOperation(self, node: AST.UnaryOperation, st: SymbolTable) -> Type:
+        int_type = Type(PrimitiveType('int'))
+        float_type = Type(PrimitiveType('float'))
+        cond_type = Type(PrimitiveType('bool'))
+
+        right = self.typecheck(node.right, st)
+
+        if node.operator == "-":
+            try:
+                self.assert_same_type(right, int_type)
+                return int_type
+            except ParseError:
+                try:
+                    self.assert_same_type(right, float_type)
+                    return float_type
+                except ParseError:
+                    raise ParseError(f"Invalid Type on Unary Operator right={right}")
+        else:
+            try:
+                self.assert_same_type(right, cond_type)
+                return cond_type
+            except ParseError:
+                raise ParseError(f"Invalid Type on Unary Operator right={right}")
+
+    def check_IfStmt(self, node:AST.IfStmt, st: SymbolTable) -> None:
+        cond_type = Type(PrimitiveType('bool'))
+        t = self.typecheck(node.ifCond, st)
+        self.assert_same_type(t, cond_type)
+
+    def check_ElifStmt(self, node:AST.ElifStmt, st: SymbolTable) -> None:
+        cond_type = Type(PrimitiveType('bool'))
+        t = self.typecheck(node.elifCond, st)
+        self.assert_same_type(t, cond_type)
+
+    def check_ElseStmt(self, node:AST.ElseStmt, st: SymbolTable) -> None:
+        pass
+
+    def check_WhileStmt(self, node:AST.WhileStmt, st: SymbolTable) -> None:
+        cond_type = Type(PrimitiveType('bool'))
+        t = self.typecheck(node.cond, st)
+        self.assert_same_type(t, cond_type)
