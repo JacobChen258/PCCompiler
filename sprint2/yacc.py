@@ -2,9 +2,14 @@
 from ply import yacc
 from lex import pythonLexer
 from lex import tokens
+from dataclasses import dataclass
 import AST
 
+@dataclass
 class statementNode():
+    lineNo: int
+    tabCount: int
+    astNode: AST.Node
     def __init__(self, lineNo, tabCount, astNode):
         self.lineNo = lineNo
         self.tabCount = tabCount
@@ -18,6 +23,7 @@ statementNodeLst = []
 final_result = []
 
 def statementBodyGenerator():
+    print(statementNodeLst)
     stack = []
     current_statement_with_body = None # the statement that is being considered for any child statements
     expected_tab_count = 0
@@ -231,11 +237,15 @@ class pythonParser:
 
     def p_statement(self, p):
         """statement : statement_no_new_line NEWLINE
+                     | statement_no_new_line
                      | assignment
         """
-        lineNo = self.lexer.lexLineNo
+        # get current line number
+        lineNo = self.lexer.lexLineNo[0]
         tabCount = self.lexer.getTabCount(lineNo)
         statementNodeLst.append(statementNode(lineNo, tabCount, p[1]))
+        # update current line number
+        self.lexer.lexLineNo[0] = self.lexer.lexLineNo[1]
         p[0] = p[1]
 
     def p_statement_no_new_line(self, p):
