@@ -29,8 +29,9 @@ class TypeChecker:
 
         st.declare_function(node.name, param_lst, return_type)
         st.func_call_stack.append(return_type)
-
         st.push_scope()
+        for param in param_lst:
+            st.declare_variable(param.var,param.paramType)
 
         for function_body_statement in node.body:
             self.typecheck(function_body_statement, st)
@@ -150,7 +151,7 @@ class TypeChecker:
     def assert_both_numbers(self, left: Type, right:Type) -> Type:
         int_type = Type(PrimitiveType('int'))
         float_type = Type(PrimitiveType('float'))
-
+        is_float = False
         try:
             self.assert_same_type(left, int_type)
         except ParseError:
@@ -245,3 +246,6 @@ class TypeChecker:
         for statement in node.body.lst:
             self.tyecheck(statement, st)
         st.pop_scope()
+
+    def check_Id(self,node: AST.Id,st:SymbolTable)->Type:
+        return st.lookup_variable(node.name)

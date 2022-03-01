@@ -52,7 +52,7 @@ class SymbolTable(object):
             if name in scope:
                 found = scope[name]
                 assert isinstance(found, Variable), f"When looking for {name}, found function when expecting variable"
-                return found
+                return found.type
         raise ParseError("Referencing undefined variable \"" + name + "\"", line_number)
 
 
@@ -65,11 +65,11 @@ class SymbolTable(object):
                 except ParseError:
                     pass # Expect the function to not be found
                 else:
-                    raise ParseError("Re-declaring function with same param types ""+name+""", line_number)
+                    raise ParseError("Re-declaring function with same param types \""+name+"\"", line_number)
 
                 self.scope_stack[-1][name].functions.append(function_to_be_declared)
             else:
-                raise ParseError("Re-declaring variable named "" + name + """, line_number)
+                raise ParseError("Function \"" + name + "\" is previously declared as variable", line_number)
 
         self.scope_stack[-1][name] = Functions([function_to_be_declared])
 

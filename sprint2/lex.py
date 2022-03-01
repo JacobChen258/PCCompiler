@@ -79,7 +79,9 @@ class pythonLexer():
 
     #keeps track number of tabs for each line number
     tab_list = []
-    lexLineNo = 1
+    # lexLineNo[0] is the current line number
+    # lexLineNo[1] is the line number after counting newline
+    lexLineNo = [1,1]
 
 
     def t_NONE(self,t):
@@ -132,12 +134,12 @@ class pythonLexer():
     def t_NEWLINE(self,t):
         r'\n+'
         t.lexer.lineno += len(t.value)
-        self.lexLineNo = t.lexer.lineno
+        self.lexLineNo[1] = t.lexer.lineno
         return t
 
     def t_TAB(self, t):
         r'\t+'
-        self.tab_list.append([t.lexer.lineno + 1, len(t.value)])
+        self.tab_list.append([t.lexer.lineno, len(t.value)])
 
     def t_FUNCTIONANNOTATION(self, t):
         r'(-\>)'
