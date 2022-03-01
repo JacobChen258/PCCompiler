@@ -220,19 +220,28 @@ class TypeChecker:
                 raise ParseError(f"Invalid Type on Unary Operator right={right}")
 
     def check_IfStmt(self, node:AST.IfStmt, st: SymbolTable) -> None:
-        cond_type = Type(PrimitiveType('bool'))
-        t = self.typecheck(node.ifCond, st)
-        self.assert_same_type(t, cond_type)
+        self.typecheck(node.ifCond, st)
+        st.push_scope()
+        for statement in node.body.lst:
+            self.typecheck(statement, st)
+        st.pop_scope()
 
     def check_ElifStmt(self, node:AST.ElifStmt, st: SymbolTable) -> None:
-        cond_type = Type(PrimitiveType('bool'))
-        t = self.typecheck(node.elifCond, st)
-        self.assert_same_type(t, cond_type)
+        self.typecheck(node.elifCond, st)
+        st.push_scope()
+        for statement in node.body.lst:
+            self.typecheck(statement, st)
+        st.pop_scope()
 
     def check_ElseStmt(self, node:AST.ElseStmt, st: SymbolTable) -> None:
-        pass
+        st.push_scope()
+        for statement in node.body.lst:
+            self.tyecheck(statement, st)
+        st.pop_scope()
 
     def check_WhileStmt(self, node:AST.WhileStmt, st: SymbolTable) -> None:
-        cond_type = Type(PrimitiveType('bool'))
-        t = self.typecheck(node.cond, st)
-        self.assert_same_type(t, cond_type)
+        self.typecheck(node.cond, st)
+        st.push_scope()
+        for statement in node.body.lst:
+            self.tyecheck(statement, st)
+        st.pop_scope()
