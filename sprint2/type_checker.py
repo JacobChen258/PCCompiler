@@ -176,13 +176,13 @@ class TypeChecker:
         numbers_only_operations = ["+", "-", "*", "/", "<", "<=", "=>", ">"]
         int_type = Type(PrimitiveType('int'))
         float_type = Type(PrimitiveType('float'))
-        
+
         left = self.typecheck(node.left,  st)
         right = self.typecheck(node.right, st)
         if node.operator in numbers_only_operations:
             is_float = False
             t = self.assert_both_numbers(left, right)
-            return t       
+            return t
         else:
             try:
                 #case when comparing numbers
@@ -195,7 +195,7 @@ class TypeChecker:
                     return t
                 except ParseError:
                     raise ParseError(f"Type mismatch on Binary Operator left={left} right={right}")
-            
+
     def check_UnaryOperation(self, node: AST.UnaryOperation, st: SymbolTable) -> Type:
         int_type = Type(PrimitiveType('int'))
         float_type = Type(PrimitiveType('float'))

@@ -37,7 +37,7 @@ def test_simple_token(parser, test_name):
 
     with open(f'./tests/{test_name}_received.json', 'w+') as f:
         f.write(received_str)
-    
+
     if output_str is not None:
         if received_str.strip().strip("\n") != output_str.strip().strip("\n"):
             diff = difflib.unified_diff(output_str.split('\n'), received_str.split('\n'), f"./tests/{test_name}_output.json", f"./tests/{test_name}_received.json", lineterm='')
