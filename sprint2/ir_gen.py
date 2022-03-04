@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import AST
 
 """
@@ -19,6 +20,36 @@ import AST
 - function call
 
 """
+
+@dataclass
+class IR_Label:
+    value: int
+
+@dataclass
+class IR_Goto:
+    label: int
+
+@dataclass
+class IR_BinaryOperation:
+    result_reg: int
+    left_reg: int
+    right_reg: int
+    operator: str
+
+@dataclass
+class IR_UnaryOperation:
+    result_reg: int
+    operator: str
+    operand_reg: int
+
+@dataclass
+class IR_PushParam:
+    reg: int
+
+@dataclass
+class IR_PopParam:
+    reg: int
+
 
 class IRGen:
     def __init__(self):
@@ -44,11 +75,11 @@ class IRGen:
         self.label_count += 1
         return self.label_count
 
-    def mark_label(self, label):
-        self.IR_lst.append("_L{}:".format(label))
+    def mark_label(self, label: int):
+        self.IR.append(IR_Label(value=label))
 
     def print_ir(self):
-        for ir in self.IR_lst:
+        for ir in self.IR:
             print(ir)
 
     ###################################
@@ -82,10 +113,19 @@ class IRGen:
         pass
 
     def gen_BinaryOperation(self, node: AST.BinaryOperation):
-        pass
+        left_reg = self.generate(node.left)
+        operator = node.operator
+        right_reg = self.generate(node.right)
+        result_reg = self.inc_register()
+        self.add_code(IR_BinaryOperation(result_reg=result_reg, left_reg=left_reg, right_reg=right_reg, operator=operator))
+        return result_reg
 
     def gen_UnaryOperation(self, node: AST.UnaryOperation):
-        pass
+        operator = node.operator
+        right_reg = self.generate(node.right)
+        result_reg = self.inc_register()
+        self.add_code(IR_UnaryOperation(result_reg=result_reg, operand_reg=right_reg, operator=operator))
+        return result_reg
 
     def gen_IfStmt(self, node: AST.IfStmt):
         pass
