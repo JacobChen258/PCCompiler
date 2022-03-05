@@ -174,7 +174,6 @@ class IRGen:
         # it is possible that false label has no content
         self.mark_label(fbranch_label)
         cond_label_idx_stack.append(len(self.IR))
-        print(cond_label_idx_stack)
         self.mark_label(cond_label_stack[-1])
 
     def gen_ElifStmt(self, node: AST.ElifStmt):
@@ -193,10 +192,10 @@ class IRGen:
         self.mark_label(fbranch_label)
         len_elif = len(self.IR)
         # insert elif IR
-        print(cond_label_idx_stack[-1])
         self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
         # update the true label index
         cond_label_idx_stack[-1] += len_elif
+
 
 
     def gen_ElseStmt(self, node: AST.ElseStmt):
@@ -208,7 +207,6 @@ class IRGen:
         self.IR = []
         for stmt in node.body:
             self.generate(stmt)
-        self.add_code(IR_Goto(cond_label_stack[-1]))
         # insert else IR
         self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
         # pop cond_label and cond_label_idx
