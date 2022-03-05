@@ -22,6 +22,7 @@ import AST
 """
 
 cond_label_stack = []
+cond_label_idx_stack = []
 
 @dataclass
 class IR_Label:
@@ -155,13 +156,64 @@ class IRGen:
         return result_reg
 
     def gen_IfStmt(self, node: AST.IfStmt):
-        pass
+        global cond_label_stack,cond_label_idx_stack
+        cond = self.generate(node.ifCond)
+
+        fbranch_label = self.inc_label()
+        cond_label_stack.append(self.inc_label())   # record the
+
+        # Skip to the false_body if the condition is not met
+        self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label),cond_reg=cond))
+        for stmt in node.body:
+            self.generate(stmt)
+        # End of true body
+        self.add_code(IR_Goto(cond_label_stack[-1]))
+
+        # mark false and true labels
+        # record the idx of true label for elif and else insertion
+        # it is possible that false label has no content
+        self.mark_label(fbranch_label)
+        cond_label_idx_stack.append(len(self.IR))
+        print(cond_label_idx_stack)
+        self.mark_label(cond_label_stack[-1])
 
     def gen_ElifStmt(self, node: AST.ElifStmt):
-        pass
+        global cond_label_stack, cond_label_idx_stack
+        # copy the whole IR to make sure that
+        # subsequent conditional stmts are in place
+        ir_copy = self.IR[:]
+        # reset IR
+        self.IR = []
+        cond = self.generate(node.elifCond)
+        fbranch_label = self.inc_label()
+        self.add_code(IR_ElifStmt(elif_false=IR_Goto(fbranch_label), cond_reg=cond))
+        for stmt in node.body:
+            self.generate(stmt)
+        self.add_code(IR_Goto(cond_label_stack[-1]))
+        self.mark_label(fbranch_label)
+        len_elif = len(self.IR)
+        # insert elif IR
+        print(cond_label_idx_stack[-1])
+        self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
+        # update the true label index
+        cond_label_idx_stack[-1] += len_elif
+
 
     def gen_ElseStmt(self, node: AST.ElseStmt):
-        pass
+        global cond_label_stack, cond_label_idx_stack
+        # copy the whole IR to make sure that
+        # subsequent conditional stmts are in place
+        ir_copy = self.IR[:]
+        # reset IR
+        self.IR = []
+        for stmt in node.body:
+            self.generate(stmt)
+        self.add_code(IR_Goto(cond_label_stack[-1]))
+        # insert else IR
+        self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
+        # pop cond_label and cond_label_idx
+        cond_label_idx_stack.pop(-1)
+        cond_label_stack.pop(-1)
 
     def gen_WhileStmt(self, node: AST.WhileStmt):
         pass
