@@ -23,7 +23,6 @@ statementNodeLst = []
 final_result = []
 
 def statementBodyGenerator():
-    print(statementNodeLst)
     stack = []
     current_statement_with_body = None # the statement that is being considered for any child statements
     expected_tab_count = 0
@@ -32,11 +31,12 @@ def statementBodyGenerator():
         if statement.tabCount == expected_tab_count and current_statement_with_body != None:
             current_statement_with_body.astNode.body.append(statement.astNode)
         elif statement.tabCount < expected_tab_count:
-            while statement.tabCount < expected_tab_count:
+            while stack and statement.tabCount <= current_statement_with_body.tabCount:
                 current_statement_with_body = stack.pop()
-                expected_tab_count -= 1
-            if statement.tabCount != 0 and current_statement_with_body != None:
+            if statement.tabCount > current_statement_with_body.tabCount:
+                expected_tab_count = statement.tabCount
                 current_statement_with_body.astNode.body.append(statement.astNode)
+                stack.append(current_statement_with_body)
 
         if statement.tabCount == 0:
             final_result.append(statement.astNode)
@@ -46,7 +46,7 @@ def statementBodyGenerator():
             if current_statement_with_body.astNode.body == None:
                 current_statement_with_body.astNode.body = []
             expected_tab_count += 1
-
+    return final_result
 
 class pythonParser:
     precedence = (
