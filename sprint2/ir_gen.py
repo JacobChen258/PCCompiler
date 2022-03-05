@@ -50,6 +50,18 @@ class IR_PushParam:
 class IR_PopParam:
     reg: int
 
+@dataclass
+class IR_FunctionCall:
+    name: str
+
+@dataclass
+class IR_FunctionReturn:
+    reg: int
+
+@dataclass
+class IR_ReturnStmt:
+    reg: int
+
 
 class IRGen:
     def __init__(self):
@@ -86,13 +98,31 @@ class IRGen:
 
 
     def gen_FunctionDef(self, node: AST.FunctionDef):
-        pass
+        skip_decl = self.inc_label()
+
+        self.add_code(IR_Goto(label=skip_decl))
+
+        self.mark_label(node.name)
+
+        ###InComplete
 
     def gen_FunctionCall(self, node: AST.FunctionCall):
-        pass
+        args = node.lst
+        for arg in args:
+            self.add_code(IR_PushParam(reg=self.generate(arg)))
+
+        self.add_code(IR_FunctionCall(name=node.name))
+
+        self.add_code(IR_PopParam(reg=len(arg)))
+        
+        reg = self.inc_register()
+        self.add_code(IR_FunctionReturn(reg=reg))
+
+        return reg
 
     def gen_ReturnStmt(self, node: AST.ReturnStmt):
-        pass
+        expr = self.generate(node.stmt)
+        self.add_code(IR_ReturnStmt(reg=expr))
 
     def gen_Assignment(self, node: AST.Assignment):
         pass
