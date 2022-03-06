@@ -33,6 +33,11 @@ class IR_Goto:
     label: int
 
 @dataclass
+class IR_PrimativeLiteral:
+    reg=int
+    val = any
+
+@dataclass
 class IR_BinaryOperation:
     result_reg: int
     left_reg: int
@@ -86,17 +91,61 @@ class IR_Assignment:
     name: str
     val: any
 
-#determines start and end of a list or tuple
+#determines start of a list or tuple
 @dataclass
 class IR_List:
     reg: int
-    operator: str #BEGIN_LIST, END_LIST, BEGIN_TUPLE, END_TUPLE 
+    operator: str #LIST, TUPLE 
+    length: int
 
 #represents individual elements in a list or tuple
 @dataclass
 class IR_List_VAL:
     reg: int
 
+@dataclass
+class IR_LoopStart:
+    reg: str
+    val: any
+
+@dataclass
+class IR_LoopStop:
+    reg: str
+    val: any
+
+@dataclass
+class IR_LoopStep:
+    reg: str
+    val: any
+
+@dataclass
+class IR_String:
+    reg: int
+    length: int
+
+@dataclass
+class IR_String_char:
+    reg: int
+    val: str
+
+@dataclass
+class IR_Parameter:
+    reg:int
+    length:int
+
+@dataclass
+class IR_Parameter_VAL:
+    reg:int
+    name:str
+
+@dataclass
+class IR_Argument:
+    reg: int
+    length: int
+
+@dataclass
+class IR_Argument_VAL:
+    reg: int
 
 class IRGen:
     def __init__(self):
@@ -117,14 +166,16 @@ class IRGen:
 
     def inc_register(self):
         self.register_count += 1
-        return self.register_count
+        return "_t{}".format(self.register_count)
 
     def reset_register(self):
         self.register_count = 0
 
-    def inc_label(self):
+    def inc_label(self,type=None):
         self.label_count += 1
-        return self.label_count
+        if type:
+            return "L_{}{}".format(type,self.label_count)
+        return "L_{}".format(self.label_count)
 
     def mark_label(self, label: int):
         self.IR.append(IR_Label(value=label))
@@ -143,16 +194,24 @@ class IRGen:
 
         self.mark_label(node.name)
 
-        ###InComplete
+        params = node.lst
+        params_reg = self.inc_register()
+        self.add_code(IR_Parameter(reg=params_reg, length=len(params)))
+        for param in params:
+            param_reg = self.inc_register()
+
+
+
+        
 
     def gen_FunctionCall(self, node: AST.FunctionCall):
         args = node.lst
+        arg_reg = self.inc_register()
+        self.add_code(IR_Argument(reg=arg_reg, length=len(args)))
         for arg in args:
-            self.add_code(IR_PushParam(reg=self.generate(arg)))
+            self.add_code(IR_Argument_VAL(reg=self.generate(arg)))
 
         self.add_code(IR_FunctionCall(name=node.name))
-
-        self.add_code(IR_PopParam(reg=len(arg)))
         
         reg = self.inc_register()
         self.add_code(IR_FunctionReturn(reg=reg))
@@ -164,22 +223,77 @@ class IRGen:
         self.add_code(IR_ReturnStmt(reg=expr))
 
     def gen_Assignment(self, node: AST.Assignment):
-        self.add_code(IR_Assignment(name=node.left,val=self.generate(node.right)))
-
-    def gen_RangeValues(self, node: AST.RangeValues):
-        pass
+        self.add_code(IR_Assignment(name=self.generate(node.left),val=self.generate(node.right)))
+        return node.left
 
     def gen_ForLoopList(self, node: AST.ForLoopList):
         pass
 
+    def gen_RangeValues(self, node:AST.RangeValues):
+        start_reg = self.inc_register()
+        stop_reg = self.inc_register()
+        step_reg = self.inc_register()
+        if node.start:
+            self.add_code(IR_LoopStart(reg=start_reg, val=self.generate(node.start)))
+        else:
+            self.add_code(IR_LoopStart(reg=start_reg, val=self.generate(0)))
+        self.add_code(IR_LoopStop(reg=stop_reg, val=self.generate(node.stop)))
+        if node.step:
+            self.add_code(IR_LoopStep(reg=step_reg, val=self.generate(node.step)))
+        else:
+            self.add_code(IR_LoopStep(reg=step_reg, val=1))
+        return [start_reg,step_reg,stop_reg]
+
     def gen_ForLoopRange(self, node: AST.ForLoopRange):
-        pass
+        range = self.generate(node.rangeVal)
+        t_label = self.inc_label("FOR")
+        f_label = self.inc_label()
+        self.add_code(IR_Assignment(name=node.var, val=range[0]))
+        self.mark_label(t_label)
+        cond_reg = self.inc_register()
+        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=node.var, right_reg=range[2], operator="<"))
+        self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
+        for body in node.body:
+            self.generate(body)
+        self.add_code(IR_BinaryOperation(result_reg=range[0], left_reg=node.var, right_reg=range[1], operator="+"))
+        self.add_code(IR_Assignment(name=node.var,val=range[0]))
+        self.add_code(IR_Goto(t_label))
+        self.mark_label(f_label)
+
+
+    def gen_WhileStmt(self, node: AST.WhileStmt):
+        t_label = self.inc_label("WHILE")
+        f_label = self.inc_label()
+        self.mark_label(t_label)
+        cond = self.generate(node.cond)
+        self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond))
+        for body in node.body:
+            self.generate(body)
+        self.add_code(IR_Goto(t_label))
+        self.mark_label(f_label)
 
     def gen_PrimitiveLiteral(self, node: AST.PrimitiveLiteral):
-        return node.value
+        prim_reg = self.inc_register()
+        if type(node.val) == str:
+            self.add_code(IR_String(reg=prim_reg, length=len(nod.val)))
+            for c in node.val:
+                string_reg = self.inc_register()
+                self.add_code(IR_String_char(reg=string_reg, val=c))
+        else:
+            self.add_code(IR_PrimativeLiteral(reg=prim_reg, val))
+        return prim_reg
 
     def gen_NonPrimitiveLiteral(self, node: AST.NonPrimitiveLiteral):
-        return node.children
+        begin = self.inc_register()
+        if node.name == "list":
+            self.add_code(IR_List(operator="LIST", reg=begin, length=len(node.value)))
+        else:
+            self.add_code(IR_List(operator="TUPLE", reg=begin, length=len(node.value)))
+
+        for element in node.value:
+            self.add_code(IR_List_VAL(self.generate(element)))
+
+        return begin
 
     def gen_BinaryOperation(self, node: AST.BinaryOperation):
         left_reg = self.generate(node.left)
@@ -254,30 +368,10 @@ class IRGen:
         cond_label_idx_stack.pop(-1)
         cond_label_stack.pop(-1)
 
-    def gen_WhileStmt(self, node: AST.WhileStmt):
-        pass
-
     def gen_Id(self, node: AST.Id):
         return node.name
 
-    #Non primative types including lists and tuples
-    def gen_List(self, node: AST.NonPrimitiveType):
-        begin = self.inc_register()
-        end_operator = ''
-        if node.name == "list":
-            self.add_code(IR_List(operator="BEGIN_LIST", reg=begin))
-            end_operator = "END_LIST"
-        else:
-            self.add_code(IR_List(operator="BEGIN_TUPLE", reg=begin))
-            end_operator = "END_TUPLE"
 
-        for element in node.value:
-            self.add_code(IR_List_VAL(self.generate(element)))
-
-        end = self.inc_register()
-        self.add_code(IR_List(operator=end_operator, reg=end))
-
-        return begin
 
 
 
