@@ -26,7 +26,7 @@
       }
     ]
   }
-} 
+}
 {
   "NODE": "ForLoopList",
   "var": {
@@ -91,20 +91,61 @@
                   }
                 ]
               }
+            }
+          ]
+        },
+        {
+          "NODE": "ElifStmt",
+          "elifCond": {
+            "NODE": "BinaryOperation",
+            "left": {
+              "NODE": "Id",
+              "name": "d"
             },
+            "operator": ">=",
+            "right": {
+              "NODE": "PrimitiveLiteral",
+              "name": "int",
+              "value": 7
+            }
+          },
+          "body": [
             {
-              "NODE": "ElifStmt",
-              "elifCond": {
+              "NODE": "FunctionCall",
+              "name": "foo",
+              "lst": {
+                "NODE": "ArgumentLst",
+                "lst": [
+                  {
+                    "NODE": "Id",
+                    "name": "d"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "NODE": "ElseStmt",
+          "body": [
+            {
+              "NODE": "Assignment",
+              "left": {
+                "NODE": "Id",
+                "name": "b"
+              },
+              "type": null,
+              "right": {
                 "NODE": "BinaryOperation",
                 "left": {
                   "NODE": "Id",
-                  "name": "d"
+                  "name": "b"
                 },
-                "operator": ">=",
+                "operator": "+",
                 "right": {
                   "NODE": "PrimitiveLiteral",
                   "name": "int",
-                  "value": 7
+                  "value": 5
                 }
               },
               "body": {
@@ -173,7 +214,7 @@
       }
     ]
   }
-} 
+}
 {
   "NODE": "Assignment",
   "left": {
@@ -186,4 +227,4 @@
     "name": "float",
     "value": 10.0
   }
-} 
+}
