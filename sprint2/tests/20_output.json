@@ -33,7 +33,10 @@
     "NODE": "Id",
     "name": "i"
   },
-  "Lst": "a",
+  "Lst": {
+    "NODE": "Id",
+    "name": "a"
+  },
   "body": {
     "NODE": "Block",
     "lst": [

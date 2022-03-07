@@ -5,15 +5,18 @@ from lex import tokens
 from dataclasses import dataclass
 import AST
 
+
 @dataclass
 class statementNode():
     lineNo: int
     tabCount: int
     astNode: AST.Node
+
     def __init__(self, lineNo, tabCount, astNode):
         self.lineNo = lineNo
         self.tabCount = tabCount
         self.astNode = astNode
+
 
 lst_stack = []
 tup_stack = []
@@ -22,9 +25,10 @@ statementNodeLst = []
 
 final_result = []
 
+
 def statementBodyGenerator():
     stack = []
-    current_statement_with_body = None # the statement that is being considered for any child statements
+    current_statement_with_body = None  # the statement that is being considered for any child statements
     expected_tab_count = 0
     statements_with_body = ["IfStmt", "ElifStmt", "ElseStmt", "WhileStmt", "ForLoopRange", "ForLoopList", "FunctionDef"]
     for statement in statementNodeLst:
@@ -48,37 +52,33 @@ def statementBodyGenerator():
             expected_tab_count += 1
     return final_result
 
+
 class pythonParser:
     precedence = (
-        ('nonassoc', 'EQGREATER', 'EQLESS', 'GREATER', 'LESS', 'EQUAL', 'NOTEQUAL','XOR'),
+        ('nonassoc', 'EQGREATER', 'EQLESS', 'GREATER', 'LESS', 'EQUAL', 'NOTEQUAL', 'XOR'),
         ('left', 'OR', 'AND'),
         ('left', 'PLUS', 'MINUS'),
         ('left', 'TIMES', 'DIVIDE', 'MODULE'),
-        ('right','ASSIGN'),
+        ('right', 'ASSIGN'),
         ('right', 'UNARY'),
     )
 
     start = 'program'
-    def p_program(self,p):
-        """program  : statement
-                    | block"""
+
+    def p_program(self, p):
+        """program  : block"""
         p[0] = p[1]
 
-    def p_block(self,p):
-         """block    : statement_lst"""
-         p[0] = p[1]
-
-    def p_statement_lst(self, p):
-        """statement_lst : statement_lst statement
-                         |  statement"""
-        if len(p) == 2:
-            p[0] = [p[1]]
+    def p_block(self, p):
+        """block    : block statement
+                     | statement"""
+        if len(p) == 3:
+            p[0] = p[1] + [p[2]]
         else:
-            p[0] = p[1] +[p[2]]
+            p[0] = [p[1]]
 
     def p_expression(self, p):
         """expression : ID
-                      | assignment
                       | primitive_literal"""
         if type(p[1]) == str:  # It is ID
             p[0] = AST.Id(name=p[1])
@@ -106,7 +106,6 @@ class pythonParser:
             p[0] = AST.NonPrimitiveType(name='tuple', value=p[2])
         else:
             assert False
-
 
     def p_primitive_literal(self, p):
         """primitive_literal    : INTEGER
@@ -147,7 +146,7 @@ class pythonParser:
                     | NOT expression %prec UNARY"""
         p[0] = AST.UnaryOperation(operator=p[1], right=p[2])
 
-    def p_lst_empty(self,p):
+    def p_lst_empty(self, p):
         """
         expression : LBRACKET RBRACKET
         """
@@ -163,7 +162,6 @@ class pythonParser:
         else:
             lst = AST.NonPrimitiveLiteral(name='list', children=[p[2]])
         lst_stack.append(lst)
-
 
     def p_lst_body(self, p):
         """
@@ -183,22 +181,13 @@ class pythonParser:
         else:
             p[0] = lst_stack.pop()
 
-    def p_lst_append(self, p):
-        """
-        expression    : expression APPEND LPAREN expression RPAREN
-        """
-        if isinstance(p[1],AST.NonPrimitiveLiteral) and p[1].name == 'list':
-            p[1].children.append(p[5])
-        else:
-            self.p_error(p)
-
-    def p_tuple_empty(self,p):
+    def p_tuple_empty(self, p):
         """
         expression : LPAREN RPAREN
         """
-        p[0] = AST.NonPrimitiveLiteral(name='tuple',children=[])
+        p[0] = AST.NonPrimitiveLiteral(name='tuple', children=[])
 
-    def p_tuple_head(self,p):
+    def p_tuple_head(self, p):
         """
         tuple   : LPAREN expression COMMA expression
         """
@@ -210,7 +199,7 @@ class pythonParser:
             tup = AST.NonPrimitiveLiteral(name='tuple', children=[p[2], p[4]])
         tup_stack.append(tup)
 
-    def p_tuple_body(self,p):
+    def p_tuple_body(self, p):
         """
         tuple   : tuple COMMA expression
         """
@@ -228,12 +217,11 @@ class pythonParser:
         else:
             p[0] = tup_stack.pop()
 
-    def p_expr_paren(self,p):
+    def p_expr_paren(self, p):
         """
         expression  : LPAREN expression RPAREN
         """
         p[0] = p[2]
-
 
     def p_statement(self, p):
         """statement : statement_no_new_line NEWLINE
@@ -259,7 +247,6 @@ class pythonParser:
                                  | for_loop_range
                                  | for_loop_lst"""
         p[0] = p[1]
-
 
     def p_function_dec(self, p):
         """function_dec : DEF ID LPAREN parameter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
@@ -318,6 +305,7 @@ class pythonParser:
     def p_elif_statement(self, p):
         """elif_statement : ELIF expression COLON"""
         p[0] = AST.ElifStmt(elifCond=p[2], body=None)
+
     def p_else_statement(self, p):
         """else_statement : ELSE COLON"""
         p[0] = AST.ElseStmt(body=None)
@@ -338,10 +326,9 @@ class pythonParser:
         else:
             p[0] = AST.RangeValues(stop=p[3], start=p[5], step=p[7])
 
-    #for list and tuples
+    # for list and tuples
     def p_for_loop_lst(self, p):
-        """for_loop_lst : FOR ID IN non_primitive_type COLON
-                        | FOR ID IN ID COLON"""
+        """for_loop_lst : FOR ID IN expression COLON"""
         p[0] = AST.ForLoopList(var=AST.Id(name=p[2]), Lst=p[4], body=None)
 
     def p_while_statement(self, p):
@@ -354,12 +341,13 @@ class pythonParser:
 
     def p_error(self, p):
         print("Syntax error at token", p)
+        exit()
 
     def build(self, **kwargs):
         self.tokens = tokens
         self.lexer = pythonLexer()
         self.lexer.build()
-        self.parser = yacc.yacc(module=self,debug=True, **kwargs)
+        self.parser = yacc.yacc(module=self, debug=True, **kwargs)
 
     def parse(self, data):
         statementNodeLst.clear()
@@ -370,10 +358,6 @@ class pythonParser:
         return final_result
 
 
-
-
 if __name__ == "__main__":
     m = pythonParser()
     m.build()
-
-
