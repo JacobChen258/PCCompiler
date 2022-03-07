@@ -96,7 +96,7 @@ class IR_Assignment:
 @dataclass
 class IR_List:
     reg: int
-    operator: str #LIST, TUPLE 
+    operator: str #LIST, TUPLE
     length: int
 
 #represents individual elements in a list or tuple
@@ -196,7 +196,6 @@ class IRGen:
 
     ###################################
 
-
     def gen_FunctionDef(self, node: AST.FunctionDef):
         skip_decl = self.inc_label()
 
@@ -211,10 +210,6 @@ class IRGen:
             param_reg = self.inc_register()
             self.add_code(IR_Parameter_VAL(reg=param_reg, name=param.var))
 
-
-
-        
-
     def gen_FunctionCall(self, node: AST.FunctionCall):
         args = node.lst
         function_reg = self.inc_register()
@@ -224,7 +219,7 @@ class IRGen:
             self.add_code(IR_Argument_VAL(reg=self.generate(arg)))
 
         self.add_code(IR_FunctionCall(name=node.name, function_call_reg=function_reg))
-        
+
         reg = self.inc_register()
         self.add_code(IR_FunctionReturn(reg=reg))
 

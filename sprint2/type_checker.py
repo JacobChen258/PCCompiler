@@ -17,11 +17,6 @@ class TypeChecker:
 
     def generic_typecheck(self, node, st=None):
         raise Exception(f"Missing function check_{node.__class__.__name__}. Trying to process {node}")
-        # if node is None:
-        #     return ''
-        # else:
-        #     return ''.join(self.typecheck(c, st) for c_name, c in node.children())
-
 
     def check_FunctionDef(self, node: AST.FunctionDef, st: SymbolTable):
         param_lst = node.lst.lst or []
@@ -177,13 +172,9 @@ class TypeChecker:
 
     def check_BinaryOperation(self, node: AST.BinaryOperation, st: SymbolTable) -> Type:
         numbers_only_operations = ["+", "-", "*", "/", "<", "<=", "=>", ">"]
-        int_type = Type(PrimitiveType('int'))
-        float_type = Type(PrimitiveType('float'))
-
         left = self.typecheck(node.left,  st)
         right = self.typecheck(node.right, st)
         if node.operator in numbers_only_operations:
-            is_float = False
             t = self.assert_both_numbers(left, right)
             return t
         else:
