@@ -209,6 +209,7 @@ class IRGen:
         self.add_code(IR_Parameter(reg=params_reg, length=len(params)))
         for param in params:
             param_reg = self.inc_register()
+            self.add_code(IR_Parameter_VAL(reg=param_reg, name=param.var))
 
 
 
