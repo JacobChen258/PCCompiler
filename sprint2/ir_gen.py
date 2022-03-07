@@ -1,26 +1,6 @@
 from dataclasses import dataclass
 import AST
 
-"""
-- goto: label
-- op: left, right, operator, result
-- push-param: var
-- pop-param: var
-- if: var, label for false, label for end
-- elif: TODO
-- else: TODO
-- while: var, label for start, label for end
-
-- list: ???
-- for-loop: ???
-- string: ???
-
-- function declaration
-  - return statement
-- function call
-
-"""
-
 cond_label_stack = []
 cond_label_idx_stack = []
 
