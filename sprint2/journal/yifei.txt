@@ -5,13 +5,24 @@ Sprint: 2
 
 Contributions:
 
-Yifei Yin %
+Yifei Yin 30%
+- Created type checker starter code
+- Created type checker for assignment
+- Created IR starter code
+- Created ir gen for goto, label, operators, push/pop params
+- Created testing setup
+- Contributed to various design decisions (variable scoping, function signature, etc)
+- Drafted documentation for testing
 
+Jathavan Sellathurai 35%
+- Contributed to various design decisions (variable scoping, function signature, etc)
+- Created type checker for operators
+- Worked on ir gen for function declaration
+- Completed ir gen for list, for-loop and string
 
-Jathavan Sellathurai %
-
-
-Litao Chen %
-
-
+Litao Chen 35%
+- Contributed to various design decisions (variable scoping, function signature, etc)
+- Completed type checker for if-elif-else
+- Completed ir gen for if-elif-else
+- Completed ir gen for while
 
