@@ -83,14 +83,3 @@ class SymbolTable(object):
                         return f.return_type
 
         raise ParseError("Referencing undefined function \"" + name + "\"", line_number)
-
-
-    # def declare_function(self, name: str, param_types, return_type):
-    #     function_signature = f"{name}#{repr(param_types)}"
-    #     if function_signature in self.scope_stack[-1]:
-    #         raise ParseError("Redeclaring variable named \"" + name + "\"")
-    #     else:
-    #         self.scope_stack[-1][function_signature] = return_type
-
-    # def lookup_function(self, name, param_types):
-    #     function_signature = f"{name}#{repr(param_types)}"
