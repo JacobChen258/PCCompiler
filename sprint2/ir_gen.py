@@ -61,6 +61,7 @@ class IR_PopParam: # number of params to pop?
 @dataclass
 class IR_FunctionCall:
     name: str
+    reg: int
 
 @dataclass
 class IR_FunctionReturn:
@@ -141,6 +142,7 @@ class IR_Parameter_VAL:
 @dataclass
 class IR_Argument:
     reg: int
+    function_call_reg: int
     length: int
 
 @dataclass
@@ -214,12 +216,13 @@ class IRGen:
 
     def gen_FunctionCall(self, node: AST.FunctionCall):
         args = node.lst
+        function_reg = self.inc_register()
         arg_reg = self.inc_register()
-        self.add_code(IR_Argument(reg=arg_reg, length=len(args)))
+        self.add_code(IR_Argument(reg=arg_reg,function_call_reg=function_reg ,length=len(args)))
         for arg in args:
             self.add_code(IR_Argument_VAL(reg=self.generate(arg)))
 
-        self.add_code(IR_FunctionCall(name=node.name))
+        self.add_code(IR_FunctionCall(name=node.name, function_call_reg=function_reg))
         
         reg = self.inc_register()
         self.add_code(IR_FunctionReturn(reg=reg))
