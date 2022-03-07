@@ -53,7 +53,6 @@ if __name__ == "__main__":
         print("* Typechecking...")
     typechecker = TypeChecker()
     if root:
-        print(root)
         typechecker.do_typecheck(root, SymbolTable())
         ir_generator = IRGen()
         ir_generator.generate_IR(root)
