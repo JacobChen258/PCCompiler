@@ -32,7 +32,7 @@ class TypeChecker:
         for param in param_lst:
             st.declare_variable(param.var,param.paramType)
 
-        for function_body_statement in node.body:
+        for function_body_statement in node.body.lst:
             self.typecheck(function_body_statement, st)
 
         st.pop_scope()

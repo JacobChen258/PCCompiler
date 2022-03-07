@@ -201,24 +201,27 @@ class IRGen:
 
         self.add_code(IR_Goto(label=skip_decl))
 
-        self.mark_label(node.name)
+        function_label = self.inc_label(node.name)
+        self.mark_label(function_label)
 
         params = node.lst
         params_reg = self.inc_register()
-        self.add_code(IR_Parameter(reg=params_reg, length=len(params)))
-        for param in params:
+        self.add_code(IR_Parameter(reg=params_reg, length=len(params.lst or [])))
+        for param in (params.lst or []):
             param_reg = self.inc_register()
             self.add_code(IR_Parameter_VAL(reg=param_reg, name=param.var))
+
+        self.mark_label(skip_decl)
 
     def gen_FunctionCall(self, node: AST.FunctionCall):
         args = node.lst
         function_reg = self.inc_register()
         arg_reg = self.inc_register()
-        self.add_code(IR_Argument(reg=arg_reg,function_call_reg=function_reg ,length=len(args)))
-        for arg in args:
+        self.add_code(IR_Argument(reg=arg_reg,function_call_reg=function_reg, length=len(args.lst or [])))
+        for arg in args.lst or []:
             self.add_code(IR_Argument_VAL(reg=self.generate(arg)))
 
-        self.add_code(IR_FunctionCall(name=node.name, function_call_reg=function_reg))
+        self.add_code(IR_FunctionCall(name=node.name, reg=function_reg))
 
         reg = self.inc_register()
         self.add_code(IR_FunctionReturn(reg=reg))
