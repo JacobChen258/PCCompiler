@@ -5,6 +5,10 @@ from typing import Union
 
 class TypeChecker:
 
+    def do_typecheck(self,nodes,st=None):
+        for node in nodes:
+            self.typecheck(node,st)
+
     def typecheck(self, node, st=None) -> Union[Type, None]:
         method = 'check_' + node.__class__.__name__
         result_type = getattr(self, method, self.generic_typecheck)(node, st)
@@ -85,7 +89,6 @@ class TypeChecker:
 
     def check_Assignment(self, node: AST.Assignment, st: SymbolTable) -> Type:
         variable_name = node.left.name
-        variable_type = None
         try:
             variable_type = st.lookup_variable(variable_name)
         except ParseError:
@@ -237,14 +240,14 @@ class TypeChecker:
     def check_ElseStmt(self, node:AST.ElseStmt, st: SymbolTable) -> None:
         st.push_scope()
         for statement in node.body.lst:
-            self.tyecheck(statement, st)
+            self.typecheck(statement, st)
         st.pop_scope()
 
     def check_WhileStmt(self, node:AST.WhileStmt, st: SymbolTable) -> None:
         self.typecheck(node.cond, st)
         st.push_scope()
         for statement in node.body.lst:
-            self.tyecheck(statement, st)
+            self.typecheck(statement, st)
         st.pop_scope()
 
     def check_Id(self,node: AST.Id,st:SymbolTable)->Type:

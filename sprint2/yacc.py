@@ -29,13 +29,13 @@ def statementBodyGenerator():
     statements_with_body = ["IfStmt", "ElifStmt", "ElseStmt", "WhileStmt", "ForLoopRange", "ForLoopList", "FunctionDef"]
     for statement in statementNodeLst:
         if statement.tabCount == expected_tab_count and current_statement_with_body != None:
-            current_statement_with_body.astNode.body.append(statement.astNode)
+            current_statement_with_body.astNode.body.lst.append(statement.astNode)
         elif statement.tabCount < expected_tab_count:
             while stack and statement.tabCount <= current_statement_with_body.tabCount:
                 current_statement_with_body = stack.pop()
             if statement.tabCount > current_statement_with_body.tabCount:
                 expected_tab_count = statement.tabCount
-                current_statement_with_body.astNode.body.append(statement.astNode)
+                current_statement_with_body.astNode.body.lst.append(statement.astNode)
                 stack.append(current_statement_with_body)
 
         if statement.tabCount == 0:
@@ -44,7 +44,7 @@ def statementBodyGenerator():
             stack.append(statement)
             current_statement_with_body = statement
             if current_statement_with_body.astNode.body == None:
-                current_statement_with_body.astNode.body = []
+                current_statement_with_body.astNode.body = AST.Block(lst=[])
             expected_tab_count += 1
     return final_result
 
@@ -324,7 +324,7 @@ class pythonParser:
 
     def p_for_loop_range(self, p):
         """for_loop_range : FOR ID IN range COLON"""
-        p[0] = AST.ForLoopRange(var=p[2], rangeVal=p[4], body=None)
+        p[0] = AST.ForLoopRange(var=AST.Id(name=p[2]), rangeVal=p[4], body=None)
 
     def p_range(self, p):
         """range : RANGE LPAREN expression RPAREN
@@ -342,7 +342,7 @@ class pythonParser:
     def p_for_loop_lst(self, p):
         """for_loop_lst : FOR ID IN non_primitive_type COLON
                         | FOR ID IN ID COLON"""
-        p[0] = AST.ForLoopList(var=p[2], Lst=p[4], body=None)
+        p[0] = AST.ForLoopList(var=AST.Id(name=p[2]), Lst=p[4], body=None)
 
     def p_while_statement(self, p):
         """while_statement : WHILE expression COLON"""

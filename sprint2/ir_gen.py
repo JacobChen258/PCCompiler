@@ -33,9 +33,9 @@ class IR_Goto:
     label: int
 
 @dataclass
-class IR_PrimativeLiteral:
-    reg=int
-    val = any
+class IR_PrimitiveLiteral:
+    reg: int
+    val: any
 
 @dataclass
 class IR_BinaryOperation:
@@ -253,7 +253,7 @@ class IRGen:
         cond_reg = self.inc_register()
         self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=node.var, right_reg=range[2], operator="<"))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
-        for body in node.body:
+        for body in node.body.lst:
             self.generate(body)
         self.add_code(IR_BinaryOperation(result_reg=range[0], left_reg=node.var, right_reg=range[1], operator="+"))
         self.add_code(IR_Assignment(name=node.var,val=range[0]))
@@ -267,30 +267,30 @@ class IRGen:
         self.mark_label(t_label)
         cond = self.generate(node.cond)
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond))
-        for body in node.body:
+        for body in node.body.lst:
             self.generate(body)
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
     def gen_PrimitiveLiteral(self, node: AST.PrimitiveLiteral):
         prim_reg = self.inc_register()
-        if type(node.val) == str:
-            self.add_code(IR_String(reg=prim_reg, length=len(nod.val)))
-            for c in node.val:
+        if node.name == "str":
+            self.add_code(IR_String(reg=prim_reg, length=len(node.value)))
+            for c in node.value:
                 string_reg = self.inc_register()
                 self.add_code(IR_String_char(reg=string_reg, val=c))
         else:
-            self.add_code(IR_PrimativeLiteral(reg=prim_reg, val))
+            self.add_code(IR_PrimitiveLiteral(reg=prim_reg, val=node.value))
         return prim_reg
 
     def gen_NonPrimitiveLiteral(self, node: AST.NonPrimitiveLiteral):
         begin = self.inc_register()
         if node.name == "list":
-            self.add_code(IR_List(operator="LIST", reg=begin, length=len(node.value)))
+            self.add_code(IR_List(operator="LIST", reg=begin, length=len(node.children)))
         else:
-            self.add_code(IR_List(operator="TUPLE", reg=begin, length=len(node.value)))
+            self.add_code(IR_List(operator="TUPLE", reg=begin, length=len(node.children)))
 
-        for element in node.value:
+        for element in node.children:
             self.add_code(IR_List_VAL(self.generate(element)))
 
         return begin
@@ -319,7 +319,7 @@ class IRGen:
 
         # Skip to the false_body if the condition is not met
         self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label),cond_reg=cond))
-        for stmt in node.body:
+        for stmt in node.body.lst:
             self.generate(stmt)
         # End of true body
         self.add_code(IR_Goto(cond_label_stack[-1]))
@@ -341,7 +341,7 @@ class IRGen:
         cond = self.generate(node.elifCond)
         fbranch_label = self.inc_label()
         self.add_code(IR_ElifStmt(elif_false=IR_Goto(fbranch_label), cond_reg=cond))
-        for stmt in node.body:
+        for stmt in node.body.lst:
             self.generate(stmt)
         self.add_code(IR_Goto(cond_label_stack[-1]))
         self.mark_label(fbranch_label)
@@ -360,7 +360,7 @@ class IRGen:
         ir_copy = self.IR[:]
         # reset IR
         self.IR = []
-        for stmt in node.body:
+        for stmt in node.body.lst:
             self.generate(stmt)
         # insert else IR
         self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
@@ -371,168 +371,3 @@ class IRGen:
     def gen_Id(self, node: AST.Id):
         return node.name
 
-
-
-
-
-"""
-    def gen_AssignStmt(self, node):
-        expr = self.generate(node.expr)
-        self.add_code("{} := {}".format(node.name, expr))
-        self.register_count = 0
-
-    def gen_BinOp(self, node):
-        # Left operand
-        left = self.generate(node.left)
-        # Right operand
-        right = self.generate(node.right)
-
-        reg = self.inc_register()
-        self.add_code("{} := {} {} {}".format('_t%d' % reg, left, node.op, right))
-
-        return '_t%d' % reg
-
-    def gen_Constant(self, node):
-        return node.value
-
-    def gen_DeclStmt(self, node):
-        expr = self.generate(node.expr)
-        self.add_code("{} := {}".format(node.name, expr))
-        self.register_count = 0
-
-    def gen_FuncCall(self, node):
-
-        # Push all of the arguments with "PushParam" function
-        args = node.children()
-        for (i, arg) in args:
-            self.add_code("PushParam %s" % self.generate(arg))
-
-        # Once all of the parameter has been pushed, actually call the function
-        self.add_code("FuncCall %s" % node.name)
-
-        # After we're done with the function, remove the spaces reserved
-        # for the arguments
-        self.add_code("PopParams %d" % len(args))
-
-        reg = self.inc_register()
-        self.add_code("{} := ret".format('_t%d' % reg))
-
-        return '_t%d' % reg
-
-    def gen_IfStmt(self, node):
-        cond = self.generate(node.cond)
-
-        fbranch_label = self.inc_label()
-        tbranch_label = self.inc_label()
-
-        # Skip to the false_body if the condition is not met
-        self.add_code("if !({}) goto {}".format(cond, '_L%d' % fbranch_label))
-        self.generate(node.true_body)
-        # Make sure the statements from false_body is skipped
-        self.add_code("goto _L%d" % tbranch_label)
-
-        self.mark_label(fbranch_label)
-        self.generate(node.false_body)
-        self.mark_label(tbranch_label)
-
-    def gen_MethodDecl(self, node):
-
-        skip_decl = self.inc_label()
-
-        # We want to skip the function code until it is called
-        self.add_code("goto _L%d" % skip_decl)
-
-        # Function label
-        self.mark_label(node.name)
-
-        # Allocate room for function local variables
-        self.add_code("BeginFunc")
-
-        # Actually generate the main body
-        self.generate(node.body)
-        self.generate(node.ret_stmt)
-
-        # Do any cleanup before jumping back
-        self.add_code("EndFunc")
-
-        self.mark_label(skip_decl)
-
-    def gen_Program(self, node):
-        for (child_name, child) in node.children():
-            self.generate(child)
-
-    def gen_RetStmt(self, node):
-        expr = self.generate(node.expr)
-        self.add_code("ret := {}".format(expr))
-
-    def gen_StmtList(self, node):
-        for stmt in node.stmt_lst:
-            self.generate(stmt)
-    
-        def gen_IfStmt(self, node: AST.IfStmt):
-        print("if statement")
-        cond = self.generate(node.ifCond)
-        fbranch_label = self.inc_label()
-        tbranch_label = None # This will be assigned,once all subsequent condition statements are done
-        sub_cond = None # This is for the elif and else statement
-
-        # Skip the statement body if the condition is false
-        self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label),cond_reg=cond))
-        for i in range(len(node.body)):
-            # check if elif or else exists, we need to generate their code separately
-            if node.body[i].__class__.__name__ == "ElifStmt" or node.body[i].__class__.__name__ == "ElseStmt":
-                sub_cond = node.body[i]
-            else:
-                self.generate(node.body[i])
-
-        tlabel_idx = len(self.IR)
-        self.add_code(tbranch_label) # make space for tlabel, will be updated later
-
-        self.mark_label(fbranch_label)
-        # to unify the tlabel for all subsequent conditional statements
-        # we let elif and else return the true label value
-        if sub_cond:
-            tbranch_label = self.generate(sub_cond)
-        else:
-            # if there is no elif or else, then just get the next label number
-            tbranch_label = self.inc_label()
-        # update IR
-        self.IR[tlabel_idx] = IR_Goto(tbranch_label)
-        # make the true label here instead of else stmt
-        self.mark_label(tbranch_label)
-
-    def gen_ElifStmt(self, node: AST.ElifStmt):
-        # same as ifStmt
-        cond = self.generate(node.elifCond)
-        fbranch_label = self.inc_label()
-        tbranch_label = None
-        sub_cond = None
-
-        self.add_code(IR_ElifStmt(elif_false=IR_Goto(fbranch_label), cond_reg=cond))
-        for i in range(len(node.body)):
-            if node.body[i].__class__.__name__ == "ElifStmt" or node.body[i].__class__.__name__ == "ElseStmt":
-                sub_cond = node.body[i]
-            else:
-                self.generate(node.body[i])
-
-        tlabel_idx = len(self.IR)
-        self.add_code(tbranch_label)
-
-        self.mark_label(fbranch_label)
-        if sub_cond:
-            tbranch_label = self.generate(sub_cond)
-        else:
-            tbranch_label = self.inc_label()
-        self.IR[tlabel_idx] = IR_Goto(tbranch_label)
-        # we don't mark label here, return tlabel instead
-        return tbranch_label
-
-    def gen_ElseStmt(self, node: AST.ElseStmt):
-        # elseStmt generate body and return the tlabel, nothing else
-        for i in range(len(node.body)):
-                self.generate(node.body[i])
-        tlabel = self.inc_label()
-        # no need goto here
-        return tlabel
-
-"""

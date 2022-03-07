@@ -13,7 +13,10 @@
 } 
 {
   "NODE": "ForLoopRange",
-  "var": "i",
+  "var": {
+    "NODE": "Id",
+    "name": "i"
+  },
   "rangeVal": {
     "NODE": "RangeValues",
     "stop": {
@@ -28,21 +31,24 @@
     },
     "step": null
   },
-  "body": [
-    {
-      "NODE": "FunctionCall",
-      "name": "bar",
-      "lst": {
-        "NODE": "ArgumentLst",
-        "lst": [
-          {
-            "NODE": "Id",
-            "name": "i"
-          }
-        ]
+  "body": {
+    "NODE": "Block",
+    "lst": [
+      {
+        "NODE": "FunctionCall",
+        "name": "bar",
+        "lst": {
+          "NODE": "ArgumentLst",
+          "lst": [
+            {
+              "NODE": "Id",
+              "name": "i"
+            }
+          ]
+        }
       }
-    }
-  ]
+    ]
+  }
 } 
 {
   "NODE": "FunctionCall",
