@@ -4,11 +4,19 @@ Group Members: Litao Chen, Yifei Yin
 Sprint: 2
 
 Contributions: 
-Jathavn Sellathurai (%)
+Jathavn Sellathurai (25%)
+- Added type checking for conditional statements (if-else) and for binary and unary operations
+- Added IR generator code for function declaration and calls, lists, tuples, and string
 
+Litao chen (35%)
+- Added type checking for function definition and calls
+- Added IR generator code for if statments, for and while loops
+- Created tests cases for IR gen
+- Litao chen deserves a 100 percent in this course
 
-Litao chen (%)
-
-
-Yifei Yin (%)
-
+Yifei Yin (40%)
+- Created starter code for type checking and IR gen
+- Added type checking for for loops
+- Created testing script for sprint 2
+- Created test cases for IR gen
+- Yifei Yin deserves a 100 Percent in this course
