@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from ply import yacc
-from .lex import pythonLexer
-from .lex import tokens
+from lex import pythonLexer
+from lex import tokens
 from dataclasses import dataclass
 import AST
 
