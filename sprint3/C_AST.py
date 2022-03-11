@@ -84,14 +84,28 @@ class Block:
 
 
 class CCodeGenerator:
-    def generate_code(self, root, indent=0):
+    function_declarations = []
+    function_definitions = []
+
+    def generate_code(self, root):
         structure = self.gen(root)
         formatted = self.generate_code_formatter(structure)
-        return formatted
+        declarations_str, definitions_str = self.generate_function_code()
+        return self.code_template(declarations_str, definitions_str, formatted)
+
+    def generate_function_code(self):
+        declarations_str = ";\n".join(self.function_declarations) + ";"
+        definitions_str = ""
+        for definition in self.function_definitions:
+            formatted = self.generate_code_formatter(definition)
+            definitions_str += formatted
+        return declarations_str, definitions_str
 
     def generate_code_formatter(self, structure, indent=0):
         result = ""
         for line in structure:
+            if line is None:
+                continue
             if isinstance(line, tuple):
                 code = self.generate_code_formatter(line, indent)
             elif isinstance(line, list):
@@ -101,31 +115,32 @@ class CCodeGenerator:
             result += code
         return result
 
-    def code_template(self, generated_code):
-        return """
-        #include <stdio.h>
-        #include <bool.h>
+    def code_template(self, function_declarations, function_definitions, main_code):
+        return f"""
+#include <stdio.h>
+#include <bool.h>
 
-        typedef int_t   long long;
-        typedef float_t double;
-        typedef bool_t  bool;
+typedef int_t   long long;
+typedef float_t double;
+typedef bool_t  bool;
 
-        /* Function declarations */
+/***** Function declarations *****/
+{function_declarations}
+/***** End of function declarations *****/
 
-        /* End of function declarations */
+/***** Function definitions *****/
+{function_definitions}
+/***** End of function definitions *****/
 
-        /* Function definitions */
 
-        /* End of function definitions */
+int main() {{
 
-        /* Main */
-        int main() {
+/***** Main *****/
+{main_code}
+/***** End of main *****/
 
-            /**********/
-
-            return 0;
-        }
-        /* End of main */
+    return 0;
+}}
         """
 
 
@@ -166,12 +181,14 @@ class CCodeGenerator:
         return ", ".join(self.gen(param) for param in node.lst)
 
     def gen_FunctionDeclaration(self, node: FunctionDeclaration):
-        function_definition = f"{self.gen(node.returnType)} {self.gen(node.name)}({self.gen(node.lst)})"
-        return (
-            function_definition + " {",
+        function_declaration = f"{self.gen(node.returnType)} {self.gen(node.name)}({self.gen(node.lst)})"
+        self.function_declarations.append(function_declaration)
+        self.function_definitions.append((
+            function_declaration + " {",
             self.gen(node.body),
             "} " f"/* End of {self.gen(node.name)} */",
-        )
+        ))
+        return None
 
     def gen_IfStmt(self, node: IfStmt):
         return (
