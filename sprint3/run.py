@@ -4,11 +4,11 @@ import argparse
 from yacc import pythonParser
 from symbol_table import SymbolTable
 from type_checker import TypeChecker
-import AST as ast
 from ir_gen import IRGen
 from C_AST_gen import CASTGenerator
 from C_AST import CCodeGenerator
-import os
+import subprocess
+
 
 if __name__ == "__main__":
 
@@ -67,7 +67,6 @@ if __name__ == "__main__":
         result_code = C_Code_gen.generate_code(C_AST)
         f = open("target_output.c","w")
         f.write(result_code)
-        exec('gcc target_output.c')
 
 
 
