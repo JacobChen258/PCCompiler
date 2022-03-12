@@ -74,13 +74,50 @@ class WhileStmt:
     body: Block
 
 @dataclass
+class RangeValues:
+    stop: Union[Expression, None]
+    start: Union[Expression, None]
+    step: Union[Expression, None]
+
+@dataclass
+class ForLoopRange:
+    var: Id
+    rangeVal: RangeValues
+    body: Block
+
+@dataclass
+class ForLoopList:
+    var: Id
+    Lst: Expression
+    body: Block
+
+@dataclass
 class Expression:
     value: Union[BinaryOperation, UnaryOperation, Id]
+
+@dataclass
+class ArgumentLst:
+    lst: Union[List[Expression], None]
+
+@dataclass
+class ReturnStmt:
+    stmt: Expression
+
+@dataclass
+class FunctionCall:
+    name: Id
+    lst: ArgumentLst
 
 @dataclass
 class Block:
     lst: List[Union[FunctionDeclaration, ReturnStmt, FunctionCall, ForLoopRange, ForLoopList, WhileStmt, \
                     IfStmt, ElifStmt, ElseStmt, BinaryOperation, UnaryOperation]]
+
+@dataclass
+class Assignment:
+    id : Id
+    type: Union[Type,NonPrimitiveType,None]
+    val: any
 
 
 class CCodeGenerator:
@@ -217,3 +254,4 @@ int main() {{
             self.gen(node.body),
             "}",
         )
+

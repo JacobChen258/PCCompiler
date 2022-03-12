@@ -146,6 +146,7 @@ class IRGen:
     def generate_IR(self,nodes):
         for node in nodes:
             self.generate(node)
+        return self.IR
 
     def generate(self, node):
         method = 'gen_' + node.__class__.__name__
@@ -181,7 +182,7 @@ class IRGen:
 
         self.add_code(IR_Goto(label=skip_decl))
 
-        function_label = self.inc_label(node.name)
+        function_label = self.inc_label("FUNC"+node.name)
         self.mark_label(function_label)
 
         params = node.lst

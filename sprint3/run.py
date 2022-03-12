@@ -6,6 +6,7 @@ from symbol_table import SymbolTable
 from type_checker import TypeChecker
 import AST as ast
 from ir_gen import IRGen
+from C_AST_gen import CASTGenerator
 
 if __name__ == "__main__":
 
@@ -53,7 +54,12 @@ if __name__ == "__main__":
         print("* Typechecking...")
     typechecker = TypeChecker()
     if root:
-        typechecker.do_typecheck(root, SymbolTable())
+        st = SymbolTable()
+        typechecker.do_typecheck(root, st)
         ir_generator = IRGen()
-        ir_generator.generate_IR(root)
+        ir = ir_generator.generate_IR(root)
         ir_generator.print_ir()
+        C_AST_gen = CASTGenerator()
+        C_AST = C_AST_gen.generate_AST(ir=ir,st=st)
+
+
