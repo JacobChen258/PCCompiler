@@ -154,11 +154,11 @@ class CCodeGenerator:
     def code_template(self, function_declarations, function_definitions, main_code):
         return f"""
 #include <stdio.h>
-#include <bool.h>
+#include <stdbool.h>
 
-typedef int_t   long long;
-typedef float_t double;
-typedef bool_t  bool;
+typedef long long int_t;
+typedef double float_t;
+typedef bool bool_t;
 
 /***** Function declarations *****/
 {function_declarations}
