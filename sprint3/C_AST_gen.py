@@ -1,25 +1,32 @@
-from C_AST import *
+import C_AST
 from ir_gen import *
 
 
 class CASTGenerator:
     seen_labels = []    # Labels have seen
     waiting_labels = []     # Labels have not seen
-    declared_vars = []   # Keep track of declared variables
-    C_AST = []
+    temp_st = {}   # Keep track of declared variables
+    result_AST = []
+
     def generate_AST(self, ir,st=None):
         self.ir = ir[:]
         while self.ir:
-            self.C_AST.append(self.gen(self.ir.pop(),st))
-        return self.C_AST
+            ir_line = self.ir.pop(0)
+            self.result_AST += self.gen(ir_line, st)
+        return C_AST.Block(self.result_AST)
 
-    def gen(self, ir_line):
+    def gen(self, ir_line,st=None):
         method = 'gen_' + ir_line.__class__.__name__
         try:
-            return getattr(self, method)(ir_line)
+            return getattr(self, method)(ir_line,st)
         except AttributeError:
             print(f"Trying to process ir {ir_line}")
             raise
+
+    def lookup_temp(self,name):
+        if name in self.temp_st:
+            return self.temp_st[name]
+        return None
 
     def gen_IR_Label(self, ir_node:IR_Label,st=None):
         if "FOR" in ir_node.value:
@@ -43,13 +50,57 @@ class CASTGenerator:
         self.waiting_labels.append(ir_node.label)
 
     def gen_IR_PrimitiveLiteral(self,ir_node:IR_PrimitiveLiteral,st=None):
-        pass
+        ''' All primitive literal are assigned to register'''
+        type_val = type(ir_node.val)
+        # String is not represented as primitive literal in IR
+        if type_val == int:
+            type_val = 'int_t'
+        elif type_val == float:
+            type_val = "float_t"
+        else:
+            type_val = "bool_t"
+        # Primitive Literal Reg will not be assigned again
+        self.temp_st[ir_node.reg] = type_val
+        id_node = C_AST.Id(name=ir_node.reg)
+        decl_node = C_AST.Declaration(id = id_node,type=C_AST.Type(value=type_val))
+        return [decl_node,C_AST.Assignment(id=id_node,val=ir_node.val)]
 
     def gen_IR_BinaryOperation(self,ir_node:IR_BinaryOperation,st=None):
-        pass
+        result_node = C_AST.Id(name=ir_node.result_reg)
+        left_node = C_AST.Id(name=ir_node.left_reg)
+        right_node = C_AST.Id(name=ir_node.right_reg)
+        operation_node = C_AST.BinaryOperation(left=result_node,
+                                               operator=ir_node.operator,
+                                               operand_a=left_node,
+                                               operand_b=right_node)
+        if not self.lookup_temp(ir_node.result_reg):
+            # need assignment
+            # should we consider string here?
+            if ir_node.operator in ["<", "<=", "=>", ">"]:
+                type_t = 'bool_t'
+            else:
+                operand_t = [self.lookup_temp(ir_node.left_reg),self.lookup_temp(ir_node.right_reg)]
+                if 'float_t' in operand_t:
+                    type_t = 'float_t'
+                else:
+                    type_t = 'int_t'
+            self.temp_st[ir_node.result_reg] = type_t
+            decl_node = C_AST.Declaration(id=result_node,type=C_AST.Type(value=type_t))
+            return [decl_node,operation_node]
+        return [operation_node]
 
     def gen_IR_UnaryOperation(self,ir_node:IR_UnaryOperation,st=None):
-        pass
+        result_node = C_AST.Id(name=ir_node.result_reg)
+        operand_node = C_AST.Id(name=ir_node.left_reg)
+        operation_node = C_AST.UnaryOperation(left=result_node,operator=ir_node.operator,operand=operand_node)
+        if not self.lookup_temp(ir_node.result_reg):
+            if ir_node.operator == "!":
+                type_t = "bool_t"
+            else:
+                type_t = self.lookup_temp(ir_node.operand_reg)
+            decl_node = C_AST.Declaration(id=result_node,type=C_AST.Type(value=type_t))
+            return [decl_node,operation_node]
+        return [operation_node]
 
     def gen_IR_PushParam(self,ir_node:IR_PushParam,st=None):  # should it be just value rather than register?
         pass
@@ -79,7 +130,14 @@ class CASTGenerator:
         pass
 
     def gen_IR_Assignment(self,ir_node:IR_Assignment,st=None):
-        pass
+        id_node = C_AST.Id(name=ir_node.name)
+        stmt_node = C_AST.Assignment(id=id_node,val=ir_node.val)
+        if not self.lookup_temp(name=ir_node.name):
+            type_t = self.lookup_temp(name=ir_node.val)
+            self.temp_st[ir_node.name] = type_t
+            decl_node = C_AST.Declaration(id=id_node,type=C_AST.Type(type_t))
+            return [decl_node,stmt_node]
+        return [stmt_node]
 
     def gen_IR_List(self,ir_node:IR_List,st=None):
         pass

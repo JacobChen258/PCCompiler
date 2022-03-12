@@ -114,15 +114,6 @@ class pythonParser:
                                 | BOOL"""
         p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
 
-    def p_assignment(self, p):
-        """assignment :  ID ASSIGN expression NEWLINE
-                      |  ID COLON type ASSIGN expression NEWLINE"""
-        if len(p) == 5:
-            p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
-            # should the type be p[3].__class__.__name__?
-        else:
-            p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
-
     def p_expr_binary(self, p):
         """expression   : expression PLUS expression
                         | expression MINUS expression
@@ -334,6 +325,15 @@ class pythonParser:
     def p_while_statement(self, p):
         """while_statement : WHILE expression COLON"""
         p[0] = AST.WhileStmt(cond=p[2], body=None)
+
+    def p_assignment(self, p):
+        """assignment :  ID ASSIGN expression NEWLINE
+                      |  ID COLON type ASSIGN expression NEWLINE"""
+        if len(p) == 5:
+            p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
+            # should the type be p[3].__class__.__name__?
+        else:
+            p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
 
     def p_empty(self, p):
         """empty :"""

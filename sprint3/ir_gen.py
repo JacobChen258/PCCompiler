@@ -182,7 +182,7 @@ class IRGen:
 
         self.add_code(IR_Goto(label=skip_decl))
 
-        function_label = self.inc_label("FUNC"+node.name)
+        function_label = self.inc_label("FUNC_"+node.name)
         self.mark_label(function_label)
 
         params = node.lst
@@ -226,7 +226,9 @@ class IRGen:
         # first index of array is the length of array
         self.add_code(IR_Assignment(name=length_reg, val=IR_Deref(pointer_reg=cur_ptr)))
         # go to next index, which has the actual value
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=1,operator="+"))
+        increment_reg = self.inc_register()
+        self.add_code(IR_Assignment(name=increment_reg, val=1))
+        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
         end_ptr = self.inc_register()
         # calculate address of final index
         self.add_code(IR_BinaryOperation(result_reg=end_ptr,left_reg=cur_ptr,right_reg=length_reg,operator="+"))
@@ -237,11 +239,11 @@ class IRGen:
         # check if current pointer address reached the end of address
         self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=cur_ptr, right_reg=end_ptr, operator="<"))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label),cond_reg=cond_reg))
-        self.add_code(IR_Assignment(name=node.var,val=IR_Deref(pointer_reg=cur_ptr)))
+        self.add_code(IR_Assignment(name=self.generate(node.var),val=IR_Deref(pointer_reg=cur_ptr)))
         for node in node.body.lst:
             self.generate(node)
         # increment idx
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=1,operator="+"))
+        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
@@ -264,15 +266,15 @@ class IRGen:
         range = self.generate(node.rangeVal)
         t_label = self.inc_label("FOR")
         f_label = self.inc_label()
-        self.add_code(IR_Assignment(name=node.var, val=range[0]))
+        self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
         self.mark_label(t_label)
         cond_reg = self.inc_register()
-        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=node.var, right_reg=range[2], operator="<"))
+        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=self.generate(node.var), right_reg=range[2], operator="<"))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
         for body in node.body.lst:
             self.generate(body)
-        self.add_code(IR_BinaryOperation(result_reg=range[0], left_reg=node.var, right_reg=range[1], operator="+"))
-        self.add_code(IR_Assignment(name=node.var,val=range[0]))
+        self.add_code(IR_BinaryOperation(result_reg=range[0], left_reg=self.generate(node.var), right_reg=range[1], operator="+"))
+        self.add_code(IR_Assignment(name=self.generate(node.var),val=range[0]))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 

@@ -116,7 +116,6 @@ class Block:
 @dataclass
 class Assignment:
     id : Id
-    type: Union[Type,NonPrimitiveType,None]
     val: any
 
 
@@ -255,3 +254,7 @@ int main() {{
             "}",
         )
 
+    def gen_Assignment(self,node:Assignment):
+        if type(node.val) != Id:
+            return f"{self.gen(node.id)} = {node.val};"
+        return f"{self.gen(node.id)} = {self.gen(node.val)};"
