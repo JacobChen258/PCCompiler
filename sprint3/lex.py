@@ -14,6 +14,7 @@ reserved = {
     'str': 'TSTR',
     'float': "TFLOAT",
     'bool': "TBOOL",
+    'None': "NONE",
     'def': "DEF",
     'print': "PRINT",
     '.append': "APPEND"
@@ -83,12 +84,6 @@ class pythonLexer():
     # lexLineNo[0] is the current line number
     # lexLineNo[1] is the line number after counting newline
     lexLineNo = [1,1]
-
-
-    def t_NONE(self,t):
-        r'None'
-        t.value = None
-        return t
 
     def t_BOOL(self,t):
         r'(True)|(False)'
