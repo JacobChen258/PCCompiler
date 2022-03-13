@@ -1,6 +1,0 @@
-IR_PrimitiveLiteral(reg='_t1', val=1) 
-IR_PrimitiveLiteral(reg='_t2', val=1) 
-IR_PrimitiveLiteral(reg='_t3', val=2) 
-IR_BinaryOperation(result_reg='_t4', left_reg='_t2', right_reg='_t3', operator='+') 
-IR_BinaryOperation(result_reg='_t5', left_reg='_t1', right_reg='_t4', operator='+') 
-IR_Assignment(name='a', val='_t5') 
