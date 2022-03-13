@@ -165,7 +165,7 @@ class IRGen:
     def inc_label(self,type=None):
         self.label_count += 1
         if type:
-            return "L_{}{}".format(type,self.label_count)
+            return "L_{}_{}".format(type,self.label_count)
         return "L_{}".format(self.label_count)
 
     def mark_label(self, label: int):
@@ -210,6 +210,7 @@ class IRGen:
         return reg
 
     def gen_ReturnStmt(self, node: AST.ReturnStmt):
+        print("here")
         expr = self.generate(node.stmt)
         self.add_code(IR_ReturnStmt(reg=expr))
 

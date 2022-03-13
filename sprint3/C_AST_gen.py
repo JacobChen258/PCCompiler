@@ -1,18 +1,19 @@
 import C_AST
 from ir_gen import *
-
+from symbol_table import SymbolTable
+from typing import Union, List
+from AST import Type as A_Type
 
 class CASTGenerator:
-    seen_labels = []  # Labels have seen
-    waiting_labels = []  # Labels have not seen
-    temp_st = {}  # Keep track of declared variables
-    result_AST = []
-    end_if_labels = []  # value is a tuple (label name, head of if)
+
+    def __init__(self):
+        self.seen_labels = []  # Labels have seen
+        self.waiting_labels = []  # Labels have not seen
+        self.temp_st = SymbolTable()  # Keep track of declared variables
+        self.result_AST = []
+        self.end_if_labels = []  # value is a tuple (label name, head of if)
 
     def generate_AST(self, ir, st=None):
-        print("*******")
-        print(ir)
-        print("*******")
         self.ir = ir[:]
         while self.ir:
             ir_line = self.ir.pop(0)
@@ -27,11 +28,6 @@ class CASTGenerator:
             print(f"Trying to process ir {ir_line}")
             raise
 
-    def lookup_temp(self, name):
-        if name in self.temp_st:
-            return self.temp_st[name]
-        return None
-
     def gen_IR_Label(self, ir_node: IR_Label, st=None):
         if "FOR" in ir_node.value:
             # do something for FOR
@@ -42,16 +38,19 @@ class CASTGenerator:
         elif 'FUNC' in ir_node.value:
             # This is a function, we need the label at the top of waiting
             # to find the end of declaration
-            pass
+            # Based on our Function IR, return statement is required.
+            # Also, assume functions are declared in global scope
+            end_func_idx = ir_node.value.rfind("_")
+            return self._gen_IR_Func(self.ir.pop(),ir_node.value[7:end_func_idx],st)
         else:
             # other cases
             return ir_node.value
 
     def gen_IR_Goto(self, ir_node: IR_Goto, st=None):
-        if ir_node.label in self.seen_labels:
-            pass
-        # If label not in seen, it means the following code is in a block
-        self.waiting_labels.append(ir_node.label)
+        if ir_node.label not in self.seen_labels:
+            # If label not in seen, it means the following code is in a block
+            self.waiting_labels.append(ir_node.label)
+        return []
 
     def gen_IR_PrimitiveLiteral(self, ir_node: IR_PrimitiveLiteral, st=None):
         ''' All primitive literal are assigned to register'''
@@ -64,7 +63,7 @@ class CASTGenerator:
         else:
             type_val = "bool_t"
         # Primitive Literal Reg will not be assigned again
-        self.temp_st[ir_node.reg] = type_val
+        self.temp_st.declare_variable(name=ir_node.reg,type=C_AST.Type(value=type_val))
         id_node = C_AST.Id(name=ir_node.reg)
         decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type(value=type_val))
         return [decl_node, C_AST.Assignment(id=id_node, val=ir_node.val)]
@@ -77,18 +76,18 @@ class CASTGenerator:
                                                operator=ir_node.operator,
                                                operand_a=left_node,
                                                operand_b=right_node)
-        if not self.lookup_temp(ir_node.result_reg):
+        if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             # need assignment
             # should we consider string here?
             if ir_node.operator in ["<", "<=", "=>", ">", "=="]:
                 type_t = 'bool_t'
             else:
-                operand_t = [self.lookup_temp(ir_node.left_reg), self.lookup_temp(ir_node.right_reg)]
+                operand_t = [self.temp_st.lookup_variable(ir_node.left_reg).value, self.temp_st.lookup_variable(ir_node.right_reg).value]
                 if 'float_t' in operand_t:
                     type_t = 'float_t'
                 else:
                     type_t = 'int_t'
-            self.temp_st[ir_node.result_reg] = type_t
+            self.temp_st.declare_variable(name=ir_node.result_reg,type=C_AST.Type(value=type_t))
             decl_node = C_AST.Declaration(id=result_node, type=C_AST.Type(value=type_t))
             return [decl_node, operation_node]
         return [operation_node]
@@ -97,11 +96,11 @@ class CASTGenerator:
         result_node = C_AST.Id(name=ir_node.result_reg)
         operand_node = C_AST.Id(name=ir_node.left_reg)
         operation_node = C_AST.UnaryOperation(left=result_node, operator=ir_node.operator, operand=operand_node)
-        if not self.lookup_temp(ir_node.result_reg):
+        if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             if ir_node.operator == "!":
                 type_t = "bool_t"
             else:
-                type_t = self.lookup_temp(ir_node.operand_reg)
+                type_t = self.temp_st.lookup_variable(ir_node.operand_reg).value
             decl_node = C_AST.Declaration(id=result_node, type=C_AST.Type(value=type_t))
             return [decl_node, operation_node]
         return [operation_node]
@@ -119,7 +118,7 @@ class CASTGenerator:
         pass
 
     def gen_IR_ReturnStmt(self, ir_node: IR_ReturnStmt, st=None):
-        pass
+        return [C_AST.ReturnStmt(stmt=C_AST.Id(ir_node.reg))]
 
     def gen_IR_PushStack(self, ir_node: IR_PushStack, st=None):
         pass
@@ -133,17 +132,16 @@ class CASTGenerator:
         prev_node = None
         next_node = self.ir[idx]
         # if next node is not label or not the false label, then it is in body
-        print("=====================")
         while not (next_node.__class__.__name__ == 'IR_Label' and next_node.value == false_label):
             idx += 1
             prev_node = next_node
             next_node = self.ir[idx]
-            print(next_node)
         # based on the if stmt structure in IR, the end of if label must be before false label
         self.end_if_labels.append([prev_node.label, 0])
         if_node = C_AST.IfStmt(ifCond=C_AST.Id(name=ir_node.cond_reg), body=C_AST.Block([]))
         # signal is set to false when reaching the false label
         continue_sig = True
+        self.temp_st.push_scope()
         while continue_sig:
             node = self.ir.pop(0)
             val = self.gen(node, st)
@@ -152,7 +150,9 @@ class CASTGenerator:
             elif val:
                 if_node.body.lst += val
         # call elif to check if we have following elif
-        return self._gen_IR_ElifStmt(self.ir.pop(0), [if_node], st)
+        if_stmt = self._gen_IR_ElifStmt(self.ir.pop(0), [if_node], st)
+        self.temp_st.pop_scope()
+        return if_stmt
 
     def _gen_IR_ElifStmt(self, ir_node: any, if_stmt=None, st=None):
         idx = 0
@@ -165,10 +165,12 @@ class CASTGenerator:
             prev_node = next_node
             next_node = self.ir[idx]
             idx += 1
+        self.temp_st.push_scope()
         if next_node.__class__.__name__ == 'IR_Label':
             # if stmts is empty, there is not trailing if statements
             if not prev_node:
                 self.end_if_labels.pop()
+                self.temp_st.pop_scope()
                 return if_stmt
             result_stmt = C_AST.ElseStmt(body=C_AST.Block([]))
             cur_node = ir_node
@@ -181,9 +183,9 @@ class CASTGenerator:
                 if continue_sig:
                     cur_node = self.ir.pop(0)
         else:
-            # reach elif, stmts are the conditonal expression, need to be inserted before if head
+            # reach elif, stmts are the conditonal expression, need to be inserted before if head`
             cond_ast = []
-            cur_node = self.ir.pop(0)
+            cur_node = ir_node
             while cur_node.__class__.__name__ != 'IR_ElifStmt':
                 cond_ast += self.gen(cur_node, st)
                 cur_node = self.ir.pop(0)
@@ -201,15 +203,18 @@ class CASTGenerator:
         if_stmt.append(result_stmt)
         if result_stmt.__class__.__name__ == "ElseStmt":
             self.end_if_labels.pop()
+            self.temp_st.pop_scope()
             return if_stmt
-        return self._gen_IR_ElifStmt(self.ir.pop(0), if_stmt, st)
+        if_stmt = self._gen_IR_ElifStmt(self.ir.pop(0), if_stmt, st)
+        self.temp_st.pop_scope()
+        return if_stmt
 
     def gen_IR_Assignment(self, ir_node: IR_Assignment, st=None):
         id_node = C_AST.Id(name=ir_node.name)
         stmt_node = C_AST.Assignment(id=id_node, val=ir_node.val)
-        if not self.lookup_temp(name=ir_node.name):
-            type_t = self.lookup_temp(name=ir_node.val)
-            self.temp_st[ir_node.name] = type_t
+        if ir_node.name not in self.temp_st.scope_stack[-1]:
+            type_t = self.temp_st.lookup_variable(name=ir_node.val).value
+            self.temp_st.declare_variable(name=ir_node.name,type=C_AST.Type(type_t))
             decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type(type_t))
             return [decl_node, stmt_node]
         return [stmt_node]
@@ -235,11 +240,12 @@ class CASTGenerator:
     def gen_IR_String_char(self, ir_node: IR_String_char, st=None):
         pass
 
+    # IR_Parameter is redundant
     def gen_IR_Parameter(self, ir_node: IR_Parameter, st=None):
         pass
 
     def gen_IR_Parameter_VAL(self, ir_node: IR_Parameter_VAL, st=None):
-        pass
+        return ir_node.name
 
     def gen_IR_Argument(self, ir_node: IR_Argument, st=None):
         pass
@@ -252,3 +258,49 @@ class CASTGenerator:
 
     def gen_IR_Deref(self, ir_node: IR_Deref, st=None):
         pass
+
+    def _gen_IR_Func(self,ir_node:any,func_name:str,st:SymbolTable):
+        continue_sig = True
+        params = []
+        param_regs = []
+        while continue_sig:
+            cur_node = self.ir.pop(0)
+            val = self.gen(cur_node)
+            if val == self.waiting_labels[-1]:
+                self.seen_labels.append(self.waiting_labels.pop())
+                continue_sig = False
+            elif val:
+                params.append(val)
+                param_regs.append(cur_node.reg)
+        types = st.get_func_by_name(func_name,params)
+        converted_types = self.convert_types(types[0])
+        converted_ret_type = self.convert_types([types[1]])[0]
+        hash_name = self.temp_st.declare_C_function(func_name,converted_types,types[1])
+        self.temp_st.push_scope()
+        param_lst = C_AST.ParameterLst([])
+        for i in range(len(params)):
+            param_lst.lst.append(C_AST.Parameter(var=C_AST.Id(params[i]),paramType=converted_types[i]))
+            self.temp_st.declare_variable(params[i],converted_types[i])
+            self.temp_st.declare_variable(param_regs[i],converted_types[i])
+        func_node = C_AST.FunctionDeclaration(name=C_AST.Id(hash_name),lst=param_lst,body=C_AST.Block([]),\
+                                              returnType=converted_ret_type)
+        continue_sig = True
+        print("++++++++++++++++")
+        while continue_sig:
+            cur_node = self.ir.pop(0)
+            print(cur_node)
+            val = self.gen(cur_node,st)
+            if val and val[0].__class__.__name__ == "ReturnStmt":
+                continue_sig = False
+            if val:
+                func_node.body.lst += val
+        return [func_node]
+
+    def convert_types(self,param_types:List[A_Type]):
+        converted_types = []
+        for type in param_types:
+            if type.value.__class__.__name__ == "PrimitiveType":
+                converted_types.append(C_AST.Type(type.value.value+"_t"))
+            else:
+                converted_types.append(C_AST.NonPrimitiveType(type.value.name))
+        return converted_types
