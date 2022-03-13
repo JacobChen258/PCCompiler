@@ -31,9 +31,7 @@ def test_simple_token(parser, test_name):
         output_str = None
 
     received = parser.parse(input_str)
-    received_str = ""
-    for i in received:
-        received_str += format_parser_output(i)  + ' \n'
+    received_str = format_parser_output(received) + '\n'
 
     with open(f'./{test_dir}/{test_name}_received.json', 'w+') as f:
         f.write(received_str)

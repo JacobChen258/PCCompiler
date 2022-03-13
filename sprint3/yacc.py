@@ -94,7 +94,8 @@ class pythonParser:
         """primitive_type   : TINT
                             | TSTR
                             | TFLOAT
-                            | TBOOL"""
+                            | TBOOL
+                            | NONE"""
         p[0] = AST.PrimitiveType(value=p[1].lower())
 
     def p_non_primitive(self, p):
@@ -111,7 +112,8 @@ class pythonParser:
         """primitive_literal    : INTEGER
                                 | FLOAT
                                 | STRING
-                                | BOOL"""
+                                | BOOL
+                                | NONE"""
         p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
 
     def p_expr_binary(self, p):
@@ -241,14 +243,13 @@ class pythonParser:
 
     def p_function_dec(self, p):
         """function_dec : DEF ID LPAREN parameter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
-
         p[0] = AST.FunctionDef(name=p[2], lst=p[4], body=None, returnType=p[7])
 
     def p_parameter_or_empty(self, p):
         """parameter_or_empty : parameter_lst
                             | empty"""
         if len(p) == 1:
-            p[0] = AST.paramterLst(lst=None)
+            p[0] = AST.ParameterLst(lst=[])
         else:
             p[0] = AST.ParameterLst(lst=p[1])
 
