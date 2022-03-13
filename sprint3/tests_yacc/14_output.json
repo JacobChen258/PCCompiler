@@ -1,18 +1,11 @@
-{
-  "NODE": "Assignment",
-  "left": {
-    "NODE": "Id",
-    "name": "a"
-  },
-  "type": null,
-  "right": {
-    "NODE": "BinaryOperation",
+[
+  {
+    "NODE": "Assignment",
     "left": {
-      "NODE": "PrimitiveLiteral",
-      "name": "int",
-      "value": 1
+      "NODE": "Id",
+      "name": "a"
     },
-    "operator": "+",
+    "type": null,
     "right": {
       "NODE": "BinaryOperation",
       "left": {
@@ -22,10 +15,19 @@
       },
       "operator": "+",
       "right": {
-        "NODE": "PrimitiveLiteral",
-        "name": "int",
-        "value": 2
+        "NODE": "BinaryOperation",
+        "left": {
+          "NODE": "PrimitiveLiteral",
+          "name": "int",
+          "value": 1
+        },
+        "operator": "+",
+        "right": {
+          "NODE": "PrimitiveLiteral",
+          "name": "int",
+          "value": 2
+        }
       }
     }
   }
-} 
+]
