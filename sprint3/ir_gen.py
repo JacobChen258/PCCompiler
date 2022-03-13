@@ -191,7 +191,8 @@ class IRGen:
         for param in (params.lst or []):
             param_reg = self.inc_register()
             self.add_code(IR_Parameter_VAL(reg=param_reg, name=param.var))
-
+        for node in node.body.lst:
+            self.generate(node)
         self.mark_label(skip_decl)
 
     def gen_FunctionCall(self, node: AST.FunctionCall):
@@ -210,7 +211,6 @@ class IRGen:
         return reg
 
     def gen_ReturnStmt(self, node: AST.ReturnStmt):
-        print("here")
         expr = self.generate(node.stmt)
         self.add_code(IR_ReturnStmt(reg=expr))
 

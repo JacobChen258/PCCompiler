@@ -41,7 +41,7 @@ class CASTGenerator:
             # Based on our Function IR, return statement is required.
             # Also, assume functions are declared in global scope
             end_func_idx = ir_node.value.rfind("_")
-            return self._gen_IR_Func(self.ir.pop(),ir_node.value[7:end_func_idx],st)
+            return self._gen_IR_Func(self.ir.pop(0),ir_node.value[7:end_func_idx],st)
         else:
             # other cases
             return ir_node.value
@@ -240,7 +240,6 @@ class CASTGenerator:
     def gen_IR_String_char(self, ir_node: IR_String_char, st=None):
         pass
 
-    # IR_Parameter is redundant
     def gen_IR_Parameter(self, ir_node: IR_Parameter, st=None):
         pass
 
@@ -259,19 +258,15 @@ class CASTGenerator:
     def gen_IR_Deref(self, ir_node: IR_Deref, st=None):
         pass
 
-    def _gen_IR_Func(self,ir_node:any,func_name:str,st:SymbolTable):
-        continue_sig = True
+    def _gen_IR_Func(self,ir_node:IR_Parameter,func_name:str,st:SymbolTable):
         params = []
         param_regs = []
-        while continue_sig:
+        length = ir_node.length
+        for i in range(length):
             cur_node = self.ir.pop(0)
             val = self.gen(cur_node)
-            if val == self.waiting_labels[-1]:
-                self.seen_labels.append(self.waiting_labels.pop())
-                continue_sig = False
-            elif val:
-                params.append(val)
-                param_regs.append(cur_node.reg)
+            params.append(val)
+            param_regs.append(cur_node.reg)
         types = st.get_func_by_name(func_name,params)
         converted_types = self.convert_types(types[0])
         converted_ret_type = self.convert_types([types[1]])[0]
@@ -285,14 +280,13 @@ class CASTGenerator:
         func_node = C_AST.FunctionDeclaration(name=C_AST.Id(hash_name),lst=param_lst,body=C_AST.Block([]),\
                                               returnType=converted_ret_type)
         continue_sig = True
-        print("++++++++++++++++")
         while continue_sig:
             cur_node = self.ir.pop(0)
-            print(cur_node)
             val = self.gen(cur_node,st)
-            if val and val[0].__class__.__name__ == "ReturnStmt":
+            if val and val == self.waiting_labels[-1]:
+                self.seen_labels.append(self.waiting_labels.pop())
                 continue_sig = False
-            if val:
+            elif val:
                 func_node.body.lst += val
         return [func_node]
 

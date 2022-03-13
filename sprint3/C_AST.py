@@ -159,7 +159,8 @@ class CCodeGenerator:
 typedef long long int_t;
 typedef double float_t;
 typedef bool bool_t;
-
+bool True = true;
+bool False = false;
 /***** Function declarations *****/
 {function_declarations}
 /***** End of function declarations *****/
@@ -258,3 +259,6 @@ int main() {{
         if type(node.val) != Id:
             return f"{self.gen(node.id)} = {node.val};"
         return f"{self.gen(node.id)} = {self.gen(node.val)};"
+
+    def gen_ReturnStmt(self,node:ReturnStmt):
+        return f"return {self.gen(node.stmt)};"
