@@ -167,7 +167,8 @@ class CCodeGenerator:
 typedef long long int_t;
 typedef double float_t;
 typedef bool bool_t;
-
+bool True = true;
+bool False = false;
 /***** Function declarations *****/
 {function_declarations}
 /***** End of function declarations *****/
@@ -272,3 +273,4 @@ int main() {{
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
         return f"return {self.gen(node.value)}"
+
