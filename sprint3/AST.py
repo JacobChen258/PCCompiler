@@ -60,7 +60,7 @@ class NonPrimitiveLiteral(Node):
     name: Union['tuple', 'list']
     children: List[Union[any, None]]
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Id(Node):
     name: str
 

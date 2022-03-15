@@ -182,7 +182,7 @@ class IRGen:
 
         self.add_code(IR_Goto(label=skip_decl))
 
-        function_label = self.inc_label("FUNC_"+node.name)
+        function_label = self.inc_label("FUNC_"+node.name.name)
         self.mark_label(function_label)
 
         params = node.lst
