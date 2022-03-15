@@ -40,7 +40,7 @@ print(generator.generate_code(case3))
 # ]
 
 # @pytest.mark.parametrize("input_data, expected", cases)
-# def test_simple_token(lexer, input_data, expected):
+# def test_main_c_ast(lexer, input_data, expected):
 #     pass
     # result = lexer.test(input_data)
     # assert len(result) == 1, f"Expect 1, got {len(result)}: {[x.type for x in result]}"
