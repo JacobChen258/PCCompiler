@@ -16,8 +16,6 @@ reserved = {
     'bool': "TBOOL",
     'None': "NONE",
     'def': "DEF",
-    'print': "PRINT",
-    '.append': "APPEND"
 }
 
 tokens = [
@@ -41,16 +39,13 @@ tokens = [
     'OR',
     'NOT',
     'XOR',
-    'PERIOD',
     'FUNCTIONANNOTATION',
-    'NONE',
     'BOOL',
     'STRING',
     'FLOAT',
     'INTEGER',
     'ID',
     'NEWLINE',
-    'TAB',
     'COLON',
     'COMMA',
 ] + list(reserved.values())
@@ -72,7 +67,6 @@ class pythonLexer():
     t_GREATER = r'\>'
     t_LESS = r'\<'
     t_XOR = r'\^'
-    t_PERIOD = r'.'
     t_COMMA = r','
     t_COLON = r':'
     t_ignore_COMMENT = r'\#.*'
