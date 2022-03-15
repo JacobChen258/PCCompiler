@@ -120,7 +120,7 @@ class CASTGenerator:
         pass
 
     def gen_IR_ReturnStmt(self, ir_node: IR_ReturnStmt, st=None):
-        return [C_AST.ReturnStatement(stmt=C_AST.Id(ir_node.reg))]
+        return [C_AST.ReturnStatement(value=C_AST.Id(ir_node.reg))]
 
     def gen_IR_PushStack(self, ir_node: IR_PushStack, st=None):
         pass

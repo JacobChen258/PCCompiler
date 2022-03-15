@@ -26,7 +26,7 @@ class TypeChecker:
         else:
             return_type = None
 
-        st.declare_function(node.name, param_lst, return_type)
+        st.declare_function(node.name.name, param_lst, return_type)
         st.func_call_stack.append(return_type)
         st.push_scope()
         for param in param_lst:

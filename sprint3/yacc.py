@@ -243,7 +243,7 @@ class pythonParser:
 
     def p_function_dec(self, p):
         """function_dec : DEF ID LPAREN parameter_or_empty RPAREN FUNCTIONANNOTATION type COLON"""
-        p[0] = AST.FunctionDef(name=p[2], lst=p[4], body=None, returnType=p[7])
+        p[0] = AST.FunctionDef(name=AST.Id(name=p[2]), lst=p[4], body=None, returnType=p[7])
 
     def p_parameter_or_empty(self, p):
         """parameter_or_empty : parameter_lst
@@ -264,11 +264,11 @@ class pythonParser:
     def p_parameter(self, p):
         """parameter : ID COLON type"""
 
-        p[0] = AST.Parameter(paramType=p[3], var=p[1])
+        p[0] = AST.Parameter(paramType=p[3], var=AST.Id(name=p[1]))
 
     def p_function_call(self, p):
         """function_call : ID LPAREN argument_or_empty RPAREN"""
-        p[0] = AST.FunctionCall(name=p[1], lst=p[3])
+        p[0] = AST.FunctionCall(name=AST.Id(name=p[1]), lst=p[3])
 
     def p_argument_or_empty(self, p):
         """argument_or_empty : argument_lst

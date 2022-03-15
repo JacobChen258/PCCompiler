@@ -117,6 +117,7 @@ class Assignment:
     id : Id
     val: any
 
+@dataclass
 class ReturnStatement:
     value: Id
 
