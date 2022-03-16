@@ -7,6 +7,8 @@ class CASTGenerator:
     waiting_labels = []     # Labels have not seen
     temp_st = {}   # Keep track of declared variables
     result_AST = []
+    current_str = None
+    current_str_count = 0
 
     def generate_AST(self, ir,st=None):
         self.ir = ir[:]
@@ -155,10 +157,19 @@ class CASTGenerator:
         pass
 
     def gen_IR_String(self,ir_node:IR_String,st=None):
-        pass
+        current_str = C_AST.String(val="", len=node.length)
+        current_str_count = 0
+        return current_str
 
     def gen_IR_String_char(self,ir_node:IR_String_char,st=None):
-        pass
+        current_str.val = current_str.val + node.val
+        current_str_count += 1
+        if current_str_count == current_str.len:
+            current = current_str
+            current_str_count = 0
+            current_str = None
+            
+
 
     def gen_IR_Parameter(self,ir_node:IR_Parameter,st=None):
         pass

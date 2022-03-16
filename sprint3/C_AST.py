@@ -118,6 +118,11 @@ class Assignment:
     id : Id
     val: any
 
+@dataclass
+class String:
+    val = str
+    len = int
+
 
 class CCodeGenerator:
     function_declarations = []
@@ -226,6 +231,8 @@ int main() {{
         ))
         return None
 
+    def gen_FunctionCall(self, node: FunctionCall):
+
     def gen_IfStmt(self, node: IfStmt):
         return (
             f"if ({self.gen(node.ifCond)})" " {",
@@ -258,3 +265,6 @@ int main() {{
         if type(node.val) != Id:
             return f"{self.gen(node.id)} = {node.val};"
         return f"{self.gen(node.id)} = {self.gen(node.val)};"
+
+    def gen_String(self, node: String):
+        return "{" + ", ".join("\'" + i + "\'" for i in node.val) + ", \' \\0\'}"
