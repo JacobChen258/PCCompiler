@@ -34,7 +34,9 @@ def test_main_ir_gen(parser, test_name):
 
     received = parser.parse(input_str)
     tc = TypeChecker()
-    tc.typecheck(received[0], SymbolTable())
+    st = SymbolTable()
+    for block in received:
+        tc.typecheck(block, st)
     ir_generator = IRGen()
     ir_generator.generate_IR(received)
 
