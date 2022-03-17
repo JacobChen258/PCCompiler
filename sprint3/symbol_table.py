@@ -85,7 +85,7 @@ class SymbolTable(object):
                 return
             else:
                 raise ParseError("Function \"" + name + "\" is previously declared as variable", line_number)
-
+        self.func_call_stack.append(function_to_be_declared.return_type)
         self.scope_stack[-1][name] = Functions([function_to_be_declared])
 
 
