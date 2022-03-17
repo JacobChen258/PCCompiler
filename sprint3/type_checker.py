@@ -91,10 +91,14 @@ class TypeChecker:
             variable_type = node.type
             assert variable_type is not None, f"When declaring {node.left.name}, type is missing"
             st.declare_variable(variable_name, variable_type)
-            assert variable_type == self.typecheck(node.right, st)
+            rhs_type = self.typecheck(node.right, st)
+            if variable_type != rhs_type:
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
         else:
             # Variable already exists, check the type of RHS
-            assert variable_type == self.typecheck(node.right, st)
+            rhs_type = self.typecheck(node.right, st)
+            if variable_type != rhs_type:
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
 
         return variable_type
 
