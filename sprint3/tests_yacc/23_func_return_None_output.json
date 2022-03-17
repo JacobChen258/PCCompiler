@@ -1,7 +1,10 @@
 [
   {
     "NODE": "FunctionDef",
-    "name": "func",
+    "name": {
+      "NODE": "Id",
+      "name": "func"
+    },
     "lst": {
       "NODE": "ParameterLst",
       "lst": null

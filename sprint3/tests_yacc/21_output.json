@@ -1,7 +1,10 @@
 [
   {
     "NODE": "FunctionDef",
-    "name": "foo",
+    "name": {
+      "NODE": "Id",
+      "name": "foo"
+    },
     "lst": {
       "NODE": "ParameterLst",
       "lst": [
@@ -14,7 +17,10 @@
               "value": "int"
             }
           },
-          "var": "x"
+          "var": {
+            "NODE": "Id",
+            "name": "x"
+          }
         },
         {
           "NODE": "Parameter",
@@ -25,7 +31,10 @@
               "value": "int"
             }
           },
-          "var": "y"
+          "var": {
+            "NODE": "Id",
+            "name": "y"
+          }
         }
       ]
     },

@@ -79,7 +79,10 @@
                   "lst": [
                     {
                       "NODE": "FunctionCall",
-                      "name": "bar",
+                      "name": {
+                        "NODE": "Id",
+                        "name": "bar"
+                      },
                       "lst": {
                         "NODE": "ArgumentLst",
                         "lst": [
@@ -113,7 +116,10 @@
                   "lst": [
                     {
                       "NODE": "FunctionCall",
-                      "name": "foo",
+                      "name": {
+                        "NODE": "Id",
+                        "name": "foo"
+                      },
                       "lst": {
                         "NODE": "ArgumentLst",
                         "lst": [
@@ -161,7 +167,10 @@
         },
         {
           "NODE": "FunctionCall",
-          "name": "foobar",
+          "name": {
+            "NODE": "Id",
+            "name": "foobar"
+          },
           "lst": {
             "NODE": "ArgumentLst",
             "lst": [
