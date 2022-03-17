@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from AST import Type as A_Type
 from C_AST import Type as C_Type
-from typing import Union, List
-from AST import ParameterLst
+from typing import Union, List, Dict
+from AST import ParameterLst, PrimitiveType
 import random
+
 class ParseError(Exception): pass
 
 @dataclass
@@ -26,16 +27,37 @@ class C_Function():
 class Functions():
     functions: List[Union[Function, C_Function]]
 
+def _one_function_helper(param_name: str, param_type: str, return_type: Union[str, None]):
+    return Functions([Function(param_names=[param_name], param_types=[A_Type(PrimitiveType(param_type))], return_type=A_Type(PrimitiveType(return_type)))])
+
+global_functions: Dict[str, Functions] = {
+    'print_int': _one_function_helper('var', 'int', 'none'),
+    'print_float': _one_function_helper('var', 'float', 'none'),
+    # 'print_char': _one_function_helper('var', 'char', 'none'),
+    'print_str': _one_function_helper('var', 'str', 'none'),
+    'print_bool': _one_function_helper('var', 'bool', 'none'),
+    'println_int': _one_function_helper('var', 'int', 'none'),
+    'println_float': _one_function_helper('var', 'float', 'none'),
+    # 'println_char': _one_function_helper('var', 'char', 'none'),
+    'println_str': _one_function_helper('var', 'str', 'none'),
+    'println_bool': _one_function_helper('var', 'bool', 'none'),
+    'input_int': _one_function_helper('prompt', 'str', 'int'),
+    'input_float': _one_function_helper('prompt', 'str', 'float'),
+    # 'input_char': _one_function_helper('prompt', 'str', 'char'),
+    'input_bool': _one_function_helper('prompt', 'str', 'bool'),
+}
+
 class SymbolTable(object):
     """
     Base symbol table class
     """
 
     def __init__(self):
-        self.scope_stack = [dict()]
+        self.scope_stack = [global_functions]
         self.func_call_stack = []
         random.seed(9)
         self.random = random.sample(range(1000,9999),1000)
+
     def push_scope(self):
         self.scope_stack.append(dict())
 
