@@ -12,7 +12,7 @@ class TypeChecker:
     def typecheck(self, node, st=None) -> Union[Type, None]:
         method = 'check_' + node.__class__.__name__
         result_type = getattr(self, method, self.generic_typecheck)(node, st)
-        assert isinstance(result_type, AST.Type) or result_type is None
+        assert isinstance(result_type, AST.Type) or result_type is None, f"Got: {result_type}"
         return result_type
 
     def generic_typecheck(self, node, st=None):
