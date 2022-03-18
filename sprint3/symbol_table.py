@@ -3,6 +3,7 @@ from AST import Type as A_Type
 from C_AST import Type as C_Type
 from typing import Union, List, Dict
 from AST import ParameterLst, PrimitiveType
+from copy import deepcopy
 import random
 
 class ParseError(Exception): pass
@@ -53,7 +54,7 @@ class SymbolTable(object):
     """
 
     def __init__(self):
-        self.scope_stack = [global_functions]
+        self.scope_stack = deepcopy([global_functions])
         self.func_call_stack = []
         random.seed(9)
         self.random = random.sample(range(1000,9999),1000)
