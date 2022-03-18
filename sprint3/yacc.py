@@ -273,10 +273,10 @@ class pythonParser:
     def p_argument_or_empty(self, p):
         """argument_or_empty : argument_lst
                              | empty"""
-        if len(p) == 1:
-            p[0] = AST.ArgumentLst(lst=None)
-        else:
+        if p[1]:
             p[0] = AST.ArgumentLst(lst=p[1])
+        else:
+            p[0] = AST.ArgumentLst(lst=[])
 
     def p_argument_lst(self, p):
         """argument_lst : argument_lst COMMA expression
@@ -329,7 +329,9 @@ class pythonParser:
 
     def p_assignment(self, p):
         """assignment :  ID ASSIGN expression NEWLINE
-                      |  ID COLON type ASSIGN expression NEWLINE"""
+                      |  ID COLON type ASSIGN expression NEWLINE
+                      |  ID ASSIGN function_call NEWLINE
+                      |  ID COLON type ASSIGN function_call NEWLINE"""
         if len(p) == 5:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
             # should the type be p[3].__class__.__name__?

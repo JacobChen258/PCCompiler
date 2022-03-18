@@ -12,7 +12,7 @@ class TypeChecker:
     def typecheck(self, node, st=None) -> Union[Type, None]:
         method = 'check_' + node.__class__.__name__
         result_type = getattr(self, method, self.generic_typecheck)(node, st)
-        assert isinstance(result_type, AST.Type) or result_type is None
+        assert isinstance(result_type, AST.Type) or result_type is None, f"Got: {result_type}"
         return result_type
 
     def generic_typecheck(self, node, st=None):
@@ -91,10 +91,14 @@ class TypeChecker:
             variable_type = node.type
             assert variable_type is not None, f"When declaring {node.left.name}, type is missing"
             st.declare_variable(variable_name, variable_type)
-            assert variable_type == self.typecheck(node.right, st)
+            rhs_type = self.typecheck(node.right, st)
+            if variable_type != rhs_type:
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
         else:
             # Variable already exists, check the type of RHS
-            assert variable_type == self.typecheck(node.right, st)
+            rhs_type = self.typecheck(node.right, st)
+            if variable_type != rhs_type:
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
 
         return variable_type
 
@@ -112,7 +116,7 @@ class TypeChecker:
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
         st.push_scope()
-        st.declare_variable(node.var.name, list_type.value)
+        st.declare_variable(node.var.name, list_type.value.value)
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()

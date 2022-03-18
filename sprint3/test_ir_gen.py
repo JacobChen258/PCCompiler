@@ -34,7 +34,9 @@ def test_main_ir_gen(parser, test_name):
 
     received = parser.parse(input_str)
     tc = TypeChecker()
-    tc.typecheck(received[0], SymbolTable())
+    st = SymbolTable()
+    for block in received:
+        tc.typecheck(block, st)
     ir_generator = IRGen()
     ir_generator.generate_IR(received)
 
@@ -50,11 +52,11 @@ def test_main_ir_gen(parser, test_name):
             diff = difflib.unified_diff(output_str.split('\n'), received_str.split('\n'), f"./tests/{test_name}_output.txt", f"./tests/{test_name}_received.txt", lineterm='')
             with open(f'./{test_dir}/{test_name}_received.diff', 'w+') as f:
                 f.write('\n'.join(diff) + '\n')
-            raise AssertionError(f'{test_name} failed')
+            raise AssertionError(f'Output mismatch')
         else:
             try:
                 os.remove(f'./{test_dir}/{test_name}_received.diff')
             except FileNotFoundError:
                 pass
     else:
-        raise AssertionError(f'{test_name} missing output file')
+        raise AssertionError(f'Missing output file')
