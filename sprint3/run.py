@@ -41,7 +41,6 @@ if __name__ == "__main__":
     parser = pythonParser()
     parser.build()
     root = parser.parse(data)
-
     # Use the default visitor (from W5) to go through the AST and print them
     # if the user provdes '--print-ast' flag
     # if args.print_ast:
@@ -57,6 +56,7 @@ if __name__ == "__main__":
     typechecker = TypeChecker()
     if root:
         st = SymbolTable()
+        print(root)
         typechecker.do_typecheck(root, st)
         ir_generator = IRGen()
         ir = ir_generator.generate_IR(root)

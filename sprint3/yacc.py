@@ -3,6 +3,7 @@ from ply import yacc
 from lex import pythonLexer
 from lex import tokens
 from dataclasses import dataclass
+import argparse
 import AST
 
 
@@ -338,6 +339,18 @@ class pythonParser:
         else:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
 
+    def p_list_append(self,p):
+        """
+        statement_no_new_line : expression DOT APPEND LPAREN expression RPAREN
+        """
+        p[0] = AST.LstAppend(obj=p[1], val=p[5])
+
+    def p_non_prim_index(self,p):
+        """
+        expression : expression LBRACKET expression RBRACKET
+        """
+        p[0] = AST.NonPrimitiveIndex(obj=p[1],idx=p[3])
+
     def p_empty(self, p):
         """empty :"""
         pass
@@ -362,5 +375,14 @@ class pythonParser:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Take in the miniJava source code and perform lexical analysis.')
+    parser.add_argument('FILE', help="Input file with miniJava source code")
+    args = parser.parse_args()
+
+    f = open(args.FILE, 'r')
+    data = f.read()
+    f.close()
     m = pythonParser()
     m.build()
+    root = m.parse(data)
+    print(root)

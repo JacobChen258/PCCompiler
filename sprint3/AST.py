@@ -153,6 +153,15 @@ class Block(Node):
     lst: List[Union[FunctionDef, ReturnStmt, FunctionCall, ForLoopRange, ForLoopList, WhileStmt, \
                     IfStmt, ElifStmt, ElseStmt, Assignment]]
 
+@dataclass
+class LstAppend(Node):
+    obj: Union[NonPrimitiveLiteral,Id]
+    val: Expression
+
+@dataclass
+class NonPrimitiveIndex(Node):
+    obj: Expression
+    idx: Expression
 
 
 
