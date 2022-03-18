@@ -137,6 +137,7 @@ class TypeChecker:
 
     def check_NonPrimitiveLiteral(self, node: AST.NonPrimitiveLiteral, st: SymbolTable) -> Type:
         first_elem_type = None
+        print(node)
         for i, child in enumerate(node.children):
             t = self.typecheck(child, st)
             if first_elem_type is None:
@@ -244,6 +245,21 @@ class TypeChecker:
         for statement in node.body.lst:
             self.typecheck(statement, st)
         st.pop_scope()
+
+    def check_LstAppend(self,node:AST.LstAppend, st:SymbolTable):
+        obj_type = self.typecheck(node.obj,st)
+        val_type = self.typecheck(node.val,st)
+        assert isinstance(obj_type.value,NonPrimitiveType)
+        assert obj_type.value.name == 'list'
+        assert obj_type.value.value == val_type
+
+    def check_NonPrimitiveIndex(self,node:AST.NonPrimitiveIndex,st:SymbolTable):
+        obj_type = self.typecheck(node.obj,st)
+        idx_type = self.typecheck(node.idx,st)
+        assert isinstance(obj_type.value,NonPrimitiveType)
+        assert isinstance(idx_type.value,PrimitiveType)
+        assert idx_type.value.value == 'int'
+        return obj_type.value.value
 
     def check_Id(self,node: AST.Id,st:SymbolTable)->Type:
         return st.lookup_variable(node.name)

@@ -71,7 +71,7 @@ class pythonLexer():
     t_XOR = r'\^'
     t_COMMA = r','
     t_COLON = r':'
-    t_DOT = r'.'
+    t_DOT = r'\.'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' '
     literals = "!@-`~\\|/{}?'\""

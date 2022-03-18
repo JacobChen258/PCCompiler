@@ -324,3 +324,14 @@ class CASTGenerator:
                 result_stmt.body.lst+= val
         return head + [result_stmt]
 
+    def gen_IR_LstAdd(self,ir_node:IR_LstAdd,st=None):
+        obj = C_AST.Id(ir_node.obj_reg)
+        value = self.gen(ir_node.value)
+        return [C_AST.LstAdd(obj=obj,value=value,idx=ir_node.idx)]
+
+    def gen_IR_NonPrimitiveIndex(self,ir_node:IR_NonPrimitiveIndex,st=None):
+        result = C_AST.Id(ir_node.result_reg)
+        obj = C_AST.Id(ir_node.obj_reg)
+        idx = C_AST.Id(ir_node.idx_reg)
+        return [C_AST.NonPrimitiveIndex(result,obj,idx)]
+

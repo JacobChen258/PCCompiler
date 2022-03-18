@@ -239,7 +239,8 @@ class pythonParser:
                                  | else_statement
                                  | while_statement
                                  | for_loop_range
-                                 | for_loop_lst"""
+                                 | for_loop_lst
+                                 | expression"""
         p[0] = p[1]
 
     def p_function_dec(self, p):
@@ -348,6 +349,7 @@ class pythonParser:
     def p_non_prim_index(self,p):
         """
         expression : expression LBRACKET expression RBRACKET
+                   | expression LBRACKET function_call RBRACKET
         """
         p[0] = AST.NonPrimitiveIndex(obj=p[1],idx=p[3])
 

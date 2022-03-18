@@ -127,6 +127,18 @@ class PrimitiveLiteral:
     type: Type
     value: any
 
+@dataclass
+class LstAdd:
+    obj: Id
+    value: any
+    idx: Union[str,int]
+
+@dataclass
+class NonPrimitiveIndex:
+    result: Id
+    obj: Id
+    idx: Id
+
 class CCodeGenerator:
     function_declarations = []
     function_definitions = []

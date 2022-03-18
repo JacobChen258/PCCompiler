@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Union
 import AST
 
 cond_label_stack = []
@@ -136,6 +137,18 @@ class IR_Address:
 @dataclass
 class IR_Deref:
     pointer_reg: str
+
+@dataclass
+class IR_LstAdd:
+    obj_reg: str
+    val_reg: str
+    idx: Union[str,int]
+
+@dataclass
+class IR_NonPrimitiveIndex:
+    result_reg: str
+    obj_reg:str
+    idx_reg: str
 
 class IRGen:
     def __init__(self):
@@ -386,6 +399,18 @@ class IRGen:
         # pop cond_label and cond_label_idx
         cond_label_idx_stack.pop(-1)
         cond_label_stack.pop(-1)
+
+    def gen_LstAppend(self,node:AST.LstAppend):
+        obj_reg = self.generate(node.obj)
+        val = self.generate(node.val)
+        self.add_code(IR_LstAdd(obj_reg=obj_reg,val_reg=val,idx='end'))
+
+    def gen_NonPrimitiveIndex(self,node:AST.NonPrimitiveIndex):
+        obj_reg = self.generate(node.obj)
+        idx_reg = self.generate(node.idx)
+        result_reg = self.inc_register()
+        self.add_code(IR_NonPrimitiveIndex(result_reg=result_reg,obj_reg=obj_reg,idx_reg=idx_reg))
+        return result_reg
 
     def gen_Id(self, node: AST.Id):
         return node.name
