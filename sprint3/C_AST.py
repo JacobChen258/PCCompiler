@@ -37,7 +37,6 @@ class BinaryOperation:
     operand_a: Id
     operand_b: Id
 
-
 @dataclass
 class Parameter:
     paramType: Type
@@ -56,12 +55,12 @@ class FunctionDeclaration:
 
 @dataclass
 class IfStmt:
-    ifCond: Expression
+    ifCond: Id
     body: Block
 
 @dataclass
 class ElifStmt:
-    elifCond: Expression
+    elifCond: Id
     body: Block
 
 @dataclass
@@ -70,7 +69,7 @@ class ElseStmt:
 
 @dataclass
 class WhileStmt:
-    cond: Expression
+    cond: Id
     body: Block
 
 @dataclass
@@ -97,7 +96,7 @@ class Expression:
 
 @dataclass
 class ArgumentLst:
-    lst: Union[List[Expression], None]
+    lst: Union[List[Expression], List[Id],None]
 
 @dataclass
 class ReturnStmt:
@@ -120,13 +119,23 @@ class Assignment:
 
 @dataclass
 class String:
-    val = str
-    len = int
+    val: str
+    len: int
 
+@dataclass
+class ReturnStatement:
+    value: Id
+
+@dataclass
+class PrimitiveLiteral:
+    id: Id
+    type: Type
+    value: any
 
 class CCodeGenerator:
     function_declarations = []
     function_definitions = []
+    state_in_function_declaration = False
 
     def generate_code(self, root):
         structure = self.gen(root)
@@ -159,12 +168,13 @@ class CCodeGenerator:
     def code_template(self, function_declarations, function_definitions, main_code):
         return f"""
 #include <stdio.h>
-#include <bool.h>
+#include <stdbool.h>
 
-typedef int_t   long long;
-typedef float_t double;
-typedef bool_t  bool;
-
+typedef long long int_t;
+typedef double float_t;
+typedef bool bool_t;
+bool True = true;
+bool False = false;
 /***** Function declarations *****/
 {function_declarations}
 /***** End of function declarations *****/
@@ -183,7 +193,6 @@ int main() {{
     return 0;
 }}
         """
-
 
     def gen(self, node):
         method = 'gen_' + node.__class__.__name__
@@ -222,16 +231,21 @@ int main() {{
         return ", ".join(self.gen(param) for param in node.lst)
 
     def gen_FunctionDeclaration(self, node: FunctionDeclaration):
+        assert not self.state_in_function_declaration, "Cannot declare function inside of a function"
         function_declaration = f"{self.gen(node.returnType)} {self.gen(node.name)}({self.gen(node.lst)})"
         self.function_declarations.append(function_declaration)
+        self.state_in_function_declaration = True
         self.function_definitions.append((
             function_declaration + " {",
             self.gen(node.body),
             "} " f"/* End of {self.gen(node.name)} */",
         ))
+        self.state_in_function_declaration = False
         return None
 
     def gen_FunctionCall(self, node: FunctionCall):
+        arg_string = ", ".join( i for i in node.lst)
+        return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
         return (
@@ -262,9 +276,14 @@ int main() {{
         )
 
     def gen_Assignment(self,node:Assignment):
-        if type(node.val) != Id:
+        if type(node.val) != Id and type(node.val) != FunctionCall and type(node.val) != String:
             return f"{self.gen(node.id)} = {node.val};"
         return f"{self.gen(node.id)} = {self.gen(node.val)};"
 
     def gen_String(self, node: String):
         return "{" + ", ".join("\'" + i + "\'" for i in node.val) + ", \' \\0\'}"
+
+    def gen_ReturnStatement(self, node: ReturnStatement):
+        assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
+        return f"return {self.gen(node.value)}"
+

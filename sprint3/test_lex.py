@@ -54,7 +54,7 @@ cases = {
 }
 
 @pytest.mark.parametrize("input_data, expected", cases.items())
-def test_simple_token(lexer, input_data, expected):
+def test_lex_simple_token(lexer, input_data, expected):
         result = lexer.test(input_data)
         assert len(result) == 1, f"Expect 1, got {len(result)}: {[x.type for x in result]}"
         assert result[0].type == expected, f"Expect {expected}, got {result[0].type}"

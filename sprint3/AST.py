@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union, List
+from typing import Union, List, Literal
 from dataclasses import dataclass
 
 class Node():
@@ -30,11 +30,11 @@ class Node():
 
 @dataclass
 class PrimitiveType(Node):
-    value: Union['str', 'int', 'float', 'bool']
+    value: Literal['str', 'int', 'float', 'bool', 'none']
 
     def __init__(self, value):
         self.value = value
-        assert value in ['str', 'int', 'float', 'bool']
+        assert value in ['str', 'int', 'float', 'bool', 'none']
 
 @dataclass
 class NonPrimitiveType(Node):
@@ -60,7 +60,7 @@ class NonPrimitiveLiteral(Node):
     name: Union['tuple', 'list']
     children: List[Union[any, None]]
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Id(Node):
     name: str
 

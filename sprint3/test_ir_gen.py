@@ -22,7 +22,7 @@ def format_parser_output(o):
 
 
 @pytest.mark.parametrize("test_name", test_names)
-def test_simple_token(parser, test_name):
+def test_main_ir_gen(parser, test_name):
     with open(f'./{test_dir}/{test_name}_input.py', 'r') as f:
         input_str = f.read()
     try:

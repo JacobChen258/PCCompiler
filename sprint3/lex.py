@@ -14,9 +14,8 @@ reserved = {
     'str': 'TSTR',
     'float': "TFLOAT",
     'bool': "TBOOL",
+    'None': "NONE",
     'def': "DEF",
-    'print': "PRINT",
-    '.append': "APPEND"
 }
 
 tokens = [
@@ -40,16 +39,13 @@ tokens = [
     'OR',
     'NOT',
     'XOR',
-    'PERIOD',
     'FUNCTIONANNOTATION',
-    'NONE',
     'BOOL',
     'STRING',
     'FLOAT',
     'INTEGER',
     'ID',
     'NEWLINE',
-    'TAB',
     'COLON',
     'COMMA',
 ] + list(reserved.values())
@@ -71,7 +67,6 @@ class pythonLexer():
     t_GREATER = r'\>'
     t_LESS = r'\<'
     t_XOR = r'\^'
-    t_PERIOD = r'.'
     t_COMMA = r','
     t_COLON = r':'
     t_ignore_COMMENT = r'\#.*'
@@ -83,12 +78,6 @@ class pythonLexer():
     # lexLineNo[0] is the current line number
     # lexLineNo[1] is the line number after counting newline
     lexLineNo = [1,1]
-
-
-    def t_NONE(self,t):
-        r'None'
-        t.value = None
-        return t
 
     def t_BOOL(self,t):
         r'(True)|(False)'

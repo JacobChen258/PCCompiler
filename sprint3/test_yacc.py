@@ -20,7 +20,7 @@ def format_parser_output(o):
 
 
 @pytest.mark.parametrize("test_name", test_names)
-def test_simple_token(parser, test_name):
+def test_main_yacc(parser, test_name):
     with open(f'./{test_dir}/{test_name}_input.py', 'r') as f:
         input_str = f.read()
     try:
@@ -31,9 +31,7 @@ def test_simple_token(parser, test_name):
         output_str = None
 
     received = parser.parse(input_str)
-    received_str = ""
-    for i in received:
-        received_str += format_parser_output(i)  + ' \n'
+    received_str = format_parser_output(received) + '\n'
 
     with open(f'./{test_dir}/{test_name}_received.json', 'w+') as f:
         f.write(received_str)

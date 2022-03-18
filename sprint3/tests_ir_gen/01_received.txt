@@ -1,2 +1,0 @@
-IR_PrimitiveLiteral(reg='_t1', val=10) 
-IR_Assignment(name='a', val='_t1') 

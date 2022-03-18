@@ -65,7 +65,7 @@ if __name__ == "__main__":
         C_AST = C_AST_gen.generate_AST(ir=ir,st=st)
         C_Code_gen = CCodeGenerator()
         result_code = C_Code_gen.generate_code(C_AST)
-        f = open("target_output.c","w")
+        f = open("target_output.c", "w")
         f.write(result_code)
 
 
