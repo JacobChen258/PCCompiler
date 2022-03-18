@@ -116,7 +116,7 @@ class TypeChecker:
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
         st.push_scope()
-        st.declare_variable(node.var.name, list_type.value)
+        st.declare_variable(node.var.name, list_type.value.value)
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()
