@@ -103,7 +103,7 @@ class pythonLexer():
     # NOT HANDLE ESCAPE STRING YET
     def t_STRING(self,t):
         r'("(?:\\.|[^"\\])*")|(\'(?:\\.|[^\'\\])*\')'
-        t.value = str(t.value)
+        t.value = str(t.value[1:-1])
         return t
 
     def t_FLOAT(self,t):
