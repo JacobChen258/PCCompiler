@@ -93,6 +93,7 @@ class TypeChecker:
             st.declare_variable(variable_name, variable_type)
             rhs_type = self.typecheck(node.right, st)
             if variable_type != rhs_type:
+                # TODO: RHS could have None if the list is empty
                 raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
         else:
             # Variable already exists, check the type of RHS
