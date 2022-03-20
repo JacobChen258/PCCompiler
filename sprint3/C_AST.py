@@ -144,7 +144,8 @@ class CCodeGenerator:
         return self.code_template(declarations_str, definitions_str, formatted)
 
     def generate_function_code(self):
-        declarations_str = ";\n".join(self.function_declarations) + ";"
+        declarations_str = ";\n".join(self.function_declarations)
+        if len(declarations_str) != 0: declarations_str += '\n'
         definitions_str = ""
         for definition in self.function_definitions:
             formatted = self.generate_code_formatter(definition)
@@ -166,15 +167,10 @@ class CCodeGenerator:
         return result
 
     def code_template(self, function_declarations, function_definitions, main_code):
-        return f"""
-#include <stdio.h>
-#include <stdbool.h>
-
-typedef long long int_t;
-typedef double float_t;
-typedef bool bool_t;
-bool True = true;
-bool False = false;
+        if len(function_declarations) == 0:
+            function_code = ""
+        else:
+            function_code = f"""
 /***** Function declarations *****/
 {function_declarations}
 /***** End of function declarations *****/
@@ -182,17 +178,19 @@ bool False = false;
 /***** Function definitions *****/
 {function_definitions}
 /***** End of function definitions *****/
+        """.strip() + '\n'
 
+        return f"""
+#include "../starter.c"
 
+{function_code}
 int main() {{
-
 /***** Main *****/
 {main_code}
 /***** End of main *****/
-
     return 0;
 }}
-        """
+        """.strip() + '\n'
 
     def gen(self, node):
         method = 'gen_' + node.__class__.__name__
@@ -215,13 +213,14 @@ int main() {{
         return f"{self.gen(node.type)} {self.gen(node.id)};"
 
     def gen_Type(self, node: Type):
-        assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t']
+        assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
         return node.value
 
     def gen_UnaryOperation(self, node: UnaryOperation):
         return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
+        # TODO: adding string. Need to check type of the operands, use helper function
         return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
 
     def gen_Parameter(self, node: Parameter):
@@ -244,7 +243,7 @@ int main() {{
         return None
 
     def gen_FunctionCall(self, node: FunctionCall):
-        arg_string = ", ".join( i for i in node.lst)
+        arg_string = ", ".join(i for i in node.lst)
         return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
@@ -275,13 +274,21 @@ int main() {{
             "}",
         )
 
-    def gen_Assignment(self,node:Assignment):
-        if type(node.val) != Id and type(node.val) != FunctionCall and type(node.val) != String:
+    def gen_Assignment(self,node: Assignment):
+        if isinstance(node.val, (Id, FunctionCall, String)):
+            return f"{self.gen(node.id)} = {self.gen(node.val)};"
+        elif isinstance(node.val, bool):
+            return f"{self.gen(node.id)} = {str(node.val).lower()};"
+        elif node.val == "none-placeholder":
+            return f"{self.gen(node.id)} = NONE_LITERAL;"
+        else:
             return f"{self.gen(node.id)} = {node.val};"
-        return f"{self.gen(node.id)} = {self.gen(node.val)};"
 
     def gen_String(self, node: String):
-        return "{" + ", ".join("\'" + i + "\'" for i in node.val) + ", \' \\0\'}"
+        # Using json.dumps to do string escape
+        import json
+        return json.dumps(node.val)
+        # return "{" + ", ".join("\'" + i + "\'" for i in node.val) + ", \' \\0\'}"
 
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
