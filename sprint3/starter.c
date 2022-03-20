@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+
+#define NONE_LITERAL 42;
 
 typedef double float_t;
 typedef long long int_t;
@@ -192,32 +195,3 @@ void print_internal(int items_count, ...)
 
 #define input(vname, prompt) \
   input_internal(prompt, #vname[0]).vname
-
-// int main()
-// {
-//   int_t a = input(int_v, "hello");
-//   list_t *l = list_init(3);
-//   list_init_add(int_v, l, input(int_v, "elem 0?"));
-//   list_init_add(int_v, l, input(int_v, "elem 1?"));
-//   list_init_add(int_v, l, input(int_v, "elem 2?"));
-//   printf("%lld\n", list_get(int_v, l, input(int_v, "elem index?")));
-//   list_add(int_v, l, input(int_v, "elem 3?"));
-//   list_add(int_v, l, input(int_v, "elem 4?"));
-//   printf("%lld\n", list_get(int_v, l, input(int_v, "elem index?")));
-//   return 0;
-// }
-
-int main()
-{
-  // float_t a = input(float_v, "hello");
-  // list_t *l = list_init(3);
-  // list_init_add(float_v, l, input(float_v, "elem 0?"));
-  // list_init_add(float_v, l, input(float_v, "elem 1?"));
-  // list_init_add(float_v, l, input(float_v, "elem 2?"));
-  // printf("%f\n", list_get(float_v, l, input(float_v, "elem index?")));
-  // list_add(float_v, l, input(float_v, "elem 3?"));
-  // list_add(float_v, l, input(float_v, "elem 4?"));
-  // printf("%f\n", list_get(float_v, l, input(float_v, "elem index?")));
-  print_internal(3, 'i', 1, 'f', 2.0, 's', "hello!");
-  return 0;
-}

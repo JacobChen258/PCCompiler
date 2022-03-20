@@ -115,7 +115,10 @@ class pythonParser:
                                 | STRING
                                 | BOOL
                                 | NONE"""
-        p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
+        if p[1] == 'None':
+            p[0] = AST.PrimitiveLiteral(name='none', value='none-placeholder')
+        else:
+            p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
 
     def p_expr_binary(self, p):
         """expression   : expression PLUS expression

@@ -146,5 +146,5 @@ class SymbolTable(object):
             if name in scope:
                 for f in scope[name].functions:
                     if repr(f.param_types) == repr(param_types):
-                        return f.name,f.return_type
+                        return f.hashed_name,f.return_type
         raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"", line_number)
