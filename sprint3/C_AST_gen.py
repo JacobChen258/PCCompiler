@@ -72,8 +72,13 @@ class CASTGenerator:
             type_val = 'int_t'
         elif type_val == float:
             type_val = "float_t"
-        else:
+        elif type_val == str and ir_node.val == 'none-placeholder':
+            type_val = "none_t"
+        elif type_val == bool:
             type_val = "bool_t"
+        else:
+            assert False, f"Unexpected type_val {type_val} for {ir_node}"
+
         # Primitive Literal Reg will not be assigned again
         self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type(value=type_val))
         id_node = C_AST.Id(name=ir_node.reg)
@@ -276,9 +281,6 @@ class CASTGenerator:
             self.current_str = None
         return None
 
-    def gen_IR_Parameter(self, ir_node: IR_Parameter, st=None):
-        pass
-
     def gen_IR_Parameter_VAL(self, ir_node: IR_Parameter_VAL, st=None):
         return ir_node.name
 
@@ -287,15 +289,12 @@ class CASTGenerator:
         self.argument_list_dict[ir_node.function_call_reg] = []
         return None
 
-
     def gen_IR_Argument_VAL(self, ir_node: IR_Argument_VAL, st=None):
         current_function_call = self.argument_list_stack[-1]
         self.argument_list_dict[current_function_call[0]].append(ir_node.reg)
         if(len(self.argument_list_dict[current_function_call[0]]) == current_function_call[1]):
             self.argument_list_stack.pop()
         return None
-
-
 
     def gen_IR_Address(self, ir_node: IR_Address, st=None):
         pass
