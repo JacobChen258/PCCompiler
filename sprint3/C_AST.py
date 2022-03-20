@@ -144,6 +144,14 @@ class NonPrimitiveIndex:
     obj: Id
     idx: Id
 
+@dataclass
+class NonPrimitiveLiteral:
+    head: Id
+    type: NonPrimitiveType
+    val_type: Type
+    value: List[PrimitiveLiteral]
+
+
 class CCodeGenerator:
     function_declarations = []
     function_definitions = []
