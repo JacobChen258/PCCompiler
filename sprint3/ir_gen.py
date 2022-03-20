@@ -456,35 +456,3 @@ class IRGen:
     def gen_Id(self, node: AST.Id):
         return node.name
 
-
-"""
-    def gen_ForLoopList(self, node: AST.ForLoopList):
-        # Assume list is address referenced
-        list_reg = self.generate(node.Lst)
-        cur_ptr = self.inc_register()
-        self.add_code(IR_Assignment(name=cur_ptr,val = IR_Address(addr_reg=list_reg)))
-        length_reg = self.inc_register()
-        # first index of array is the length of array
-        self.add_code(IR_Deref(result_reg=length_reg,pointer_reg=cur_ptr))
-        self.add_code(IR_Assignment(name=length_reg, val=IR_Deref(pointer_reg=cur_ptr)))
-        # go to next index, which has the actual value
-        increment_reg = self.inc_register()
-        self.add_code(IR_Assignment(name=increment_reg, val=1))
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
-        end_ptr = self.inc_register()
-        # calculate address of final index
-        self.add_code(IR_BinaryOperation(result_reg=end_ptr,left_reg=cur_ptr,right_reg=length_reg,operator="+"))
-        t_label = self.inc_label("FOR")
-        f_label = self.inc_label()
-        self.mark_label(t_label)
-        cond_reg = self.inc_register()
-        # check if current pointer address reached the end of address
-        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=cur_ptr, right_reg=end_ptr, operator="<"))
-        self.add_code(IR_IfStmt(if_false=IR_Goto(f_label),cond_reg=cond_reg))
-        self.add_code(IR_Assignment(name=self.generate(node.var),val=IR_Deref(pointer_reg=cur_ptr)))
-        for node in node.body.lst:
-            self.generate(node)
-        # increment idx
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
-        self.add_code(IR_Goto(t_label))
-        self.mark_label(f_label)"""
