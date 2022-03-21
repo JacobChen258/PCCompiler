@@ -486,15 +486,8 @@ class CASTGenerator:
         cur_list_len = None
         for_loop_comp = None
         
-
-        #and self.get_length.get(cur_node.left_reg, -1) != -1
         while cur_node.__class__.__name__ != "IR_IfStmt":
-            if cur_node.__class__.__name__ == "IR_BinaryOperation" and self.get_length.get(cur_node.left_reg, -1) != -1:
-                cur_list_reg = self.get_length.get(cur_node.left_reg)
-                cur_list_len = cur_node.left_reg
-                cur_index = cur_node.right_reg
-                for_loop_comp = self.gen(cur_node, st)
-            elif cur_node.__class__.__name__ == "IR_ForLoopVar":
+            if cur_node.__class__.__name__ == "IR_ForLoopVar":
                 cur_id = cur_node.reg
             elif cur_node.__class__.__name__ == "IR_NonPrimitiveIndex":
                 cur_id = cur_node.result_reg

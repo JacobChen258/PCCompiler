@@ -18,8 +18,6 @@ list_init_add(int_v,_t2,_t3);
 list_init_add(int_v,_t2,_t4);
 list_init_add(int_v,_t2,_t5);
 
-bool_t _t8;
-_t8 = _t6 > _t7;
 int_t _t7;
 for (_t7 = 0; _t7 < 3; _t7 += 1){
     i = list_get(int_v, _t2, _t7);
