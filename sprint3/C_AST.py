@@ -384,7 +384,9 @@ int main() {{
         pass
 
     def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
-        init = f"list_t * {self.gen(node.head)} = list_init({len(node.value)});\n"
+        head = self.gen(node.head)
+        init = f"list_t * {head} = list_init({len(node.value)});\n"
+        self.array_cleanup.append(head)
         val_type = self.convert_v_type(node.type.value)
         for item in node.value:
             init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
