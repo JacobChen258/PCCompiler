@@ -14,16 +14,14 @@ class CASTGenerator:
     current_str_count = 0
     argument_list_stack = []
     argument_list_dict = {}
-<<<<<<< HEAD
 
     #For loop vaiables
     loop_start = None
     loop_stop = None
     loop_step = None
     
-=======
     list_len = {}
->>>>>>> 8d198ac61b6d04a796086c282b7e1f55f8c971fb
+    get_length = {}
 
     def __init__(self):
         self.seen_labels = []  # Labels have seen
@@ -50,10 +48,12 @@ class CASTGenerator:
             raise
 
     def gen_IR_Label(self, ir_node: IR_Label, st=None):
-        if "FOR" in ir_node.value:
+        if "FORRANGE" in ir_node.value:
             # do something for FOR
             #pass
             return self._gen_IR_For_Range(self.ir.pop(0), st)
+        elif "FORLIST" in ir_node.value:
+            return self._gen_IR_For_List(self.ir.pop(0), st)
         elif "WHILE" in ir_node.value:
             # do something for WHILE
             return self._gen_IR_While(self.ir.pop(0), st)
@@ -268,7 +268,9 @@ class CASTGenerator:
         length = self.list_len.get(ir_node.pointer_reg)
         if not length:
             raise Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
-        return self.gen_IR_Assignment(IR_Assignment(name=ir_node.result_reg,val=length))
+        self.get_length[length] = ir_node.pointer_reg
+        # return self.gen_IR_Assignment(IR_Assignment(name=ir_node.result_reg, val=length))
+        return None
 
     def gen_IR_IndexIncrement(self,ir_node:IR_IndexIncrement,st=None):
         type_t = self.temp_st.lookup_variable(name=ir_node.assigned_reg).value
@@ -474,8 +476,52 @@ class CASTGenerator:
                 result_stmt.body.lst+= val
         return head + [result_stmt]
 
-    def _gen_IR
+    def _gen_IR_For_List(self, ir_node: any , st=None):
+        head = []
+        cur_node = ir_node
+        cur_assign = None
+        cur_id = None
+        cur_index = None
+        cur_list_reg = None
+        cur_list_len = None
+        for_loop_comp = None
+        
 
+        #and self.get_length.get(cur_node.left_reg, -1) != -1
+        while cur_node.__class__.__name__ != "IR_IfStmt":
+            if cur_node.__class__.__name__ == "IR_BinaryOperation" and self.get_length.get(cur_node.left_reg, -1) != -1:
+                cur_list_reg = self.get_length.get(cur_node.left_reg)
+                cur_list_len = cur_node.left_reg
+                cur_index = cur_node.right_reg
+                for_loop_comp = self.gen(cur_node, st)
+            elif cur_node.__class__.__name__ == "IR_ForLoopVar":
+                cur_id = cur_node.reg
+            elif cur_node.__class__.__name__ == "IR_NonPrimitiveIndex":
+                cur_id = cur_node.result_reg
+                cur_list_reg = cur_node.obj_reg
+                cur_list_len = self.list_len.get(cur_list_reg)
+                cur_index = cur_node.idx_reg
+
+            else:
+                head += self.gen(cur_node, st)
+
+            cur_node = self.ir.pop(0)
+
+        id_node = C_AST.Id(name=cur_index)
+        decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type("int_t"))
+        false_label = cur_node.if_false.label
+        result_stmt = C_AST.ForLoopList(var=cur_id, indexVar=cur_index, length=cur_list_len, Lst=cur_list_reg,  body=C_AST.Block([]))
+
+        continue_sig = True
+        while continue_sig:
+            cur_node = self.ir.pop(0)
+            val = self.gen(cur_node, st)
+            if val and val == false_label:
+                continue_sig = False
+            elif val:
+                result_stmt.body.lst+= val
+
+        return head + [decl_node] + [result_stmt]
 
         
         

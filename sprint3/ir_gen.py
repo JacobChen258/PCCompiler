@@ -190,6 +190,10 @@ class IR_NonPrimitiveIndex:
     obj_reg: str
     idx_reg: str
 
+@dataclass
+class IR_ForLoopVar:
+    reg: str
+
 
 class IRGen:
     def __init__(self):
@@ -280,22 +284,25 @@ class IRGen:
         length = self.inc_register()
         self.add_code(IR_GetLength(result_reg=length,pointer_reg=list_reg))
         index = self.inc_register()
-        self.add_code(IR_Assignment(name=index, val=0))
-        one = self.inc_register()
-        self.add_code(IR_Assignment(name=one, val=1))
-        t_label = self.inc_label("FOR")
+        #zero = self.inc_register()
+        #self.add_code(IR_PrimitiveLiteral(reg=zero, val=0))
+        #self.add_code(IR_Assignment(name=index, val=zero))
+        #one = self.inc_register()
+        #self.add_code(IR_Assignment(name=one, val=1))
+        t_label = self.inc_label("FORLIST")
         f_label = self.inc_label()
         self.mark_label(t_label)
         cond_reg = self.inc_register()
         # check if current pointer address reached the end of address
         self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=length, right_reg=index, operator=">"))
+        self.add_code(IR_ForLoopVar( reg=self.generate(node.var)))
+        self.add_code(IR_NonPrimitiveIndex(result_reg=self.generate(node.var),obj_reg=list_reg,idx_reg=index))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
         # go to next index, which has the actual value
-        self.add_code(IR_NonPrimitiveIndex(result_reg=self.generate(node.var),obj_reg=list_reg,idx_reg=index))
         for node in node.body.lst:
             self.generate(node)
         # increment idx
-        self.add_code(IR_BinaryOperation(result_reg=length, left_reg=index, right_reg=one, operator="+"))
+        #self.add_code(IR_BinaryOperation(result_reg=length, left_reg=index, right_reg=one, operator="+"))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
@@ -320,7 +327,7 @@ class IRGen:
 
     def gen_ForLoopRange(self, node: AST.ForLoopRange):
         range = self.generate(node.rangeVal)
-        t_label = self.inc_label("FOR")
+        t_label = self.inc_label("FORRANGE")
         f_label = self.inc_label()
         self.mark_label(t_label)
         self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
@@ -330,12 +337,9 @@ class IRGen:
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
         for body in node.body.lst:
             self.generate(body)
-<<<<<<< HEAD
-=======
-        self.add_code(
-            IR_BinaryOperation(result_reg=range[0], left_reg=self.generate(node.var), right_reg=range[1], operator="+"))
-        self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
->>>>>>> 8d198ac61b6d04a796086c282b7e1f55f8c971fb
+        #self.add_code(
+        #    IR_BinaryOperation(result_reg=range[0], left_reg=self.generate(node.var), right_reg=range[1], operator="+"))
+        #self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
