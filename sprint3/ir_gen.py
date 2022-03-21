@@ -156,22 +156,6 @@ class IR_Argument:
 class IR_Argument_VAL:
     reg: int
 
-
-@dataclass
-class IR_Address:
-    addr_reg: str
-
-
-@dataclass
-class IR_Deref:
-    result_reg: str
-    pointer_reg: str
-
-
-@dataclass
-class IR_IndexIncrement:
-    assigned_reg: str
-
 @dataclass
 class IR_GetLength:
     result_reg: str
@@ -182,7 +166,6 @@ class IR_LstAdd:
     obj_reg: str
     val_reg: str
     idx: Union[str, int]
-
 
 @dataclass
 class IR_NonPrimitiveIndex:
@@ -452,4 +435,5 @@ class IRGen:
 
     def gen_Id(self, node: AST.Id):
         return node.name
+
 

@@ -5,11 +5,13 @@ from dataclasses import dataclass
 
 @dataclass
 class Type:
-    value: Literal['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
+    value: Union[Literal['str_t', 'int_t', 'float_t', 'bool_t', 'none_t'],NonPrimitiveType]
 
     def __init__(self, value):
-        assert value in ['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
+        if value.__class__.__name__ != 'NonPrimitiveType':
+            assert value in ['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
         self.value = value
+
 
 
 @dataclass
@@ -162,19 +164,14 @@ class PrimitiveLiteral:
 class LstAdd:
     obj: Id
     value: any
-    idx: Union[str, int]
-
-
-@dataclass
-class IndexIncrement:
-    obj: Id
     type: Type
-
+    idx: Union[str, int]
 
 @dataclass
 class NonPrimitiveIndex:
     result: Id
     obj: Id
+    type: Type
     idx: Id
 
 
@@ -183,13 +180,6 @@ class NonPrimitiveLiteral:
     head: Id
     type: NonPrimitiveType
     value: List[Union[Id, PrimitiveLiteral]]
-
-
-@dataclass
-class Deref:
-    id: Id
-    pointer: Id
-
 
 class CCodeGenerator:
     function_declarations = []
@@ -284,8 +274,6 @@ int main() {{
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
         name = self.gen(node.id)
-        if type_t == "list_t *":
-            self.array_cleanup.append(name)
         return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):
@@ -375,29 +363,28 @@ int main() {{
         return f"return {self.gen(node.value)};"
 
     def gen_LstAdd(self, node: LstAdd):
-        pass
-
-    def gen_IndexIncrement(self, node: IndexIncrement):
-        pass
+        obj = self.gen(node.obj)
+        type_t = self.gen(node.type)
+        type_t = type_t[:-1]+"v"
+        value = self.gen(node.value)
+        if node.idx == 'end':
+            return f"list_add({type_t},{obj},{value});\n"
 
     def gen_NonPrimitiveIndex(self, node: NonPrimitiveIndex):
-        pass
+        return f"{self.gen(node.result)}=list_get({self.gen(node.type)},{self.gen(node.obj)},{self.gen(node.idx)})"
 
     def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
         head = self.gen(node.head)
         init = f"list_t * {head} = list_init({len(node.value)});\n"
         self.array_cleanup.append(head)
-        val_type = self.convert_v_type(node.type.value)
+        val_type = self.convert_v_type(node.type)
         for item in node.value:
             init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
         return init
 
-    def gen_Deref(self, node: Deref):
-        pass
-
     def convert_v_type(self,node:Type):
-        if node.value.__class__.__name__ != "NonPrimitiveType":
-            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
-            return node.value[:-1] + 'v'
+        if node.value.value.value.__class__.__name__ != "NonPrimitiveType":
+            assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            return node.value.value.value[:-1] + 'v'
         else:
             return "list_v"

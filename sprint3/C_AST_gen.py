@@ -15,6 +15,7 @@ class CASTGenerator:
     argument_list_stack = []
     argument_list_dict = {}
     list_len = {}
+    empty_non_prim = []
 
     def __init__(self):
         self.seen_labels = []  # Labels have seen
@@ -246,8 +247,21 @@ class CASTGenerator:
         id_node = C_AST.Id(name=ir_node.name)
         stmt_node = C_AST.Assignment(id=id_node, val=ir_node.val)
         if ir_node.name not in self.temp_st.scope_stack[-1]:
-            type_t = self.temp_st.lookup_variable(name=ir_node.val)
-            if type_t.__class__.__name__ != "NonPrimitiveType":
+            try:
+                type_t = self.temp_st.lookup_variable(name=ir_node.val)
+            except Exception:
+                id_type = st.lookup_variable(ir_node.name)
+                if id_type.value.__class__.__name__ != "NonPrimitiveType":
+                    raise Exception(f"Parse Error Reference undefined {ir_node.val}")
+            # Assume all non primitives will eventually be assigned to a value
+            if type_t.value.__class__.__name__ == "NonPrimitiveType":
+                id_type = st.lookup_variable(ir_node.name)
+                type_t = self.convert_NonPrimitive_Type(id_type)
+                while self.empty_non_prim:
+                    obj = self.empty_non_prim.pop()
+                    obj.type = C_AST.Type(type_t)
+                    self.temp_st.update_variable(name=obj.head.name,type=C_AST.Type(type_t))
+            else:
                 type_t = type_t.value
             self.temp_st.declare_variable(name=ir_node.name, type=C_AST.Type(type_t))
             decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type(type_t))
@@ -260,12 +274,6 @@ class CASTGenerator:
             raise Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
         return self.gen_IR_Assignment(IR_Assignment(name=ir_node.result_reg,val=length))
 
-    def gen_IR_IndexIncrement(self,ir_node:IR_IndexIncrement,st=None):
-        type_t = self.temp_st.lookup_variable(name=ir_node.assigned_reg).value
-        if type_t.__class__.__name__ != "NonPrimitiveType":
-            raise Exception("C_AST_Gen Error: Cannot increase the index on Primitive types")
-        return [C_AST.IndexIncrement(obj = C_AST.Id(name=ir_node.assigned_reg),type=type_t.value)]
-
     def gen_IR_List(self, ir_node: IR_List, st=None):
         head = C_AST.Id(name=ir_node.reg)
         length = ir_node.length
@@ -273,7 +281,7 @@ class CASTGenerator:
         val_type = None
         continue_sig = True
         decl_stmt = []
-        while continue_sig:
+        while continue_sig and length > 0:
             cur_node = self.ir.pop(0)
             if cur_node.__class__.__name__ == "IR_List_VAL":
                 lst.append(C_AST.Id(cur_node.reg))
@@ -285,14 +293,15 @@ class CASTGenerator:
                 decl_stmt += val
             if length == 0:
                 continue_sig = False
-
         if ir_node.operator == 'LIST':
-            type_t = C_AST.NonPrimitiveType(type='list',value=val_type)
+            type_t = C_AST.Type(C_AST.NonPrimitiveType(type='list',value=val_type))
         else:
-            type_t = C_AST.NonPrimitiveType(type='tuple',value=val_type)
+            type_t = C_AST.Type(C_AST.NonPrimitiveType(type='tuple',value=val_type))
         self.temp_st.declare_variable(ir_node.reg,type_t)
         self.list_len[ir_node.reg] = ir_node.length
         result = C_AST.NonPrimitiveLiteral(head=head,type = type_t,value=lst)
+        if not val_type:
+            self.empty_non_prim.append(result)
         return decl_stmt+[result]
 
     def gen_IR_LoopStart(self, ir_node: IR_LoopStart, st=None):
@@ -337,22 +346,6 @@ class CASTGenerator:
             self.argument_list_stack.pop()
         return None
 
-    def gen_IR_Address(self, ir_node: IR_Address, st=None):
-        pass
-
-    def gen_IR_Deref(self, ir_node: IR_Deref, st=None):
-        result_node = C_AST.Id(name=ir_node.result_reg)
-        pointer_node = C_AST.Id(name=ir_node.pointer_reg)
-        deref_node = C_AST.Deref(id=result_node,pointer=pointer_node)
-        if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
-            type_t = self.temp_st.lookup_variable(name=ir_node.pointer_reg).value
-            if type_t.__class__.__name__ != "NonPrimitiveType":
-                raise Exception("C_AST Gen Error: Dereferencing Non Pointer Value")
-            self.temp_st.declare_variable(name=ir_node.result_reg, type=type_t.value)
-            decl_node = C_AST.Declaration(id=result_node, type=type_t.value)
-            return [decl_node, deref_node]
-        return [deref_node]
-
     def _gen_IR_Func(self, ir_node: IR_Parameter, func_name: str, st: SymbolTable):
         params = []
         param_regs = []
@@ -396,7 +389,7 @@ class CASTGenerator:
             if type.value.__class__.__name__ == "PrimitiveType":
                 converted_types.append(C_AST.Type(type.value.value + "_t"))
             else:
-                converted_types.append(C_AST.NonPrimitiveType(type.value.name))
+                converted_types.append(C_AST.Type(C_AST.NonPrimitiveType(type.value.name)))
         return converted_types
 
     def _gen_IR_While(self, ir_node: any, st=None):
@@ -419,12 +412,21 @@ class CASTGenerator:
 
     def gen_IR_LstAdd(self,ir_node:IR_LstAdd,st=None):
         obj = C_AST.Id(ir_node.obj_reg)
-        value = self.gen(ir_node.value)
-        return [C_AST.LstAdd(obj=obj,value=value,idx=ir_node.idx)]
+        value = C_AST.Id(ir_node.val_reg)
+        type_t = self.temp_st.lookup_variable(ir_node.obj_reg)
+        type_t = C_AST.Type(type_t.value.value.value)
+        return [C_AST.LstAdd(obj=obj,value=value,type=type_t, idx=ir_node.idx)]
 
     def gen_IR_NonPrimitiveIndex(self,ir_node:IR_NonPrimitiveIndex,st=None):
         result = C_AST.Id(ir_node.result_reg)
         obj = C_AST.Id(ir_node.obj_reg)
         idx = C_AST.Id(ir_node.idx_reg)
-        return [C_AST.NonPrimitiveIndex(result,obj,idx)]
+        type_t = self.temp_st.lookup_variable(ir_node.obj_reg)
+        type_t = C_AST.Type(type_t.value.value.value)
+        return [C_AST.NonPrimitiveIndex(result,obj,type_t,idx)]
 
+    # Used for non primitive type from st
+    def convert_NonPrimitive_Type(self,node:A_Type):
+        if node.value.__class__.__name__ == "PrimitiveType":
+            return node.value.value+"_t"
+        return C_AST.NonPrimitiveType(type=node.value.name,value=C_AST.Type(self.convert_NonPrimitive_Type(node.value.value)))
