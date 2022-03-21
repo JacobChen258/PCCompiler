@@ -1,15 +1,15 @@
 from __future__ import annotations
-from typing import Union, List
+from typing import Union, List, Literal
 from dataclasses import dataclass
 
 
 @dataclass
 class Type:
-    value: str  # 'str_t', 'int_t', 'float_t', 'bool_t'
-    # str_t -> char*
-    # int_t -> long long
-    # float_t -> double
-    # bool_t -> bool or int
+    value: Literal['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
+
+    def __init__(self, value):
+        assert value in ['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
+        self.value = value
 
 
 @dataclass
@@ -206,7 +206,7 @@ class CCodeGenerator:
 
     def generate_function_code(self):
         declarations_str = ";\n".join(self.function_declarations)
-        if len(declarations_str) != 0: declarations_str += '\n'
+        if len(declarations_str) != 0: declarations_str += ';'
         definitions_str = ""
         for definition in self.function_definitions:
             formatted = self.generate_code_formatter(definition)
@@ -290,7 +290,7 @@ int main() {{
 
     def gen_Type(self, node: Type):
         if node.value.__class__.__name__ != "NonPrimitiveType":
-            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t'], f"{node}"
             return node.value
         else:
             assert node.value.type in ['list', 'tuple']
@@ -372,7 +372,7 @@ int main() {{
 
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
-        return f"return {self.gen(node.value)}"
+        return f"return {self.gen(node.value)};"
 
     def gen_LstAdd(self, node: LstAdd):
         pass

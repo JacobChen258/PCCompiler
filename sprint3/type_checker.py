@@ -94,6 +94,8 @@ class TypeChecker:
             rhs_type = self.typecheck(node.right, st)
             if variable_type != rhs_type:
                 # TODO: RHS could have None if the list is empty
+                if (isinstance(variable_type.value, NonPrimitiveType) and isinstance(rhs_type.value, NonPrimitiveType)) and variable_type.value.name == rhs_type.value.name:
+                        return variable_type
                 raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
         else:
             # Variable already exists, check the type of RHS
@@ -145,7 +147,10 @@ class TypeChecker:
                 first_elem_type = t
             else:
                 try:
-                    self.assert_same_type(first_elem_type, t)
+                    if (isinstance(first_elem_type.value, NonPrimitiveType) and isinstance(t.value, NonPrimitiveType)) and first_elem_type.value.name == t.value.name:
+                        pass
+                    else:
+                        self.assert_same_type(first_elem_type, t)
                 except ParseError:
                     raise ParseError(f'Mismatched types in list literal, first element is of type {first_elem_type}, {i}-th element is of type {t}')
 

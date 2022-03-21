@@ -138,10 +138,14 @@ class CASTGenerator:
             type_val = 'int_t'
         elif type_val.value.value == 'float':
             type_val = 'float_t'
-        elif type_val.value.value == 'bool_t':
+        elif type_val.value.value == 'bool':
             type_val = 'bool_t'
-        elif type_val.value.value == 'str_t':
+        elif type_val.value.value == 'str':
             type_val = 'str_t'
+        elif type_val.value.value == 'none':
+            type_val = 'none_t'
+        else:
+            assert False, f"{type_val=}"
 
         self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type(value=type_val))
         id_node = C_AST.Id(name=ir_node.reg)
