@@ -148,3 +148,12 @@ class SymbolTable(object):
                     if repr(f.param_types) == repr(param_types):
                         return f.hashed_name,f.return_type
         raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"", line_number)
+
+    def update_variable(self, name: str, type: Union[A_Type, C_Type], line_number=-1):
+        found = None
+        for scope in reversed(self.scope_stack):
+            if name in scope:
+                found = scope[name]
+                found.type = type
+        if not found:
+            self.scope_stack[-1][name] = Variable(type=type)
