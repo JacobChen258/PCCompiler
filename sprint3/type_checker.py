@@ -140,7 +140,6 @@ class TypeChecker:
 
     def check_NonPrimitiveLiteral(self, node: AST.NonPrimitiveLiteral, st: SymbolTable) -> Type:
         first_elem_type = None
-        print(node)
         for i, child in enumerate(node.children):
             t = self.typecheck(child, st)
             if first_elem_type is None:
