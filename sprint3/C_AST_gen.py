@@ -14,6 +14,7 @@ class CASTGenerator:
     current_str_count = 0
     argument_list_stack = []
     argument_list_dict = {}
+    list_len = {}
 
     def __init__(self):
         self.seen_labels = []  # Labels have seen
@@ -29,7 +30,6 @@ class CASTGenerator:
             generated_line = self.gen(ir_line, st)
             if generated_line != None:
                 self.result_AST += generated_line
-        print(self.result_AST)
         return C_AST.Block(self.result_AST)
 
     def gen(self, ir_line, st=None):
@@ -242,17 +242,54 @@ class CASTGenerator:
         id_node = C_AST.Id(name=ir_node.name)
         stmt_node = C_AST.Assignment(id=id_node, val=ir_node.val)
         if ir_node.name not in self.temp_st.scope_stack[-1]:
-            type_t = self.temp_st.lookup_variable(name=ir_node.val).value
+            type_t = self.temp_st.lookup_variable(name=ir_node.val)
+            if type_t.__class__.__name__ != "NonPrimitiveType":
+                type_t = type_t.value
             self.temp_st.declare_variable(name=ir_node.name, type=C_AST.Type(type_t))
             decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type(type_t))
             return [decl_node, stmt_node]
         return [stmt_node]
 
-    def gen_IR_List(self, ir_node: IR_List, st=None):
-        pass
+    def gen_IR_GetLength(self, ir_node:IR_GetLength, st=None):
+        length = self.list_len.get(ir_node.pointer_reg)
+        if not length:
+            raise Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
+        return self.gen_IR_Assignment(IR_Assignment(name=ir_node.result_reg,val=length))
 
-    def gen_IR_List_VAL(self, ir_node: IR_List_VAL, st=None):
-        pass
+    def gen_IR_IndexIncrement(self,ir_node:IR_IndexIncrement,st=None):
+        type_t = self.temp_st.lookup_variable(name=ir_node.assigned_reg).value
+        if type_t.__class__.__name__ != "NonPrimitiveType":
+            raise Exception("C_AST_Gen Error: Cannot increase the index on Primitive types")
+        return [C_AST.IndexIncrement(obj = C_AST.Id(name=ir_node.assigned_reg),type=type_t.value)]
+
+    def gen_IR_List(self, ir_node: IR_List, st=None):
+        head = C_AST.Id(name=ir_node.reg)
+        length = ir_node.length
+        lst = []
+        val_type = None
+        continue_sig = True
+        decl_stmt = []
+        while continue_sig:
+            cur_node = self.ir.pop(0)
+            if cur_node.__class__.__name__ == "IR_List_VAL":
+                lst.append(C_AST.Id(cur_node.reg))
+                length -= 1
+            else:
+                val = self.gen(cur_node, st)
+                if not val_type:
+                    val_type = self.temp_st.lookup_variable(cur_node.reg)
+                decl_stmt += val
+            if length == 0:
+                continue_sig = False
+
+        if ir_node.operator == 'LIST':
+            type_t = C_AST.NonPrimitiveType(type='list',value=val_type)
+        else:
+            type_t = C_AST.NonPrimitiveType(type='tuple',value=val_type)
+        self.temp_st.declare_variable(ir_node.reg,type_t)
+        self.list_len[ir_node.reg] = ir_node.length
+        result = C_AST.NonPrimitiveLiteral(head=head,type = type_t,value=lst)
+        return decl_stmt+[result]
 
     def gen_IR_LoopStart(self, ir_node: IR_LoopStart, st=None):
         pass
@@ -300,7 +337,7 @@ class CASTGenerator:
         pass
 
     def gen_IR_Deref(self, ir_node: IR_Deref, st=None):
-        pass
+        return [C_AST.Deref(id=C_AST.Id(ir_node.result_reg),pointer=C_AST.Id(ir_node.pointer_reg))]
 
     def _gen_IR_Func(self, ir_node: IR_Parameter, func_name: str, st: SymbolTable):
         params = []

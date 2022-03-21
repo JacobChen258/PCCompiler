@@ -14,6 +14,7 @@ class Type:
 @dataclass
 class NonPrimitiveType:
     type: Union['list', 'tuple']
+    value: Type
 
 @dataclass
 class Id:
@@ -139,6 +140,11 @@ class LstAdd:
     idx: Union[str,int]
 
 @dataclass
+class IndexIncrement:
+    obj : Id
+    type: Type
+
+@dataclass
 class NonPrimitiveIndex:
     result: Id
     obj: Id
@@ -148,9 +154,12 @@ class NonPrimitiveIndex:
 class NonPrimitiveLiteral:
     head: Id
     type: NonPrimitiveType
-    val_type: Type
-    value: List[PrimitiveLiteral]
+    value: List[Union[Id,PrimitiveLiteral]]
 
+@dataclass
+class Deref:
+    id: Id
+    pointer: Id
 
 class CCodeGenerator:
     function_declarations = []
