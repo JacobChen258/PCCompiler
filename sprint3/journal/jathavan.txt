@@ -4,11 +4,14 @@ Group Members: Litao Chen, Yifei Yin
 Sprint: 3
 
 Contributions: 
-Jathavn Sellathurai (%)
+Jathavn Sellathurai (20%)
+- Added c code generation for string, function calls, for loop on lists and "range"
 
+Litao chen (40%)
+- Added c code generation for if-elif-else and while loops, function declarations, and lists.
+- Worked on Document
 
-Litao chen (%)
-
-
-Yifei Yin (%)
-
+Yifei Yin (40%)
+- Created test file script
+- Created starter code for C generation files
+- Worked on document for sprint 3
