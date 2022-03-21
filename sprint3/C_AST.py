@@ -5,31 +5,36 @@ from dataclasses import dataclass
 
 @dataclass
 class Type:
-    value: str # 'str_t', 'int_t', 'float_t', 'bool_t'
+    value: str  # 'str_t', 'int_t', 'float_t', 'bool_t'
     # str_t -> char*
     # int_t -> long long
     # float_t -> double
     # bool_t -> bool or int
+
 
 @dataclass
 class NonPrimitiveType:
     type: Union['list', 'tuple']
     value: Type
 
+
 @dataclass
 class Id:
     name: str
+
 
 @dataclass
 class Declaration:
     id: Id
     type: Type
 
+
 @dataclass
 class UnaryOperation:
     left: Id
     operator: str
     operand: Id
+
 
 @dataclass
 class BinaryOperation:
@@ -38,14 +43,17 @@ class BinaryOperation:
     operand_a: Id
     operand_b: Id
 
+
 @dataclass
 class Parameter:
     paramType: Type
     var: Id
 
+
 @dataclass
 class ParameterLst:
     lst: List[Parameter]
+
 
 @dataclass
 class FunctionDeclaration:
@@ -54,24 +62,29 @@ class FunctionDeclaration:
     body: Block
     returnType: Union[Type, None]
 
+
 @dataclass
 class IfStmt:
     ifCond: Id
     body: Block
+
 
 @dataclass
 class ElifStmt:
     elifCond: Id
     body: Block
 
+
 @dataclass
 class ElseStmt:
     body: Block
+
 
 @dataclass
 class WhileStmt:
     cond: Id
     body: Block
+
 
 @dataclass
 class RangeValues:
@@ -79,11 +92,13 @@ class RangeValues:
     start: Union[Expression, None]
     step: Union[Expression, None]
 
+
 @dataclass
 class ForLoopRange:
     var: Id
     rangeVal: RangeValues
     body: Block
+
 
 @dataclass
 class ForLoopList:
@@ -91,41 +106,50 @@ class ForLoopList:
     Lst: Expression
     body: Block
 
+
 @dataclass
 class Expression:
     value: Union[BinaryOperation, UnaryOperation, Id]
 
+
 @dataclass
 class ArgumentLst:
-    lst: Union[List[Expression], List[Id],None]
+    lst: Union[List[Expression], List[Id], None]
+
 
 @dataclass
 class ReturnStmt:
     stmt: Expression
+
 
 @dataclass
 class FunctionCall:
     name: Id
     lst: ArgumentLst
 
+
 @dataclass
 class Block:
     lst: List[Union[FunctionDeclaration, ReturnStmt, FunctionCall, ForLoopRange, ForLoopList, WhileStmt, \
                     IfStmt, ElifStmt, ElseStmt, BinaryOperation, UnaryOperation]]
 
+
 @dataclass
 class Assignment:
-    id : Id
+    id: Id
     val: any
+
 
 @dataclass
 class String:
     val: str
     len: int
 
+
 @dataclass
 class ReturnStatement:
     value: Id
+
 
 @dataclass
 class PrimitiveLiteral:
@@ -133,16 +157,19 @@ class PrimitiveLiteral:
     type: Type
     value: any
 
+
 @dataclass
 class LstAdd:
     obj: Id
     value: any
-    idx: Union[str,int]
+    idx: Union[str, int]
+
 
 @dataclass
 class IndexIncrement:
-    obj : Id
+    obj: Id
     type: Type
+
 
 @dataclass
 class NonPrimitiveIndex:
@@ -150,27 +177,32 @@ class NonPrimitiveIndex:
     obj: Id
     idx: Id
 
+
 @dataclass
 class NonPrimitiveLiteral:
     head: Id
     type: NonPrimitiveType
-    value: List[Union[Id,PrimitiveLiteral]]
+    value: List[Union[Id, PrimitiveLiteral]]
+
 
 @dataclass
 class Deref:
     id: Id
     pointer: Id
 
+
 class CCodeGenerator:
     function_declarations = []
     function_definitions = []
     state_in_function_declaration = False
+    array_cleanup = []
 
     def generate_code(self, root):
         structure = self.gen(root)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
-        return self.code_template(declarations_str, definitions_str, formatted)
+        clean_up = self.generate_clean_up()
+        return self.code_template(declarations_str, definitions_str, formatted, clean_up)
 
     def generate_function_code(self):
         declarations_str = ";\n".join(self.function_declarations)
@@ -195,7 +227,13 @@ class CCodeGenerator:
             result += code
         return result
 
-    def code_template(self, function_declarations, function_definitions, main_code):
+    def generate_clean_up(self):
+        clean_up = ''
+        for array in self.array_cleanup:
+            clean_up += f"list_free({array});\n"
+        return clean_up
+
+    def code_template(self, function_declarations, function_definitions, main_code, clean_up):
         if len(function_declarations) == 0:
             function_code = ""
         else:
@@ -217,6 +255,11 @@ int main() {{
 /***** Main *****/
 {main_code}
 /***** End of main *****/
+
+/***** Memory clean up *****/
+{clean_up}
+/***** End of Memory clean up *****/
+
     return 0;
 }}
         """.strip() + '\n'
@@ -239,11 +282,19 @@ int main() {{
         return node.name
 
     def gen_Declaration(self, node: Declaration):
-        return f"{self.gen(node.type)} {self.gen(node.id)};"
+        type_t = self.gen(node.type)
+        name = self.gen(node.id)
+        if type_t == "list_t *":
+            self.array_cleanup.append(name)
+        return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):
-        assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
-        return node.value
+        if node.value.__class__.__name__ != "NonPrimitiveType":
+            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            return node.value
+        else:
+            assert node.value.type in ['list', 'tuple']
+            return "list_t *"
 
     def gen_UnaryOperation(self, node: UnaryOperation):
         return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
@@ -303,7 +354,7 @@ int main() {{
             "}",
         )
 
-    def gen_Assignment(self,node: Assignment):
+    def gen_Assignment(self, node: Assignment):
         if isinstance(node.val, (Id, FunctionCall, String)):
             return f"{self.gen(node.id)} = {self.gen(node.val)};"
         elif isinstance(node.val, bool):
@@ -323,3 +374,28 @@ int main() {{
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
         return f"return {self.gen(node.value)}"
 
+    def gen_LstAdd(self, node: LstAdd):
+        pass
+
+    def gen_IndexIncrement(self, node: IndexIncrement):
+        pass
+
+    def gen_NonPrimitiveIndex(self, node: NonPrimitiveIndex):
+        pass
+
+    def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
+        init = f"list_t * {self.gen(node.head)} = list_init({len(node.value)});\n"
+        val_type = self.convert_v_type(node.type.value)
+        for item in node.value:
+            init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
+        return init
+
+    def gen_Deref(self, node: Deref):
+        pass
+
+    def convert_v_type(self,node:Type):
+        if node.value.__class__.__name__ != "NonPrimitiveType":
+            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            return node.value[:-1] + 'v'
+        else:
+            return "list_v"
