@@ -272,8 +272,7 @@ class IRGen:
         f_label = self.inc_label()
         self.mark_label(t_label)
         cond_reg = self.inc_register()
-        # check if current pointer address reached the end of address
-        #self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=length, right_reg=index, operator=">"))
+
         self.add_code(IR_ForLoopVar( reg=self.generate(node.var)))
         self.add_code(IR_NonPrimitiveIndex(result_reg=self.generate(node.var),obj_reg=list_reg,idx_reg=index))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
