@@ -276,13 +276,11 @@ class IRGen:
         # Assume list is address referenced
         list_reg = self.generate(node.Lst)
         # first index of array is the length of array
-        val_reg = self.inc_register()
-        self.add_code(IR_Deref(result_reg=val_reg, pointer_reg=list_reg))
         # calculate address of final index
         length = self.inc_register()
         self.add_code(IR_GetLength(result_reg=length,pointer_reg=list_reg))
-        zero = self.inc_register()
-        self.add_code(IR_Assignment(name=zero, val=0))
+        index = self.inc_register()
+        self.add_code(IR_Assignment(name=index, val=0))
         one = self.inc_register()
         self.add_code(IR_Assignment(name=one, val=1))
         t_label = self.inc_label("FOR")
@@ -290,15 +288,14 @@ class IRGen:
         self.mark_label(t_label)
         cond_reg = self.inc_register()
         # check if current pointer address reached the end of address
-        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=length, right_reg=zero, operator=">"))
+        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=length, right_reg=index, operator=">"))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
         # go to next index, which has the actual value
-        self.add_code(IR_Assignment(name=self.generate(node.var), val=val_reg))
+        self.add_code(IR_NonPrimitiveIndex(result_reg=self.generate(node.var),obj_reg=list_reg,idx_reg=index))
         for node in node.body.lst:
             self.generate(node)
         # increment idx
-        self.add_code(IR_BinaryOperation(result_reg=length, left_reg=length, right_reg=one, operator="-"))
-        self.add_code(IR_IndexIncrement(assigned_reg=val_reg))
+        self.add_code(IR_BinaryOperation(result_reg=length, left_reg=index, right_reg=one, operator="+"))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
