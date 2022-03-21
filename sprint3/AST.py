@@ -52,12 +52,12 @@ class Expression(Node):
 
 @dataclass
 class PrimitiveLiteral(Node):
-    name: Union['str', 'int', 'float', 'bool']
+    name: Literal['str', 'int', 'float', 'bool', 'none']
     value: str
 
 @dataclass
 class NonPrimitiveLiteral(Node):
-    name: Union['tuple', 'list']
+    name: Literal['tuple', 'list']
     children: List[Union[any, None]]
 
 @dataclass(unsafe_hash=True)
@@ -153,6 +153,15 @@ class Block(Node):
     lst: List[Union[FunctionDef, ReturnStmt, FunctionCall, ForLoopRange, ForLoopList, WhileStmt, \
                     IfStmt, ElifStmt, ElseStmt, Assignment]]
 
+@dataclass
+class LstAppend(Node):
+    obj: Union[NonPrimitiveLiteral,Id]
+    val: Expression
+
+@dataclass
+class NonPrimitiveIndex(Node):
+    obj: Expression
+    idx: Expression
 
 
 

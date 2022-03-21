@@ -16,6 +16,7 @@ reserved = {
     'bool': "TBOOL",
     'None': "NONE",
     'def': "DEF",
+    'append': "APPEND"
 }
 
 tokens = [
@@ -48,6 +49,7 @@ tokens = [
     'NEWLINE',
     'COLON',
     'COMMA',
+    'DOT'
 ] + list(reserved.values())
 
 class pythonLexer():
@@ -69,9 +71,10 @@ class pythonLexer():
     t_XOR = r'\^'
     t_COMMA = r','
     t_COLON = r':'
+    t_DOT = r'\.'
     t_ignore_COMMENT = r'\#.*'
     t_ignore = ' '
-    literals = ".!@-`~\\|/{}?'\""
+    literals = "!@-`~\\|/{}?'\""
 
     #keeps track number of tabs for each line number
     tab_list = []
@@ -103,7 +106,7 @@ class pythonLexer():
     # NOT HANDLE ESCAPE STRING YET
     def t_STRING(self,t):
         r'("(?:\\.|[^"\\])*")|(\'(?:\\.|[^\'\\])*\')'
-        t.value = str(t.value)
+        t.value = str(t.value[1:-1])
         return t
 
     def t_FLOAT(self,t):

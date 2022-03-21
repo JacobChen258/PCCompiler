@@ -3,6 +3,7 @@ from ply import yacc
 from lex import pythonLexer
 from lex import tokens
 from dataclasses import dataclass
+import argparse
 import AST
 
 
@@ -114,7 +115,10 @@ class pythonParser:
                                 | STRING
                                 | BOOL
                                 | NONE"""
-        p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
+        if p[1] == 'None':
+            p[0] = AST.PrimitiveLiteral(name='none', value='none-placeholder')
+        else:
+            p[0] = AST.PrimitiveLiteral(name=p[1].__class__.__name__, value=p[1])
 
     def p_expr_binary(self, p):
         """expression   : expression PLUS expression
@@ -238,7 +242,8 @@ class pythonParser:
                                  | else_statement
                                  | while_statement
                                  | for_loop_range
-                                 | for_loop_lst"""
+                                 | for_loop_lst
+                                 | expression"""
         p[0] = p[1]
 
     def p_function_dec(self, p):
@@ -338,6 +343,19 @@ class pythonParser:
         else:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
 
+    def p_list_append(self,p):
+        """
+        statement_no_new_line : expression DOT APPEND LPAREN expression RPAREN
+        """
+        p[0] = AST.LstAppend(obj=p[1], val=p[5])
+
+    def p_non_prim_index(self,p):
+        """
+        expression : expression LBRACKET expression RBRACKET
+                   | expression LBRACKET function_call RBRACKET
+        """
+        p[0] = AST.NonPrimitiveIndex(obj=p[1],idx=p[3])
+
     def p_empty(self, p):
         """empty :"""
         pass
@@ -362,5 +380,14 @@ class pythonParser:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Take in the miniJava source code and perform lexical analysis.')
+    parser.add_argument('FILE', help="Input file with miniJava source code")
+    args = parser.parse_args()
+
+    f = open(args.FILE, 'r')
+    data = f.read()
+    f.close()
     m = pythonParser()
     m.build()
+    root = m.parse(data)
+    print(root)

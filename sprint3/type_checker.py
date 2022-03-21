@@ -93,6 +93,9 @@ class TypeChecker:
             st.declare_variable(variable_name, variable_type)
             rhs_type = self.typecheck(node.right, st)
             if variable_type != rhs_type:
+                # TODO: RHS could have None if the list is empty
+                if (isinstance(variable_type.value, NonPrimitiveType) and isinstance(rhs_type.value, NonPrimitiveType)) and variable_type.value.name == rhs_type.value.name:
+                        return variable_type
                 raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
         else:
             # Variable already exists, check the type of RHS
@@ -143,7 +146,10 @@ class TypeChecker:
                 first_elem_type = t
             else:
                 try:
-                    self.assert_same_type(first_elem_type, t)
+                    if (isinstance(first_elem_type.value, NonPrimitiveType) and isinstance(t.value, NonPrimitiveType)) and first_elem_type.value.name == t.value.name:
+                        pass
+                    else:
+                        self.assert_same_type(first_elem_type, t)
                 except ParseError:
                     raise ParseError(f'Mismatched types in list literal, first element is of type {first_elem_type}, {i}-th element is of type {t}')
 
@@ -244,6 +250,21 @@ class TypeChecker:
         for statement in node.body.lst:
             self.typecheck(statement, st)
         st.pop_scope()
+
+    def check_LstAppend(self,node:AST.LstAppend, st:SymbolTable):
+        obj_type = self.typecheck(node.obj,st)
+        val_type = self.typecheck(node.val,st)
+        assert isinstance(obj_type.value,NonPrimitiveType)
+        assert obj_type.value.name == 'list'
+        assert obj_type.value.value == val_type
+
+    def check_NonPrimitiveIndex(self,node:AST.NonPrimitiveIndex,st:SymbolTable):
+        obj_type = self.typecheck(node.obj,st)
+        idx_type = self.typecheck(node.idx,st)
+        assert isinstance(obj_type.value,NonPrimitiveType)
+        assert isinstance(idx_type.value,PrimitiveType)
+        assert idx_type.value.value == 'int'
+        return obj_type.value.value
 
     def check_Id(self,node: AST.Id,st:SymbolTable)->Type:
         return st.lookup_variable(node.name)

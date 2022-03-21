@@ -1,21 +1,26 @@
 from dataclasses import dataclass
+from typing import Union
 import AST
 
 cond_label_stack = []
 cond_label_idx_stack = []
 
+
 @dataclass
 class IR_Label:
     value: int
+
 
 @dataclass
 class IR_Goto:
     label: int
 
+
 @dataclass
 class IR_PrimitiveLiteral:
     reg: int
     val: any
+
 
 @dataclass
 class IR_BinaryOperation:
@@ -24,100 +29,121 @@ class IR_BinaryOperation:
     right_reg: int
     operator: str
 
+
 @dataclass
 class IR_UnaryOperation:
     result_reg: int
     operator: str
     operand_reg: int
 
-@dataclass
-class IR_PushParam: # should it be just value rather than register?
-    reg: int
 
 @dataclass
-class IR_PopParam: # number of params to pop?
+class IR_PushParam:  # should it be just value rather than register?
     reg: int
+
+
+@dataclass
+class IR_PopParam:  # number of params to pop?
+    reg: int
+
 
 @dataclass
 class IR_FunctionCall:
     name: str
     reg: int
 
+
 @dataclass
 class IR_FunctionReturn:
     reg: int
+
 
 @dataclass
 class IR_ReturnStmt:
     reg: int
 
+
 class IR_PushStack:
     val: int
 
+
 class IR_PopStack:
     val: int
+
 
 @dataclass
 class IR_IfStmt:
     if_false: IR_Goto
     cond_reg: int
 
+
 @dataclass
 class IR_ElifStmt:
     elif_false: IR_Goto
     cond_reg: int
+
 
 @dataclass
 class IR_Assignment:
     name: str
     val: any
 
-#determines start of a list or tuple
+
+# determines start of a list or tuple
 @dataclass
 class IR_List:
     reg: int
-    operator: str #LIST, TUPLE
+    operator: str  # LIST, TUPLE
     length: int
 
-#represents individual elements in a list or tuple
+
+# represents individual elements in a list or tuple
 @dataclass
 class IR_List_VAL:
     reg: int
+
 
 @dataclass
 class IR_LoopStart:
     reg: str
     val: any
 
+
 @dataclass
 class IR_LoopStop:
     reg: str
     val: any
+
 
 @dataclass
 class IR_LoopStep:
     reg: str
     val: any
 
+
 @dataclass
 class IR_String:
     reg: int
     length: int
+
 
 @dataclass
 class IR_String_char:
     reg: int
     val: str
 
+
 @dataclass
 class IR_Parameter:
-    reg:int
-    length:int
+    reg: int
+    length: int
+
 
 @dataclass
 class IR_Parameter_VAL:
-    reg:int
-    name:str
+    reg: int
+    name: str
+
 
 @dataclass
 class IR_Argument:
@@ -125,17 +151,45 @@ class IR_Argument:
     function_call_reg: int
     length: int
 
+
 @dataclass
 class IR_Argument_VAL:
     reg: int
+
 
 @dataclass
 class IR_Address:
     addr_reg: str
 
+
 @dataclass
 class IR_Deref:
+    result_reg: str
     pointer_reg: str
+
+
+@dataclass
+class IR_IndexIncrement:
+    assigned_reg: str
+
+@dataclass
+class IR_GetLength:
+    result_reg: str
+    pointer_reg: str
+
+@dataclass
+class IR_LstAdd:
+    obj_reg: str
+    val_reg: str
+    idx: Union[str, int]
+
+
+@dataclass
+class IR_NonPrimitiveIndex:
+    result_reg: str
+    obj_reg: str
+    idx_reg: str
+
 
 class IRGen:
     def __init__(self):
@@ -143,7 +197,7 @@ class IRGen:
         self.register_count = 0
         self.label_count = 0
 
-    def generate_IR(self,nodes):
+    def generate_IR(self, nodes):
         for node in nodes:
             self.generate(node)
         return self.IR
@@ -162,10 +216,10 @@ class IRGen:
     def reset_register(self):
         self.register_count = 0
 
-    def inc_label(self,type=None):
+    def inc_label(self, type=None):
         self.label_count += 1
         if type:
-            return "L_{}_{}".format(type,self.label_count)
+            return "L_{}_{}".format(type, self.label_count)
         return "L_{}".format(self.label_count)
 
     def mark_label(self, label: int):
@@ -182,7 +236,7 @@ class IRGen:
 
         self.add_code(IR_Goto(label=skip_decl))
 
-        function_label = self.inc_label("FUNC_"+node.name.name)
+        function_label = self.inc_label("FUNC_" + node.name.name)
         self.mark_label(function_label)
 
         params = node.lst
@@ -199,7 +253,7 @@ class IRGen:
         args = node.lst
         function_reg = self.inc_register()
         arg_reg = self.inc_register()
-        self.add_code(IR_Argument(reg=arg_reg,function_call_reg=function_reg, length=len(args.lst or [])))
+        self.add_code(IR_Argument(reg=arg_reg, function_call_reg=function_reg, length=len(args.lst or [])))
         for arg in args.lst or []:
             self.add_code(IR_Argument_VAL(reg=self.generate(arg)))
 
@@ -215,40 +269,40 @@ class IRGen:
         self.add_code(IR_ReturnStmt(reg=expr))
 
     def gen_Assignment(self, node: AST.Assignment):
-        self.add_code(IR_Assignment(name=self.generate(node.left),val=self.generate(node.right)))
+        self.add_code(IR_Assignment(name=self.generate(node.left), val=self.generate(node.right)))
         return node.left
 
     def gen_ForLoopList(self, node: AST.ForLoopList):
         # Assume list is address referenced
         list_reg = self.generate(node.Lst)
-        cur_ptr = self.inc_register()
-        self.add_code(IR_Assignment(name=cur_ptr,val = IR_Address(addr_reg=list_reg)))
-        length_reg = self.inc_register()
         # first index of array is the length of array
-        self.add_code(IR_Assignment(name=length_reg, val=IR_Deref(pointer_reg=cur_ptr)))
-        # go to next index, which has the actual value
-        increment_reg = self.inc_register()
-        self.add_code(IR_Assignment(name=increment_reg, val=1))
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
-        end_ptr = self.inc_register()
+        val_reg = self.inc_register()
+        self.add_code(IR_Deref(result_reg=val_reg, pointer_reg=list_reg))
         # calculate address of final index
-        self.add_code(IR_BinaryOperation(result_reg=end_ptr,left_reg=cur_ptr,right_reg=length_reg,operator="+"))
+        length = self.inc_register()
+        self.add_code(IR_GetLength(result_reg=length,pointer_reg=list_reg))
+        zero = self.inc_register()
+        self.add_code(IR_Assignment(name=zero, val=0))
+        one = self.inc_register()
+        self.add_code(IR_Assignment(name=one, val=1))
         t_label = self.inc_label("FOR")
         f_label = self.inc_label()
         self.mark_label(t_label)
         cond_reg = self.inc_register()
         # check if current pointer address reached the end of address
-        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=cur_ptr, right_reg=end_ptr, operator="<"))
-        self.add_code(IR_IfStmt(if_false=IR_Goto(f_label),cond_reg=cond_reg))
-        self.add_code(IR_Assignment(name=self.generate(node.var),val=IR_Deref(pointer_reg=cur_ptr)))
+        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=length, right_reg=zero, operator=">"))
+        self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
+        # go to next index, which has the actual value
+        self.add_code(IR_Assignment(name=self.generate(node.var), val=val_reg))
         for node in node.body.lst:
             self.generate(node)
         # increment idx
-        self.add_code(IR_BinaryOperation(result_reg=cur_ptr,left_reg=cur_ptr,right_reg=increment_reg,operator="+"))
+        self.add_code(IR_BinaryOperation(result_reg=length, left_reg=length, right_reg=one, operator="-"))
+        self.add_code(IR_IndexIncrement(assigned_reg=val_reg))
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
 
-    def gen_RangeValues(self, node:AST.RangeValues):
+    def gen_RangeValues(self, node: AST.RangeValues):
         start_reg = self.inc_register()
         stop_reg = self.inc_register()
         step_reg = self.inc_register()
@@ -274,13 +328,19 @@ class IRGen:
         self.mark_label(t_label)
         self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
         cond_reg = self.inc_register()
-        self.add_code(IR_BinaryOperation(result_reg=cond_reg, left_reg=self.generate(node.var), right_reg=range[2], operator="<"))
+        self.add_code(
+            IR_BinaryOperation(result_reg=cond_reg, left_reg=self.generate(node.var), right_reg=range[2], operator="<"))
         self.add_code(IR_IfStmt(if_false=IR_Goto(f_label), cond_reg=cond_reg))
         for body in node.body.lst:
             self.generate(body)
+<<<<<<< HEAD
+=======
+        self.add_code(
+            IR_BinaryOperation(result_reg=range[0], left_reg=self.generate(node.var), right_reg=range[1], operator="+"))
+        self.add_code(IR_Assignment(name=self.generate(node.var), val=range[0]))
+>>>>>>> 8d198ac61b6d04a796086c282b7e1f55f8c971fb
         self.add_code(IR_Goto(t_label))
         self.mark_label(f_label)
-
 
     def gen_WhileStmt(self, node: AST.WhileStmt):
         t_label = self.inc_label("WHILE")
@@ -321,7 +381,8 @@ class IRGen:
         operator = node.operator
         right_reg = self.generate(node.right)
         result_reg = self.inc_register()
-        self.add_code(IR_BinaryOperation(result_reg=result_reg, left_reg=left_reg, right_reg=right_reg, operator=operator))
+        self.add_code(
+            IR_BinaryOperation(result_reg=result_reg, left_reg=left_reg, right_reg=right_reg, operator=operator))
         return result_reg
 
     def gen_UnaryOperation(self, node: AST.UnaryOperation):
@@ -332,14 +393,14 @@ class IRGen:
         return result_reg
 
     def gen_IfStmt(self, node: AST.IfStmt):
-        global cond_label_stack,cond_label_idx_stack
+        global cond_label_stack, cond_label_idx_stack
         cond = self.generate(node.ifCond)
 
         fbranch_label = self.inc_label()
-        cond_label_stack.append(self.inc_label())   # record the
+        cond_label_stack.append(self.inc_label())  # record the
 
         # Skip to the false_body if the condition is not met
-        self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label),cond_reg=cond))
+        self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label), cond_reg=cond))
         for stmt in node.body.lst:
             self.generate(stmt)
         # End of true body
@@ -372,8 +433,6 @@ class IRGen:
         # update the true label index
         cond_label_idx_stack[-1] += len_elif
 
-
-
     def gen_ElseStmt(self, node: AST.ElseStmt):
         global cond_label_stack, cond_label_idx_stack
         # copy the whole IR to make sure that
@@ -388,6 +447,18 @@ class IRGen:
         # pop cond_label and cond_label_idx
         cond_label_idx_stack.pop(-1)
         cond_label_stack.pop(-1)
+
+    def gen_LstAppend(self, node: AST.LstAppend):
+        obj_reg = self.generate(node.obj)
+        val = self.generate(node.val)
+        self.add_code(IR_LstAdd(obj_reg=obj_reg, val_reg=val, idx='end'))
+
+    def gen_NonPrimitiveIndex(self, node: AST.NonPrimitiveIndex):
+        obj_reg = self.generate(node.obj)
+        idx_reg = self.generate(node.idx)
+        result_reg = self.inc_register()
+        self.add_code(IR_NonPrimitiveIndex(result_reg=result_reg, obj_reg=obj_reg, idx_reg=idx_reg))
+        return result_reg
 
     def gen_Id(self, node: AST.Id):
         return node.name

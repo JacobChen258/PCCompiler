@@ -34,7 +34,7 @@
     "right": {
       "NODE": "PrimitiveLiteral",
       "name": "str",
-      "value": "\"123\""
+      "value": "123"
     }
   },
   {
