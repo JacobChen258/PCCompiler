@@ -337,7 +337,17 @@ class CASTGenerator:
         pass
 
     def gen_IR_Deref(self, ir_node: IR_Deref, st=None):
-        return [C_AST.Deref(id=C_AST.Id(ir_node.result_reg),pointer=C_AST.Id(ir_node.pointer_reg))]
+        result_node = C_AST.Id(name=ir_node.result_reg)
+        pointer_node = C_AST.Id(name=ir_node.pointer_reg)
+        deref_node = C_AST.Deref(id=result_node,pointer=pointer_node)
+        if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
+            type_t = self.temp_st.lookup_variable(name=ir_node.pointer_reg).value
+            if type_t.__class__.__name__ != "NonPrimitiveType":
+                raise Exception("C_AST Gen Error: Dereferencing Non Pointer Value")
+            self.temp_st.declare_variable(name=ir_node.result_reg, type=type_t.value)
+            decl_node = C_AST.Declaration(id=result_node, type=type_t.value)
+            return [decl_node, deref_node]
+        return [deref_node]
 
     def _gen_IR_Func(self, ir_node: IR_Parameter, func_name: str, st: SymbolTable):
         params = []
