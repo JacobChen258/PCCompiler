@@ -58,7 +58,7 @@ def test_c_gen(parser, test_name):
     with open(f'./{test_dir}/{test_name}_received.c', 'w+') as f:
         f.write(received_str)
 
-    raise Exception('Raising error pytest so we can see stdout')
+    # raise Exception('Raising error pytest so we can see stdout')
     if output_str is not None:
         if received_str.strip().strip("\n") != output_str.strip().strip("\n"):
             diff = difflib.unified_diff(output_str.split('\n'), received_str.split('\n'), f"./tests/{test_name}_output.c", f"./tests/{test_name}_received.c", lineterm='')
@@ -71,5 +71,10 @@ def test_c_gen(parser, test_name):
             except FileNotFoundError:
                 pass
     else:
-        pass
-        # raise AssertionError(f'Missing output file')
+        import subprocess
+        proc = subprocess.run(f'gcc ./{test_dir}/{test_name}_received.c -o ./{test_dir}/{test_name}_received', shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        print("----- stderr -----")
+        print(proc.stderr)
+        print("----- stdout -----")
+        print(proc.stdout)
+        assert proc.returncode == 0, f"gcc return code was {proc.returncode}"

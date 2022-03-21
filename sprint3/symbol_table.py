@@ -59,6 +59,10 @@ class SymbolTable(object):
         random.seed(9)
         self.random = random.sample(range(1000,9999),1000)
 
+    def __repr__(self):
+        from pprint import pformat
+        return pformat({ 'Scope': self.scope_stack, 'Function Call': self.func_call_stack })
+
     def push_scope(self):
         self.scope_stack.append(dict())
 
@@ -146,7 +150,7 @@ class SymbolTable(object):
             if name in scope:
                 for f in scope[name].functions:
                     if repr(f.param_types) == repr(param_types):
-                        return f.hashed_name,f.return_type
+                        return f.hashed_name, f.return_type
         raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"", line_number)
 
     def update_variable(self, name: str, type: Union[A_Type, C_Type], line_number=-1):

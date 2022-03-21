@@ -19,7 +19,7 @@ class CASTGenerator:
     loop_start = None
     loop_stop = None
     loop_step = None
-    
+
     list_len = {}
     get_length = {}
     empty_non_prim = []
@@ -454,7 +454,7 @@ class CASTGenerator:
                 for_loop_comp = self.gen(cur_node,st)
             else:
                 head += self.gen(cur_node, st)
-                
+
             cur_node = self.ir.pop(0)
 
         false_label = cur_node.if_false.label
@@ -478,7 +478,7 @@ class CASTGenerator:
         cur_list_reg = None
         cur_list_len = None
         for_loop_comp = None
-        
+
         while cur_node.__class__.__name__ != "IR_IfStmt":
             if cur_node.__class__.__name__ == "IR_ForLoopVar":
                 cur_id = cur_node.reg
@@ -509,8 +509,8 @@ class CASTGenerator:
 
         return head + [decl_node] + [result_stmt]
 
-        
-        
+
+
     def gen_IR_LstAdd(self,ir_node:IR_LstAdd,st=None):
         obj = C_AST.Id(ir_node.obj_reg)
         value = C_AST.Id(ir_node.val_reg)
