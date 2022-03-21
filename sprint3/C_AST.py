@@ -274,8 +274,18 @@ int main() {{
             self.gen(node.body),
             "}",
         )
+    def gen_ForLoopRange(self, node: ForLoopRange):
+        assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
+        comp_string = f"{node.var.name} < {node.rangeVal.stop};"
+        step_string = f"{node.var.name} += {node.rangeVal.step};"
+        step_string = step_string[:-1]
+        return ( 
+               "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+               self.gen(node.body),
+               "}",
+        )
 
-    def gen_Assignment(self,node:Assignment):
+    def gen_Assignment(self,node: Assignment):
         if type(node.val) != Id and type(node.val) != FunctionCall and type(node.val) != String:
             return f"{self.gen(node.id)} = {node.val};"
         return f"{self.gen(node.id)} = {self.gen(node.val)};"

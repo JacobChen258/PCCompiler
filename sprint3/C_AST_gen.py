@@ -14,6 +14,11 @@ class CASTGenerator:
     current_str_count = 0
     argument_list_stack = []
     argument_list_dict = {}
+
+    #For loop vaiables
+    loop_start = None
+    loop_stop = None
+    loop_step = None
     
 
     def __init__(self):
@@ -44,7 +49,8 @@ class CASTGenerator:
     def gen_IR_Label(self, ir_node: IR_Label, st=None):
         if "FOR" in ir_node.value:
             # do something for FOR
-            pass
+            #pass
+            return self._gen_IR_For_Range(self.ir.pop(0), st)
         elif "WHILE" in ir_node.value:
             # do something for WHILE
             return self._gen_IR_While(self.ir.pop(0), st)
@@ -265,13 +271,28 @@ class CASTGenerator:
         pass
 
     def gen_IR_LoopStart(self, ir_node: IR_LoopStart, st=None):
-        pass
+        self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type("int_t"))
+        id_node = C_AST.Id(name=ir_node.reg)
+        decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type("int_t"))
+        assign = C_AST.Assignment(id=id_node, val=ir_node.val)
+        self.loop_start = ir_node.reg
+        return [decl_node, assign]
 
     def gen_IR_LoopStop(self, ir_node: IR_LoopStop, st=None):
-        pass
+        self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type("int_t"))
+        id_node = C_AST.Id(name=ir_node.reg)
+        decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type("int_t"))
+        assign = C_AST.Assignment(id=id_node, val=ir_node.val)
+        self.loop_stop = ir_node.reg
+        return [decl_node, assign]
 
     def gen_IR_LoopStep(self, ir_node: IR_LoopStep, st=None):
-        pass
+        self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type("int_t"))
+        id_node = C_AST.Id(name=ir_node.reg)
+        decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type("int_t"))
+        assign = C_AST.Assignment(id=id_node, val=ir_node.val)
+        self.loop_step = ir_node.reg
+        return [decl_node, assign]
 
     def gen_IR_String(self,ir_node:IR_String,st=None):
         self.current_str = C_AST.String(val="", len=ir_node.length)
@@ -381,4 +402,40 @@ class CASTGenerator:
             elif val:
                 result_stmt.body.lst+= val
         return head + [result_stmt]
+
+    def _gen_IR_For_Range(self, ir_node: any ,st=None):
+        head = []
+        cur_node = ir_node
+        cur_assign = None
+        cur_id = None
+        for_loop_comp = None
+        cur_loop_start = self.loop_start
+        cur_loop_stop = self.loop_stop
+        cur_loop_step = self.loop_step
+        while cur_node.__class__.__name__ != "IR_IfStmt":
+            if cur_node.__class__.__name__ == "IR_Assignment" and cur_node.val == cur_loop_start:
+                cur_assign = self.gen(cur_node, st)
+                cur_id = cur_assign[0].id
+            elif cur_node.__class__.__name__ == "IR_BinaryOperation" and cur_node.right_reg == cur_loop_stop:
+                for_loop_comp = self.gen(cur_node,st)
+            else:
+                head += self.gen(cur_node, st)
+                
+            cur_node = self.ir.pop(0)
+
+        false_label = cur_node.if_false.label
+        result_stmt = C_AST.ForLoopRange(rangeVal=C_AST.RangeValues(stop=cur_loop_stop, start=cur_loop_start, step=cur_loop_step),var=cur_id, body=C_AST.Block([]))
+        continue_sig = True
+        while continue_sig:
+            cur_node = self.ir.pop(0)
+            val = self.gen(cur_node, st)
+            if val and val == false_label:
+                continue_sig = False
+            elif val:
+                result_stmt.body.lst+= val
+        return head + [result_stmt]
+
+
+        
+        
 
