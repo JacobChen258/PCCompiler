@@ -1,4 +1,5 @@
 def f(a: int) -> int:
 	return a
 
-f(1)
+b: int = 10
+b = f(1)

@@ -2,7 +2,7 @@ import C_AST
 from ir_gen import *
 from symbol_table import SymbolTable
 from typing import Union, List
-from AST import Type as A_Type
+from AST import Type as A_Type, NonPrimitiveType
 
 
 class CASTGenerator:
@@ -261,10 +261,9 @@ class CASTGenerator:
                 type_t = self.temp_st.lookup_variable(name=ir_node.val)
             except Exception:
                 id_type = st.lookup_variable(ir_node.name)
-                if id_type.value.__class__.__name__ != "NonPrimitiveType":
-                    raise Exception(f"Parse Error Reference undefined {ir_node.val}")
+                assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
             # Assume all non primitives will eventually be assigned to a value
-            if type_t.value.__class__.__name__ == "NonPrimitiveType":
+            if isinstance(type_t, NonPrimitiveType):
                 id_type = st.lookup_variable(ir_node.name)
                 type_t = self.convert_NonPrimitive_Type(id_type)
                 while self.empty_non_prim:

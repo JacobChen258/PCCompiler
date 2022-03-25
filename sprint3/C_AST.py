@@ -414,9 +414,9 @@ int main() {{
             init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
         return init
 
-    def convert_v_type(self,node:Type):
-        if node.value.value.value.__class__.__name__ != "NonPrimitiveType":
+    def convert_v_type(self,node: Type):
+        if not isinstance(node.value, NonPrimitiveType):
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
-            return node.value.value.value[:-1] + 'v'
+            return node.value.value.value.replace('_t', '_v')
         else:
             return "list_v"
