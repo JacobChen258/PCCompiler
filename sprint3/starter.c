@@ -149,7 +149,7 @@ start:
   return value;
 }
 
-void print_internal(int items_count, ...)
+int print_internal(int items_count, ...)
 {
   va_list valist;
   va_start(valist, items_count);
@@ -182,6 +182,7 @@ void print_internal(int items_count, ...)
   }
   printf("\n");
   va_end(valist);
+  return 0;
 }
 
 #define list_get(vname, list, index) \
@@ -195,3 +196,6 @@ void print_internal(int items_count, ...)
 
 #define input(vname, prompt) \
   input_internal(prompt, #vname[0]).vname
+
+#define print_int(X) \
+  (print_internal(1, 'i', X))

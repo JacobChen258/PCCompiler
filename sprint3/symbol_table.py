@@ -29,15 +29,15 @@ class Functions():
     functions: List[Union[Function, C_Function]]
 
 def _one_function_helper(param_name: str, param_type: str, return_type: Union[str, None]):
-    # return Functions([Function(param_names=[param_name], param_types=[A_Type(PrimitiveType(param_type))], return_type=A_Type(PrimitiveType(return_type)))])
-    return Functions([Function(param_names=[param_name], param_types=[], return_type=A_Type(PrimitiveType(return_type)))])
+    return Functions([Function(param_names=[param_name], param_types=[A_Type(PrimitiveType(param_type))], return_type=A_Type(PrimitiveType(return_type)))])
+    # return Functions([Function(param_names=[param_name], param_types=[], return_type=A_Type(PrimitiveType(return_type)))])
 
 def _one_function_helper2(name, param_name: str, param_type: str, return_type: Union[str, None]):
-    # return Functions([C_Function(hashed_name=name, param_types=[C_Type(param_type + "_t")], return_type=A_Type(PrimitiveType(return_type)))])
-    return Functions([C_Function(hashed_name=name, param_types=[], return_type=A_Type(PrimitiveType(return_type)))])
+    return Functions([C_Function(hashed_name=name, param_types=[C_Type(param_type + "_t")], return_type=A_Type(PrimitiveType(return_type)))])
+    # return Functions([C_Function(hashed_name=name, param_types=[], return_type=A_Type(PrimitiveType(return_type)))])
 
 global_functions: Dict[str, Functions] = {
-    # 'print_int': _one_function_helper('var', 'int', 'none'),
+    'print_int': _one_function_helper('var', 'int', 'none'),
     # 'print_float': _one_function_helper('var', 'float', 'none'),
     # # 'print_char': _one_function_helper('var', 'char', 'none'),
     # 'print_str': _one_function_helper('var', 'str', 'none'),
@@ -54,7 +54,7 @@ global_functions: Dict[str, Functions] = {
     # 'input_bool': _one_function_helper('prompt', 'str', 'bool'),
 }
 global_functions2: Dict[str, Functions] = {
-    # 'print_int': _one_function_helper2('print_int', 'var', 'int', 'none'),
+    'print_int': _one_function_helper2('print_int', 'var', 'int', 'none'),
     # 'print_float': _one_function_helper2('print_float', 'var', 'float', 'none'),
     # # 'print_char': _one_function_helper2(# , 'var', 'char', 'none'),
     # 'print_str': _one_function_helper2('print_str', 'var', 'str', 'none'),
