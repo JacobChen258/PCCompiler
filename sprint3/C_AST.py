@@ -23,6 +23,9 @@ class NonPrimitiveType:
 @dataclass
 class Id:
     name: str
+    def __init__(self, name):
+        assert isinstance(name, str), f"Got {name=}"
+        self.name = name
 
 
 @dataclass
@@ -347,15 +350,15 @@ int main() {{
         assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
         comp_string = f"{node.var.name} < {node.rangeVal.stop};"
         step_string = f"{node.var.name} += {node.rangeVal.step}"
-        
-        return ( 
+
+        return (
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
                self.gen(node.body),
                "}",
         )
 
     def gen_ForLoopList(self, node: ForLoopList):
-        
+
         assign_string = f"{node.indexVar} = 0;"
         comp_string = f"{node.indexVar} < {node.length};"
         step_string = f"{node.indexVar} += 1"
@@ -363,8 +366,8 @@ int main() {{
         #index_string = f"list_get(int_v, {node.Lst}, {node.indexVar})"
         #assign_node = Assignment(id=node.var, val=index_string)
         #node.body.lst = [assign_node] + node.body.lst
-        
-        return ( 
+
+        return (
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
                [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
                self.gen(node.body),

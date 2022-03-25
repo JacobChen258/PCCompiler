@@ -392,7 +392,7 @@ class CASTGenerator:
         self.temp_st.push_scope()
         param_lst = C_AST.ParameterLst([])
         for i in range(len(params)):
-            param_lst.lst.append(C_AST.Parameter(var=C_AST.Id(params[i]), paramType=converted_types[i]))
+            param_lst.lst.append(C_AST.Parameter(var=params[i], paramType=converted_types[i]))
             self.temp_st.declare_variable(params[i], converted_types[i])
             self.temp_st.declare_variable(param_regs[i], converted_types[i])
         func_node = C_AST.FunctionDeclaration(name=C_AST.Id(hash_name), lst=param_lst, body=C_AST.Block([]), \
