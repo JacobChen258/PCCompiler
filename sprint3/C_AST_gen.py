@@ -157,15 +157,16 @@ class CASTGenerator:
             type_val = 'none_t'
         else:
             assert False, f"{type_val=}"
-
-        self.temp_st.declare_variable(name=ir_node.reg, type=C_AST.Type(value=type_val))
-        id_node = C_AST.Id(name=ir_node.reg)
+        # return always immediately follows the function call
+        ret_reg = self.gen(self.ir.pop(0))
+        self.temp_st.declare_variable(name=ret_reg, type=C_AST.Type(value=type_val))
+        id_node = C_AST.Id(name=ret_reg)
         decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type(value=type_val))
 
         return [decl_node, C_AST.Assignment(id=id_node, val=function_call_node)]
 
     def gen_IR_FunctionReturn(self, ir_node: IR_FunctionReturn, st=None):
-        pass
+        return ir_node.reg
 
     def gen_IR_ReturnStmt(self, ir_node: IR_ReturnStmt, st=None):
         return [C_AST.ReturnStatement(value=C_AST.Id(ir_node.reg))]
