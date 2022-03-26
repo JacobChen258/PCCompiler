@@ -1,0 +1,26 @@
+Name: Yifei Yin
+Student Number: 1004910670
+Group Members: Yifei Yin, Jathavan Sellathurai, Litao Chen
+Sprint: 3
+
+Contributions:
+
+Yifei Yin 30%
+- Added None as a valid primitive type
+- Initial C_AST and CCodeGenerator setup
+- c starter code template
+- implement input, print, list helper functions
+- New test suite setup
+- Testing the language, triage bugs found
+
+Jathavan Sellathurai 35%
+- IR to C_AST for forRange and forList
+- IR to C_AST for function call
+- IR to C_AST for string
+
+Litao Chen 35%
+- Initial C_AST_gen setup
+- IR to C_AST for forRange and forList
+- IR to C_AST for while
+- Added index and append calls to the language
+

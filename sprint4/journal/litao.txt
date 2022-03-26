@@ -1,0 +1,20 @@
+Name: Litao Chen
+Student Number: 1004545842
+Group Members: Jathavan Sellathurai, Yifei Yin, and Litao Chen
+Sprint: 3
+
+Contributions: 
+ Yifei Yin (35%)
+ - build the test cases for target code generation
+ - build the C_AST to target code generator
+ - build helper files in C (list and basic structure)
+
+ Jathavan Sellathurai (35%)
+ - complete for range, for list, function call, string IR
+  	to C_AST generator.
+ - fix bug in IR
+
+ Litao Chen (30%)
+ - complete if, while, function declaration, some constant
+ 	and list IR to C_AST generator.
+ - implement some functions C_AST to target code generator
