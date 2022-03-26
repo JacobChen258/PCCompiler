@@ -30,13 +30,15 @@ class Functions():
 
 
 def generate_global_functions_for_typechecking():
-    result = {}
+    result = {
+        'print': Functions([])
+    }
     for type_name in ['int', 'float', 'bool']:
         result['input_' + type_name] = Functions([
             C_Function(hashed_name='input_' + type_name, param_types=[], return_type=A_Type(PrimitiveType(type_name))),
             Function(param_names=[], param_types=[], return_type=A_Type(PrimitiveType(type_name))),
         ])
-        result['print_' + type_name] = Functions([
+        result['print'].functions.extend([
             C_Function(hashed_name='print_' + type_name, param_types=[C_Type(type_name + '_t')], return_type=A_Type(PrimitiveType('none'))),
             Function(param_names=[], param_types=[A_Type(PrimitiveType(type_name))], return_type=A_Type(PrimitiveType('none'))),
         ])
@@ -118,6 +120,8 @@ class SymbolTable(object):
                 for f in scope[name].functions:
                     if repr(f.param_types) == repr(param_types):
                         return f.return_type
+                    else:
+                        print('Failed:', repr(f.param_types), repr(param_types))
 
         raise ParseError("Referencing undefined function \"" + name + "\"", line_number)
 

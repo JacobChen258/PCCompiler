@@ -197,8 +197,10 @@ int print_internal(int items_count, ...)
 #define input(vname, prompt) \
   input_internal(prompt, #vname[0]).vname
 
-#define input_int(x) \
-  input(int_v, "Enter a number")
+#define input_int() input(int_v, "Enter a number")
+#define input_float() input(float_v, "Enter a number")
+#define input_bool() input(int_v, "Enter 0 or 1")
 
-#define print_int(X) \
-  (print_internal(1, 'i', X))
+#define print_int(X) print_internal(1, 'i', X)
+#define print_float(X) print_internal(1, 'f', X)
+#define print_bool(X) print_internal(1, 'b', X)
