@@ -431,12 +431,13 @@ class CASTGenerator:
                 continue_sig = False
             elif val:
                 result_stmt.body.lst+= val
+        if head:
+            result_stmt.body.lst.append(head[-1])
         return head + [result_stmt]
 
     def _gen_IR_For_Range(self, ir_node: any ,st=None):
         head = []
         cur_node = ir_node
-        cur_assign = None
         cur_id = None
         for_loop_comp = None
         cur_loop_start = self.loop_start
@@ -445,6 +446,7 @@ class CASTGenerator:
         while cur_node.__class__.__name__ != "IR_IfStmt":
             if cur_node.__class__.__name__ == "IR_Assignment" and cur_node.val == cur_loop_start:
                 cur_assign = self.gen(cur_node, st)
+                head += cur_assign
                 cur_id = cur_assign[0].id
             elif cur_node.__class__.__name__ == "IR_BinaryOperation" and cur_node.right_reg == cur_loop_stop:
                 for_loop_comp = self.gen(cur_node,st)

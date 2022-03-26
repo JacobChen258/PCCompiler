@@ -10,6 +10,7 @@ class TypeChecker:
             self.typecheck(node,st)
 
     def typecheck(self, node, st=None) -> Union[Type, None]:
+        print(node)
         method = 'check_' + node.__class__.__name__
         result_type = getattr(self, method, self.generic_typecheck)(node, st)
         assert isinstance(result_type, AST.Type) or result_type is None, f"Got: {result_type}"
@@ -119,7 +120,13 @@ class TypeChecker:
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
         st.push_scope()
-        st.declare_variable(node.var.name, list_type.value.value)
+        var_t = None
+        try:
+            var_t = st.lookup_variable(node.var.name)
+        except Exception:
+            st.declare_variable(node.var.name, list_type.value.value)
+        if var_t and var_t != list_type:
+            raise ParseError('For loop variant type mismatch')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()
@@ -129,7 +136,13 @@ class TypeChecker:
     def check_ForLoopRange(self, node: AST.ForLoopRange, st: SymbolTable) -> None:
         list_type = Type(PrimitiveType('int'))
         st.push_scope()
-        st.declare_variable(node.var.name, list_type.value)
+        var_t = None
+        try:
+            var_t = st.lookup_variable(node.var.name)
+        except Exception:
+            st.declare_variable(node.var.name, list_type)
+        if var_t and var_t != list_type:
+            raise ParseError('For loop variant type mismatch')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()
