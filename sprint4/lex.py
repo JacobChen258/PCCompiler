@@ -84,7 +84,12 @@ class pythonLexer():
 
     def t_BOOL(self,t):
         r'(True)|(False)'
-        t.value = bool(t.value)
+        if t.value == 'True':
+            t.value = True
+        elif t.value == 'False':
+            t.value = False
+        else:
+            assert False
         return t
 
     def t_NOTEQUAL(self,t):
