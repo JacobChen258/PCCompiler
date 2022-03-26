@@ -187,10 +187,11 @@ class NonPrimitiveLiteral:
     value: List[Union[Id, PrimitiveLiteral]]
 
 class CCodeGenerator:
-    function_declarations = []
-    function_definitions = []
-    state_in_function_declaration = False
-    array_cleanup = []
+    def __init__(self):
+        self.function_declarations = []
+        self.function_definitions = []
+        self.state_in_function_declaration = False
+        self.array_cleanup = []
 
     def generate_code(self, root):
         structure = self.gen(root)

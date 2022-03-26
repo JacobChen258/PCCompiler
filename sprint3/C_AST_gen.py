@@ -6,30 +6,26 @@ from AST import Type as A_Type, NonPrimitiveType
 
 
 class CASTGenerator:
-    seen_labels = []    # Labels have seen
-    waiting_labels = []     # Labels have not seen
-    temp_st = {}   # Keep track of declared variables
-    result_AST = []
-    current_str = None
-    current_str_count = 0
-    argument_list_stack = []
-    argument_list_dict = {}
-
-    #For loop vaiables
-    loop_start = None
-    loop_stop = None
-    loop_step = None
-
-    list_len = {}
-    get_length = {}
-    empty_non_prim = []
-
     def __init__(self):
         self.seen_labels = []  # Labels have seen
         self.waiting_labels = []  # Labels have not seen
         self.temp_st = SymbolTable()  # Keep track of declared variables
         self.result_AST = []
         self.end_if_labels = []  # value is a tuple (label name, head of if)
+        self.current_str = None
+        self.current_str_count = 0
+        self.argument_list_stack = []
+        self.argument_list_dict = {}
+        # For loop variables
+        self.loop_start = None
+        self.loop_stop = None
+        self.loop_step = None
+
+        self.list_len = {}
+        self.get_length = {}
+        self.empty_non_prim = []
+
+
 
     def generate_AST(self, ir, st=None):
         self.ir = ir[:]
