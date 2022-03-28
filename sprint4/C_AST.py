@@ -193,9 +193,13 @@ class CCodeGenerator:
         self.state_in_function_declaration = False
         self.array_cleanup = []
         self.temp_dict = {}
+        self.generated_code = []
+        self.loop_variants = []
 
     def generate_code(self, root):
         structure = self.gen(root)
+        print("====================")
+        print(structure)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
         clean_up = self.generate_clean_up()
@@ -270,7 +274,12 @@ int main() {{
             raise
 
     def gen_Block(self, node: Block):
-        return [self.gen(x) for x in node.lst]
+        result = []
+        for x in node.lst:
+            code = self.gen(x)
+            if code:
+                result.append(code)
+        return result
 
     def gen_Expression(self, node: Expression):
         return self.gen(node.value)
@@ -452,13 +461,14 @@ int main() {{
 
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
-        return f"return {self.gen(node.value)};"
+        value = self.get_val(self.gen(node.value))
+        return f"return {value};"
 
     def gen_LstAdd(self, node: LstAdd):
         obj = self.gen(node.obj)
         type_t = self.gen(node.type)
         type_t = type_t[:-1]+"v"
-        value = self.gen(node.value)
+        value = self.get_val(self.gen(node.value))
         if node.idx == 'end':
             return f"list_add({type_t},{obj},{value});\n"
 
@@ -471,7 +481,8 @@ int main() {{
         self.array_cleanup.append(head)
         val_type = self.convert_v_type(node.type)
         for item in node.value:
-            init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
+            value = self.get_val(self.gen(item))
+            init += f"list_init_add({val_type},{self.gen(node.head)},{value});\n"
         return init
 
     def convert_v_type(self,node: Type):

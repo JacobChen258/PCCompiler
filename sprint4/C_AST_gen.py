@@ -182,7 +182,6 @@ class CASTGenerator:
         if_node = C_AST.IfStmt(ifCond=C_AST.Id(name=ir_node.cond_reg), body=C_AST.Block([]))
         # signal is set to false when reaching the false label
         continue_sig = True
-        self.temp_st.push_scope()
         while continue_sig:
             node = self.ir.pop(0)
             val = self.gen(node, st)
@@ -192,7 +191,6 @@ class CASTGenerator:
                 if_node.body.lst += val
         # call elif to check if we have following elif
         if_stmt = self._gen_IR_ElifStmt(self.ir.pop(0), [if_node], st)
-        self.temp_st.pop_scope()
         return if_stmt
 
     def _gen_IR_ElifStmt(self, ir_node: any, if_stmt=None, st=None):
@@ -206,12 +204,10 @@ class CASTGenerator:
             prev_node = next_node
             next_node = self.ir[idx]
             idx += 1
-        self.temp_st.push_scope()
         if next_node.__class__.__name__ == 'IR_Label':
             # if stmts is empty, there is not trailing if statements
             if not prev_node:
                 self.end_if_labels.pop()
-                self.temp_st.pop_scope()
                 return if_stmt
             result_stmt = C_AST.ElseStmt(body=C_AST.Block([]))
             cur_node = ir_node
@@ -244,10 +240,8 @@ class CASTGenerator:
         if_stmt.append(result_stmt)
         if result_stmt.__class__.__name__ == "ElseStmt":
             self.end_if_labels.pop()
-            self.temp_st.pop_scope()
             return if_stmt
         if_stmt = self._gen_IR_ElifStmt(self.ir.pop(0), if_stmt, st)
-        self.temp_st.pop_scope()
         return if_stmt
 
     def gen_IR_Assignment(self, ir_node: IR_Assignment, st=None):
