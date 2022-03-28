@@ -295,22 +295,11 @@ int main() {{
             return "list_t *"
 
     def gen_UnaryOperation(self, node: UnaryOperation):
-        left = self.gen(node.left)
-        op = self.gen(node.operand)
-        if left[0] == "_":
-            self.temp_dict[left] = f'{node.operator} {op}'
-        else:
-            return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
+        return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
-        left = self.gen(node.left)
-        op_a = self.get_val(self.gen(node.operand_a))
-        op_b = self.get_val(self.gen(node.operand_b))
-        if left[0] == "_":
-            self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
-        else:
-            return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
+        return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
 
     def gen_Parameter(self, node: Parameter):
         return f"{self.gen(node.paramType)} {self.gen(node.var)}"
@@ -342,17 +331,15 @@ int main() {{
         return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
-        cond = self.get_val(self.gen(node.ifCond))
         return (
-            f"if ({cond})" " {",
+            f"if ({self.gen(node.ifCond)})" " {",
             self.gen(node.body),
             "}",
         )
 
     def gen_ElifStmt(self, node: ElifStmt):
-        cond = self.get_val(self.gen(node.elifCond))
         return (
-            f"else if ({cond})" " {",
+            f"else if ({self.gen(node.elifCond)})" " {",
             self.gen(node.body),
             "}",
         )
@@ -365,9 +352,8 @@ int main() {{
         )
 
     def gen_WhileStmt(self, node: WhileStmt):
-        cond = self.get_val(self.gen(node.cond))
         return (
-            f"while ({cond})" " {",
+            f"while ({self.gen(node.cond)})" " {",
             self.gen(node.body),
             "}",
         )
@@ -485,8 +471,3 @@ int main() {{
         if tmp in self.temp_dict.keys():
             return self.get_temp_val(self.temp_dict[tmp])
         return tmp
-
-    def get_val(self,name):
-        if name[0] == "_":
-            return self.get_temp_val(name)
-        return name
