@@ -327,9 +327,17 @@ int main() {{
             return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
 
     #helper function for binary op
-    def check_both_numbers(self, a, b):
+    def check_both_numbers(self, a, b, operator):
         if (isinstance(a, int) or isinstance(a, float)) and (isinstance(b, int) or isinstance(b, float)) :
-            return a + b
+            if operator == '+':
+                return a + b
+            if operator == '*':
+                return a * b
+            if operator == '-':
+                return a - b
+            if operator == '/':
+                assert b != 0, "Cannot Divide by zero"
+                return a/b
         return None
 
     def gen_BinaryOperation(self, node: BinaryOperation):
@@ -337,7 +345,7 @@ int main() {{
         left = self.gen(node.left)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
-        optimize = self.check_both_numbers(op_a,op_b)
+        optimize = self.check_both_numbers(op_a,op_b,node.operator)
         if left[0] == "_":
             if optimize != None:
                 self.temp_dict[left] = optimize
