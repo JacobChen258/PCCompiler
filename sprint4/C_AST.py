@@ -5,13 +5,12 @@ from dataclasses import dataclass
 
 @dataclass
 class Type:
-    value: Union[Literal['str_t', 'int_t', 'float_t', 'bool_t', 'none_t'],NonPrimitiveType]
+    value: Union[Literal['str_t', 'int_t', 'float_t', 'bool_t', 'none_t'], NonPrimitiveType]
 
     def __init__(self, value):
         if value.__class__.__name__ != 'NonPrimitiveType':
             assert value in ['str_t', 'int_t', 'float_t', 'bool_t', 'none_t']
         self.value = value
-
 
 
 @dataclass
@@ -23,6 +22,7 @@ class NonPrimitiveType:
 @dataclass
 class Id:
     name: str
+
     def __init__(self, name):
         assert isinstance(name, str), f"Got {name=}"
         self.name = name
@@ -108,8 +108,8 @@ class ForLoopRange:
 @dataclass
 class ForLoopList:
     var: Id
-    indexVar : Id
-    length : any
+    indexVar: Id
+    length: any
     Lst: Expression
     body: Block
 
@@ -172,6 +172,7 @@ class LstAdd:
     type: Type
     idx: Union[str, int]
 
+
 @dataclass
 class NonPrimitiveIndex:
     result: Id
@@ -186,6 +187,7 @@ class NonPrimitiveLiteral:
     type: NonPrimitiveType
     value: List[Union[Id, PrimitiveLiteral]]
 
+
 class CCodeGenerator:
     def __init__(self):
         self.function_declarations = []
@@ -194,10 +196,16 @@ class CCodeGenerator:
         self.array_cleanup = []
         self.temp_dict = {}
         self.generated_code = []
+        self.in_loop = False  # outer loop indicator
+        self.eval_mode = True  # eval mode indicator
         self.loop_variants = []
+        self.var_dict = {}
+        self.inherit_if = False
 
     def generate_code(self, root):
         structure = self.gen(root)
+        print(self.var_dict)
+        print(self.temp_dict)
         print("====================")
         print(structure)
         formatted = self.generate_code_formatter(structure)
@@ -305,21 +313,33 @@ int main() {{
 
     def gen_UnaryOperation(self, node: UnaryOperation):
         left = self.gen(node.left)
-        op = self.gen(node.operand)
-        if left[0] == "_":
-            self.temp_dict[left] = f'{node.operator} {op}'
-        else:
-            return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
+        if left[0] != "_" and not self.eval_mode and left not in self.loop_variants:
+            self.loop_variants.append(left)
+        if self.eval_mode:
+            if left[0] == "_":
+                self.temp_dict[left] = f'{node.operator} {op}'
+            else:
+                value = self._eval(node)
+                self.var_dict[left] = value
+                return f"{left} = {value};"
+                # result = f"{left} = {node.operator} {op};"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
         left = self.gen(node.left)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
-        if left[0] == "_":
-            self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
-        else:
-            return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
+        if not self.eval_mode and left[0] != "_" and left not in self.loop_variants:
+            self.loop_variants.append(left)
+        if self.eval_mode:
+            if left[0] == "_":
+                value = f"{op_a} {node.operator} {op_b}"
+                self.temp_dict[left] = value
+            else:
+                value = self._eval(node)
+                self.var_dict[left] = value
+                return f"{left} = {value};"
+                # result = f"{left} = {op_a} {node.operator} {op_b};"
 
     def gen_Parameter(self, node: Parameter):
         return f"{self.gen(node.paramType)} {self.gen(node.var)}"
@@ -375,11 +395,26 @@ int main() {{
 
     def gen_WhileStmt(self, node: WhileStmt):
         cond = self.get_val(self.gen(node.cond))
-        return (
-            f"while ({cond})" " {",
-            self.gen(node.body),
-            "}",
-        )
+        if not self.in_loop:
+            self.in_loop = True
+            self.eval_mode = False
+            # pre-run to get all the variables' info in loop
+            self.gen(node.body)
+            self.eval_mode = True
+            result = (f"while ({cond})" " {",
+                      self.gen(node.body),
+                      "}",)
+            print(self.loop_variants)
+            self.loop_variants = []
+            self.in_loop = False
+        elif not self.eval_mode:
+            return self.gen(node.body)
+        else:
+            result = (f"while ({cond})" " {",
+                      self.gen(node.body),
+                      "}",)
+        return result
+
     def gen_ForLoopRange(self, node: ForLoopRange):
 
         stop_val = node.rangeVal.stop
@@ -391,12 +426,30 @@ int main() {{
         assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
         comp_string = f"{node.var.name} < {stop_val};"
         step_string = f"{node.var.name} += {step_val}"
-
-        return (
-               "for (" + assign_string + " " + comp_string + " " + step_string + "){",
-               self.gen(node.body),
-               "}",
-        )
+        if not self.in_loop:
+            self.in_loop = True
+            self.eval_mode = False
+            # pre-run to get all the variables' info in loop
+            self.gen(node.body)
+            self.eval_mode = True
+            result = (
+                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+                self.gen(node.body),
+                "}",
+            )
+            print(self.loop_variants)
+            self.loop_variants = []
+            self.in_loop = False
+        elif not self.eval_mode:
+            self.gen(node.body)
+            return
+        else:
+            result = (
+                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+                self.gen(node.body),
+                "}",
+            )
+        return result
 
     def gen_ForLoopList(self, node: ForLoopList):
 
@@ -404,54 +457,84 @@ int main() {{
         comp_string = f"{node.indexVar} < {node.length};"
         step_string = f"{node.indexVar} += 1"
 
-        #index_string = f"list_get(int_v, {node.Lst}, {node.indexVar})"
-        #assign_node = Assignment(id=node.var, val=index_string)
-        #node.body.lst = [assign_node] + node.body.lst
-
-        return (
-               "for (" + assign_string + " " + comp_string + " " + step_string + "){",
-               [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
-               self.gen(node.body),
-               "}",
-        )
+        if not self.in_loop:
+            self.in_loop = True
+            self.eval_mode = False
+            # pre-run to get all the variables' info in loop
+            self.gen(node.body)
+            self.eval_mode = True
+            result = (
+                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+                [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
+                self.gen(node.body),
+                "}",
+            )
+            print(self.loop_variants)
+            self.loop_variants = []
+            self.in_loop = False
+        elif not self.eval_mode:
+            self.gen(node.body)
+            return
+        else:
+            result = (
+                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+                [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
+                self.gen(node.body),
+                "}",
+            )
+        return result
 
     def gen_Assignment(self, node: Assignment):
         assign_var = self.gen(node.id)
         temp_var = False
+        result = None
         if assign_var in self.temp_dict.keys():
             temp_var = True
-        if isinstance(assign_var,str) and assign_var[0] == '_':
+        if isinstance(assign_var, str) and assign_var[0] == '_':
             self.temp_dict[assign_var] = None
             temp_var = True
-        if isinstance(node.val, (Id, FunctionCall, String)):
-            assign_value = self.gen(node.val)
-            if temp_var:
-                self.temp_dict[assign_var] = assign_value
-                return None
-            elif assign_value in self.temp_dict.keys():
-                assign_value = self.get_temp_val(assign_value)
-            return f"{assign_var} = {assign_value};"
-        elif isinstance(node.val, bool):
-            assign_value = str(node.val).lower()
-            if temp_var:
-                self.temp_dict[assign_var] = assign_value
-                return None
-            elif assign_value in self.temp_dict.keys():
-                assign_value = self.get_temp_val(assign_value)
-            return f"{assign_var} = {assign_value};"
-        elif node.val == "none-placeholder":
-            if temp_var:
-                self.temp_dict[assign_var] = "NONE_LITERAL"
-                return None
-            return f"{assign_var} = NONE_LITERAL;"
-        else:
-            assign_value = node.val
-            if temp_var:
-                self.temp_dict[assign_var] = assign_value
-                return None
-            elif assign_value in self.temp_dict.keys():
-                assign_value = self.get_temp_val(assign_value)
-            return f"{assign_var} = {assign_value};"
+        if self.eval_mode:
+            print('===============')
+            print(node.__class__.__name__)
+            print('===============')
+            if isinstance(node.val, (Id, FunctionCall, String)):
+                assign_value = self._eval(node.val)
+                if temp_var:
+                    self.temp_dict[assign_var] = assign_value
+                    return None
+                elif assign_value in self.temp_dict.keys():
+                    assign_value = self.get_temp_val(assign_value)
+                result = f"{assign_var} = {assign_value};"
+            elif isinstance(node.val, bool):
+                assign_value = str(node.val).lower()
+                if temp_var:
+                    self.temp_dict[assign_var] = assign_value
+                    return None
+                elif assign_value in self.temp_dict.keys():
+                    assign_value = self.get_temp_val(assign_value)
+                result = f"{assign_var} = {assign_value};"
+            elif node.val == "none-placeholder":
+                if temp_var:
+                    self.temp_dict[assign_var] = "NONE_LITERAL"
+                    return None
+                result = f"{assign_var} = NONE_LITERAL;"
+            else:
+                assign_value = node.val
+                if temp_var:
+                    self.temp_dict[assign_var] = assign_value
+                    return None
+                elif assign_value in self.temp_dict.keys():
+                    assign_value = self.get_temp_val(assign_value)
+                result = f"{assign_var} = {assign_value};"
+        if not temp_var and assign_var not in self.loop_variants:
+            if not self.eval_mode:
+                self.loop_variants.append(assign_var)
+            else:
+                if isinstance(node.val, Id) and node.val.nane[0] != "_":
+                    self.var_dict[assign_var] = self._eval(node.val)
+                else:
+                    self.var_dict[assign_var] = assign_value
+        return result
 
     def gen_String(self, node: String):
         # Using json.dumps to do string escape
@@ -467,7 +550,7 @@ int main() {{
     def gen_LstAdd(self, node: LstAdd):
         obj = self.gen(node.obj)
         type_t = self.gen(node.type)
-        type_t = type_t[:-1]+"v"
+        type_t = type_t[:-1] + "v"
         value = self.get_val(self.gen(node.value))
         if node.idx == 'end':
             return f"list_add({type_t},{obj},{value});\n"
@@ -485,7 +568,7 @@ int main() {{
             init += f"list_init_add({val_type},{self.gen(node.head)},{value});\n"
         return init
 
-    def convert_v_type(self,node: Type):
+    def convert_v_type(self, node: Type):
         if not isinstance(node.value, NonPrimitiveType):
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.value.value.replace('_t', '_v')
@@ -497,7 +580,43 @@ int main() {{
             return self.get_temp_val(self.temp_dict[tmp])
         return tmp
 
-    def get_val(self,name):
+    def get_val(self, name):
         if name[0] == "_":
             return self.get_temp_val(name)
         return name
+
+    def _eval(self, node):
+        method = 'eval_' + node.__class__.__name__
+        try:
+            return getattr(self, method)(node)
+        except AttributeError:
+            return node
+
+    def eval_BinaryOperation(self, node: BinaryOperation):
+        left = self._eval(node.operand_a)
+        right = self._eval(node.operand_b)
+
+        if self.gen(node.left) not in self.loop_variants and isinstance(left, (bool, int, float))\
+                and isinstance(right, (bool, int, float)):
+            return eval(f"{left} {node.operator} {right}")
+        return f"{left} {node.operator} {right}"
+
+    def eval_UnaryOperation(self, node: UnaryOperation):
+        operand = self._eval(node.operand)
+        if self.gen(node.left) not in self.loop_variants and isinstance(operand, (bool, int, float)):
+            return eval(f"{node.operator} {operand}")
+        return f"{node.operator} {operand}"
+
+    def eval_Id(self, node: Id):
+        if node.name[0] == "_":
+            return self.get_temp_val(node.name)
+        else:
+            if node.name not in self.loop_variants and node.name in self.var_dict:
+                return self.var_dict[node.name]
+        return node.name
+
+    def eval_PrimitiveLiteral(self,node:PrimitiveLiteral):
+        return node.value
+
+    def eval_FunctionCall(self,node:FunctionCall):
+        return self.gen(node)
