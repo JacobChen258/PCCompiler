@@ -196,6 +196,7 @@ class CCodeGenerator:
         self.temp_list_dict = {}
         self.generated_code = []
         self.loop_variants = []
+        self.decl_scope = [[]]
 
     def generate_code(self, root):
         structure = self.gen(root)
@@ -283,10 +284,12 @@ int main() {{
 
     def gen_Block(self, node: Block):
         result = []
+        self.decl_scope.append([])
         for x in node.lst:
             code = self.gen(x)
             if code:
                 result.append(code)
+        self.decl_scope.pop()
         return result
 
     def gen_Expression(self, node: Expression):
@@ -301,6 +304,10 @@ int main() {{
         if name[0] == '_':
             self.temp_dict[name] = None
             return None
+        for scope in self.decl_scope:
+            if name in scope:
+                return None
+        self.decl_scope[-1].append(name)
         return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):
