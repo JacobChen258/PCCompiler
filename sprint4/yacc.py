@@ -224,6 +224,7 @@ class pythonParser:
         """statement : statement_no_new_line NEWLINE
                      | statement_no_new_line
                      | assignment
+                     | expression NEWLINE
         """
         # get current line number
         lineNo = self.lexer.lexLineNo[0]
@@ -235,15 +236,13 @@ class pythonParser:
 
     def p_statement_no_new_line(self, p):
         """statement_no_new_line : function_dec
-                                 | function_call
                                  | return_stmt
                                  | if_statement
                                  | elif_statement
                                  | else_statement
                                  | while_statement
                                  | for_loop_range
-                                 | for_loop_lst
-                                 | expression"""
+                                 | for_loop_lst"""
         p[0] = p[1]
 
     def p_function_dec(self, p):
@@ -272,8 +271,8 @@ class pythonParser:
         p[0] = AST.Parameter(paramType=p[3], var=AST.Id(name=p[1]))
 
     def p_function_call(self, p):
-        """function_call : ID LPAREN argument_or_empty RPAREN"""
-        p[0] = AST.FunctionCall(name=AST.Id(name=p[1]), lst=p[3])
+        """expression : expression LPAREN argument_or_empty RPAREN"""
+        p[0] = AST.FunctionCall(name=p[1], lst=p[3])
 
     def p_argument_or_empty(self, p):
         """argument_or_empty : argument_lst
@@ -292,7 +291,7 @@ class pythonParser:
             p[0] = p[1] + [p[3]]
 
     def p_return_stmt(self, p):
-        """return_stmt : RETURN expression"""
+        """return_stmt : RETURN expression NEWLINE"""
         p[0] = AST.ReturnStmt(stmt=p[2])
 
     def p_if_statement(self, p):
@@ -334,9 +333,7 @@ class pythonParser:
 
     def p_assignment(self, p):
         """assignment :  ID ASSIGN expression NEWLINE
-                      |  ID COLON type ASSIGN expression NEWLINE
-                      |  ID ASSIGN function_call NEWLINE
-                      |  ID COLON type ASSIGN function_call NEWLINE"""
+                      |  ID COLON type ASSIGN expression NEWLINE"""
         if len(p) == 5:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=None, right=p[3])
             # should the type be p[3].__class__.__name__?
@@ -352,7 +349,6 @@ class pythonParser:
     def p_non_prim_index(self,p):
         """
         expression : expression LBRACKET expression RBRACKET
-                   | expression LBRACKET function_call RBRACKET
         """
         p[0] = AST.NonPrimitiveIndex(obj=p[1],idx=p[3])
 
