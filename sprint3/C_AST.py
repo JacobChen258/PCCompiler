@@ -23,9 +23,6 @@ class NonPrimitiveType:
 @dataclass
 class Id:
     name: str
-    def __init__(self, name):
-        assert isinstance(name, str), f"Got {name=}"
-        self.name = name
 
 
 @dataclass
@@ -187,11 +184,10 @@ class NonPrimitiveLiteral:
     value: List[Union[Id, PrimitiveLiteral]]
 
 class CCodeGenerator:
-    def __init__(self):
-        self.function_declarations = []
-        self.function_definitions = []
-        self.state_in_function_declaration = False
-        self.array_cleanup = []
+    function_declarations = []
+    function_definitions = []
+    state_in_function_declaration = False
+    array_cleanup = []
 
     def generate_code(self, root):
         structure = self.gen(root)
@@ -351,15 +347,15 @@ int main() {{
         assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
         comp_string = f"{node.var.name} < {node.rangeVal.stop};"
         step_string = f"{node.var.name} += {node.rangeVal.step}"
-
-        return (
+        
+        return ( 
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
                self.gen(node.body),
                "}",
         )
 
     def gen_ForLoopList(self, node: ForLoopList):
-
+        
         assign_string = f"{node.indexVar} = 0;"
         comp_string = f"{node.indexVar} < {node.length};"
         step_string = f"{node.indexVar} += 1"
@@ -367,8 +363,8 @@ int main() {{
         #index_string = f"list_get(int_v, {node.Lst}, {node.indexVar})"
         #assign_node = Assignment(id=node.var, val=index_string)
         #node.body.lst = [assign_node] + node.body.lst
-
-        return (
+        
+        return ( 
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
                [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
                self.gen(node.body),
@@ -415,9 +411,9 @@ int main() {{
             init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
         return init
 
-    def convert_v_type(self,node: Type):
-        if not isinstance(node.value, NonPrimitiveType):
+    def convert_v_type(self,node:Type):
+        if node.value.value.value.__class__.__name__ != "NonPrimitiveType":
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
-            return node.value.value.value.replace('_t', '_v')
+            return node.value.value.value[:-1] + 'v'
         else:
             return "list_v"

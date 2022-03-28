@@ -194,14 +194,10 @@ class CCodeGenerator:
         self.array_cleanup = []
         self.temp_dict = {}
         self.temp_list_dict = {}
-        self.generated_code = []
-        self.loop_variants = []
-        self.decl_scope = [[]]
 
     def generate_code(self, root):
+        print("START!!!!!!!!!!!!!!!!")
         structure = self.gen(root)
-        print("====================")
-        print(structure)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
         clean_up = self.generate_clean_up()
@@ -237,10 +233,7 @@ class CCodeGenerator:
     def generate_clean_up(self):
         clean_up = ''
         for array in self.array_cleanup:
-            array_val = array
-            if array in self.temp_list_dict.keys():
-                array_val = self.temp_list_dict[array]
-            clean_up += f"list_free({array_val});\n"
+            clean_up += f"list_free({array});\n"
         return clean_up
 
     def code_template(self, function_declarations, function_definitions, main_code, clean_up):
@@ -283,14 +276,7 @@ int main() {{
             raise
 
     def gen_Block(self, node: Block):
-        result = []
-        self.decl_scope.append([])
-        for x in node.lst:
-            code = self.gen(x)
-            if code:
-                result.append(code)
-        self.decl_scope.pop()
-        return result
+        return [self.gen(x) for x in node.lst]
 
     def gen_Expression(self, node: Expression):
         return self.gen(node.value)
@@ -301,13 +287,9 @@ int main() {{
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
         name = self.gen(node.id)
-        if name[0] == '_':
+        #if name[0] == '_':
             self.temp_dict[name] = None
             return None
-        for scope in self.decl_scope:
-            if name in scope:
-                return None
-        self.decl_scope[-1].append(name)
         return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):
@@ -319,34 +301,11 @@ int main() {{
             return "list_t *"
 
     def gen_UnaryOperation(self, node: UnaryOperation):
-        left = self.gen(node.left)
-        op = self.gen(node.operand)
-        if left[0] == "_":
-            self.temp_dict[left] = f'{node.operator} {op}'
-        else:
-            return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
-
-    #helper function for binary op
-    def check_both_numbers(self, a, b):
-        if (isinstance(a, int) or isinstance(a, float)) and (isinstance(b, int) or isinstance(b, float)) :
-            return a + b
-        return None
+        return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
-        left = self.gen(node.left)
-        op_a = self.get_val(self.gen(node.operand_a))
-        op_b = self.get_val(self.gen(node.operand_b))
-        optimize = self.check_both_numbers(op_a,op_b)
-        if left[0] == "_":
-            if optimize != None:
-                self.temp_dict[left] = optimize
-            else:
-                self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
-        else:
-            if optimize != None:
-                return f"{left} = {optimize}"
-            return f"{left} = {op_a} {node.operator} {op_b};"
+        return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
 
     def gen_Parameter(self, node: Parameter):
         return f"{self.gen(node.paramType)} {self.gen(node.var)}"
@@ -378,17 +337,15 @@ int main() {{
         return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
-        cond = self.get_val(self.gen(node.ifCond))
         return (
-            f"if ({cond})" " {",
+            f"if ({self.gen(node.ifCond)})" " {",
             self.gen(node.body),
             "}",
         )
 
     def gen_ElifStmt(self, node: ElifStmt):
-        cond = self.get_val(self.gen(node.elifCond))
         return (
-            f"else if ({cond})" " {",
+            f"else if ({self.gen(node.elifCond)})" " {",
             self.gen(node.body),
             "}",
         )
@@ -401,9 +358,8 @@ int main() {{
         )
 
     def gen_WhileStmt(self, node: WhileStmt):
-        cond = self.get_val(self.gen(node.cond))
         return (
-            f"while ({cond})" " {",
+            f"while ({self.gen(node.cond)})" " {",
             self.gen(node.body),
             "}",
         )
@@ -497,14 +453,14 @@ int main() {{
 
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
-        value = self.get_val(self.gen(node.value))
-        return f"return {value};"
+        return f"return {self.gen(node.value)};"
 
     def gen_LstAdd(self, node: LstAdd):
         obj = self.gen(node.obj)
         type_t = self.gen(node.type)
         type_t = type_t[:-1]+"v"
-        value = self.get_val(self.gen(node.value))
+        value = self.gen(node.value)
+        value = self.get_temp_val(value)
         if node.idx == 'end':
             return f"list_add({type_t},{obj},{value});\n"
 
@@ -517,14 +473,19 @@ int main() {{
             self.temp_list_dict[head] = None
         init = f"list_t * {head} = list_init({len(node.value)});\n"
         self.array_cleanup.append(head)
+        print("Node")
+        print(node)
+        print("Node Type")
+        print(node.type)
+        print("Bool")
+        print(node.type.value.__class__.__name__)
         val_type = self.convert_v_type(node.type)
         for item in node.value:
-            value = self.get_val(self.gen(item))
-            init += f"list_init_add({val_type},{self.gen(node.head)},{value});\n"
+            init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
         return init
 
     def convert_v_type(self,node: Type):
-        if not isinstance(node.value, NonPrimitiveType):
+        if not isinstance(node.value, NonPrimitiveType) and node.value.__class__.__name__ != "NonPrimitiveType":
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.value.value.replace('_t', '_v')
         else:
@@ -534,8 +495,3 @@ int main() {{
         if tmp in self.temp_dict.keys():
             return self.get_temp_val(self.temp_dict[tmp])
         return tmp
-
-    def get_val(self,name):
-        if name[0] == "_":
-            return self.get_temp_val(name)
-        return name
