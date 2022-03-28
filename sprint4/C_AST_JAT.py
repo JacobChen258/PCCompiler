@@ -233,10 +233,7 @@ class CCodeGenerator:
     def generate_clean_up(self):
         clean_up = ''
         for array in self.array_cleanup:
-            array_val = array
-            if array in self.temp_list_dict.keys():
-                array_val = self.temp_list_dict[array]
-            clean_up += f"list_free({array_val});\n"
+            clean_up += f"list_free({array});\n"
         return clean_up
 
     def code_template(self, function_declarations, function_definitions, main_code, clean_up):
@@ -291,8 +288,8 @@ int main() {{
         type_t = self.gen(node.type)
         name = self.gen(node.id)
         #if name[0] == '_':
-        #    self.temp_dict[name] = None
-        #    return None
+            self.temp_dict[name] = None
+            return None
         return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):

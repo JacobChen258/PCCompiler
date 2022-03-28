@@ -326,15 +326,27 @@ int main() {{
         else:
             return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
 
+    #helper function for binary op
+    def check_both_numbers(self, a, b):
+        if (isinstance(a, int) or isinstance(a, float)) and (isinstance(b, int) or isinstance(b, float)) :
+            return a + b
+        return None
+
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
         left = self.gen(node.left)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
+        optimize = self.check_both_numbers(op_a,op_b)
         if left[0] == "_":
-            self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
+            if optimize != None:
+                self.temp_dict[left] = optimize
+            else:
+                self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
         else:
-            return f"{self.gen(node.left)} = {self.gen(node.operand_a)} {node.operator} {self.gen(node.operand_b)};"
+            if optimize != None:
+                return f"{left} = {optimize}"
+            return f"{left} = {op_a} {node.operator} {op_b};"
 
     def gen_Parameter(self, node: Parameter):
         return f"{self.gen(node.paramType)} {self.gen(node.var)}"
