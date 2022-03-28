@@ -192,6 +192,7 @@ class CCodeGenerator:
         self.function_definitions = []
         self.state_in_function_declaration = False
         self.array_cleanup = []
+        self.temp_dict = {}
 
     def generate_code(self, root):
         structure = self.gen(root)
@@ -280,6 +281,9 @@ int main() {{
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
         name = self.gen(node.id)
+        if name[0] == '_':
+            self.temp_dict[name] = None
+            return None
         return f"{type_t} {name};"
 
     def gen_Type(self, node: Type):
@@ -317,7 +321,13 @@ int main() {{
         return None
 
     def gen_FunctionCall(self, node: FunctionCall):
-        arg_string = ", ".join(i for i in node.lst)
+        arg_list = []
+        for i in node.lst:
+            if i in self.temp_dict.keys():
+                arg_list.append((str(self.temp_dict[i])))
+            else:
+                arg_list.append(i)
+        arg_string = ", ".join(i for i in arg_list)
         return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
@@ -348,9 +358,16 @@ int main() {{
             "}",
         )
     def gen_ForLoopRange(self, node: ForLoopRange):
+
+        stop_val = node.rangeVal.stop
+        step_val = node.rangeVal.step
+        if stop_val in self.temp_dict.keys():
+            stop_val = self.get_temp_val(stop_val)
+        if step_val in self.temp_dict.keys():
+            step_val = self.get_temp_val(step_val)
         assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
-        comp_string = f"{node.var.name} < {node.rangeVal.stop};"
-        step_string = f"{node.var.name} += {node.rangeVal.step}"
+        comp_string = f"{node.var.name} < {stop_val};"
+        step_string = f"{node.var.name} += {step_val}"
 
         return (
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
@@ -376,14 +393,42 @@ int main() {{
         )
 
     def gen_Assignment(self, node: Assignment):
+        assign_var = self.gen(node.id)
+        temp_var = False
+        if assign_var in self.temp_dict.keys():
+            temp_var = True
+        if isinstance(assign_var,str) and assign_var[0] == '_':
+            self.temp_dict[assign_var] = None
+            temp_var = True
         if isinstance(node.val, (Id, FunctionCall, String)):
-            return f"{self.gen(node.id)} = {self.gen(node.val)};"
+            assign_value = self.gen(node.val)
+            if temp_var:
+                self.temp_dict[assign_var] = assign_value
+                return None
+            elif assign_value in self.temp_dict.keys():
+                assign_value = self.get_temp_val(assign_value)
+            return f"{assign_var} = {assign_value};"
         elif isinstance(node.val, bool):
-            return f"{self.gen(node.id)} = {str(node.val).lower()};"
+            assign_value = str(node.val).lower()
+            if temp_var:
+                self.temp_dict[assign_var] = assign_value
+                return None
+            elif assign_value in self.temp_dict.keys():
+                assign_value = self.get_temp_val(assign_value)
+            return f"{assign_var} = {assign_value};"
         elif node.val == "none-placeholder":
-            return f"{self.gen(node.id)} = NONE_LITERAL;"
+            if temp_var:
+                self.temp_dict[assign_var] = "NONE_LITERAL"
+                return None
+            return f"{assign_var} = NONE_LITERAL;"
         else:
-            return f"{self.gen(node.id)} = {node.val};"
+            assign_value = node.val
+            if temp_var:
+                self.temp_dict[assign_var] = assign_value
+                return None
+            elif assign_value in self.temp_dict.keys():
+                assign_value = self.get_temp_val(assign_value)
+            return f"{assign_var} = {assign_value};"
 
     def gen_String(self, node: String):
         # Using json.dumps to do string escape
@@ -421,3 +466,8 @@ int main() {{
             return node.value.value.value.replace('_t', '_v')
         else:
             return "list_v"
+
+    def get_temp_val(self, tmp):
+        if tmp in self.temp_dict.keys():
+            return self.get_temp_val(self.temp_dict[tmp])
+        return tmp
