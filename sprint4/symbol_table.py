@@ -120,8 +120,7 @@ class SymbolTable(object):
                 for f in scope[name].functions:
                     if repr(f.param_types) == repr(param_types):
                         return f.return_type
-                    else:
-                        print('Failed:', repr(f.param_types), repr(param_types))
+                print('Failed:', repr(f.param_types), repr(param_types))
 
         raise ParseError("Referencing undefined function \"" + name + "\"", line_number)
 

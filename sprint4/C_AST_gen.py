@@ -250,13 +250,17 @@ class CASTGenerator:
         if ir_node.name not in self.temp_st.scope_stack[-1]:
             try:
                 type_t = self.temp_st.lookup_variable(name=ir_node.val)
+                print(type_t)
             except Exception:
                 id_type = st.lookup_variable(ir_node.name)
                 assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
             # Assume all non primitives will eventually be assigned to a value
-            if isinstance(type_t, NonPrimitiveType):
+            if type_t.value.__class__.__name__ == 'NonPrimitiveType':
                 id_type = st.lookup_variable(ir_node.name)
                 type_t = self.convert_NonPrimitive_Type(id_type)
+                self.list_len[ir_node.name] = self.list_len.get(ir_node.val)
+                if ir_node.val not in self.list_len:
+                    Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
                 while self.empty_non_prim:
                     obj = self.empty_non_prim.pop()
                     obj.type = C_AST.Type(type_t)
@@ -383,7 +387,7 @@ class CASTGenerator:
         param_lst = C_AST.ParameterLst([])
         for i in range(len(params)):
             param_lst.lst.append(C_AST.Parameter(var=params[i], paramType=converted_types[i]))
-            self.temp_st.declare_variable(params[i], converted_types[i])
+            self.temp_st.declare_variable(params[i].name, converted_types[i])
             self.temp_st.declare_variable(param_regs[i], converted_types[i])
         func_node = C_AST.FunctionDeclaration(name=C_AST.Id(hash_name), lst=param_lst, body=C_AST.Block([]), \
                                               returnType=converted_ret_type)
@@ -516,6 +520,7 @@ class CASTGenerator:
         idx = C_AST.Id(ir_node.idx_reg)
         type_t = self.temp_st.lookup_variable(ir_node.obj_reg)
         type_t = C_AST.Type(type_t.value.value.value)
+        self.temp_st.declare_variable(ir_node.result_reg,type_t)
         return [C_AST.NonPrimitiveIndex(result,obj,type_t,idx)]
 
     # Used for non primitive type from st
