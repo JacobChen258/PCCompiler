@@ -464,7 +464,7 @@ int main() {{
             assign_value = self.gen(node.val)
             if temp_var:
                 self.temp_dict[assign_var] = assign_value
-                if isinstance(node.val, FunctionCall):
+                if isinstance(node.val, FunctionCall) and node.val.name[:6] == "print_":
                     return f"{assign_value};"
                 return None
             elif assign_value in self.temp_dict.keys():
