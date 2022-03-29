@@ -521,7 +521,15 @@ int main() {{
             return f"list_add({type_t},{obj},{value});\n"
 
     def gen_NonPrimitiveIndex(self, node: NonPrimitiveIndex):
-        return f"{self.gen(node.result)}=list_get({self.gen(node.type)},{self.gen(node.obj)},{self.gen(node.idx)})"
+        idx_reg = self.gen(node.result)
+        idx = self.gen(node.idx)
+        type_v = self.convert_v_type(node.type)
+        if idx in self.temp_dict:
+            idx = self.get_temp_val(idx)
+        if idx_reg[0] == "_":
+            self.temp_dict[idx_reg] = f"list_get({type_v},{self.gen(node.obj)},{idx})"
+        else:
+            return f"{self.gen(node.result)}=list_get({type_v},{self.gen(node.obj)},{idx})"
 
     def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
         head = self.gen(node.head)
@@ -536,7 +544,10 @@ int main() {{
         return init
 
     def convert_v_type(self,node: Type):
-        if not isinstance(node.value, NonPrimitiveType):
+        if isinstance(node.value,str):
+            assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            return node.value.replace('_t', '_v')
+        elif not isinstance(node.value, NonPrimitiveType):
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.value.value.replace('_t', '_v')
         else:
