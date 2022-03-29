@@ -474,7 +474,7 @@ class CASTGenerator:
         cur_list_reg = None
         cur_list_len = None
         for_loop_comp = None
-
+        decl_stmt = None
         while cur_node.__class__.__name__ != "IR_IfStmt":
             if cur_node.__class__.__name__ == "IR_ForLoopVar":
                 cur_id = cur_node.reg
@@ -483,16 +483,18 @@ class CASTGenerator:
                 cur_list_reg = cur_node.obj_reg
                 cur_list_len = self.list_len.get(cur_list_reg)
                 cur_index = cur_node.idx_reg
-
+                list_t = self.temp_st.lookup_variable(cur_node.obj_reg)
+                if list_t.value.__class__.__name__ == "NonPrimitiveType" and list_t.value.value.__class__.__name__ == "Type":
+                    self.temp_st.declare_variable(cur_id, list_t.value.value)
+                    decl_stmt = C_AST.Declaration(id=C_AST.Id(cur_id),type=list_t.value.value)
+                else:
+                    assert f"For list type error on {cur_id}"
             else:
                 head += self.gen(cur_node, st)
 
             cur_node = self.ir.pop(0)
-
-        id_node = C_AST.Id(name=cur_index)
-        decl_node = C_AST.Declaration(id=id_node, type=C_AST.Type("int_t"))
         false_label = cur_node.if_false.label
-        result_stmt = C_AST.ForLoopList(var=cur_id, indexVar=cur_index, length=cur_list_len, Lst=cur_list_reg,  body=C_AST.Block([]))
+        result_stmt = C_AST.ForLoopList(var=C_AST.Id(name=cur_id), indexVar=C_AST.Id(cur_index), length=cur_list_len, Lst=C_AST.Id(cur_list_reg),  body=C_AST.Block([]))
 
         continue_sig = True
         while continue_sig:
@@ -503,7 +505,9 @@ class CASTGenerator:
             elif val:
                 result_stmt.body.lst+= val
 
-        return head + [decl_node] + [result_stmt]
+        if decl_stmt:
+            return head + [decl_stmt] + [result_stmt]
+        return head + [result_stmt]
 
 
 

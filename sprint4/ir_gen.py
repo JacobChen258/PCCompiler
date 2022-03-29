@@ -267,6 +267,7 @@ class IRGen:
         length = self.inc_register()
         self.add_code(IR_GetLength(result_reg=length,pointer_reg=list_reg))
         index = self.inc_register()
+        self.add_code(IR_PrimitiveLiteral(reg = index,val=1))
 
         t_label = self.inc_label("FORLIST")
         f_label = self.inc_label()

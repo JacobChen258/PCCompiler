@@ -436,10 +436,12 @@ int main() {{
         )
 
     def gen_ForLoopList(self, node: ForLoopList):
-
-        assign_string = f"{node.indexVar} = 0;"
-        comp_string = f"{node.indexVar} < {node.length};"
-        step_string = f"{node.indexVar} += 1"
+        idx = self.get_val(node.indexVar.name)
+        assign_var = self.get_val(node.var.name)
+        lst = self.get_val(node.Lst.name)
+        assign_string = f"int_t i = 0;"
+        comp_string = f"i < {node.length};"
+        step_string = f"i += {idx}"
 
         #index_string = f"list_get(int_v, {node.Lst}, {node.indexVar})"
         #assign_node = Assignment(id=node.var, val=index_string)
@@ -447,7 +449,7 @@ int main() {{
 
         return (
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
-               [f"{node.var} = list_get(int_v, {node.Lst}, {node.indexVar});"],
+               [f"{assign_var} = list_get(int_v, {lst}, i);"],
                self.gen(node.body),
                "}",
         )
