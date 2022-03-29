@@ -300,6 +300,8 @@ int main() {{
 
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
+        if type_t == "list_t *":
+            return None
         name = self.gen(node.id)
         if name[0] == '_':
             self.temp_dict[name] = None

@@ -2,9 +2,9 @@ lia: [int] = []
 lib: [int] = [1,2,3]
 lfa: [float] = []
 lb: [bool] = [True,False,True]
-tia: (int) = ()
-tib: (int) = (1,2,3)
-tfa: (float) = ()
+tic: (int) = ()
+tid: (int) = (1,2,3)
+tfe: (float) = ()
 tb: (bool) = (True,False,True)
 
 # lli: [[int]] = [[],[1,2,3]]

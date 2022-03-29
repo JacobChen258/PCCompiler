@@ -198,7 +198,7 @@ class IRGen:
 
     def inc_register(self):
         self.register_count += 1
-        return "_t{}".format(self.register_count)
+        return "_t{}_".format(self.register_count)
 
     def reset_register(self):
         self.register_count = 0
