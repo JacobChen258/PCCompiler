@@ -318,9 +318,9 @@ class pythonParser:
         if len(p) == 5:
             p[0] = AST.RangeValues(stop=p[3], start=None, step=None)
         elif len(p) == 7:
-            p[0] = AST.RangeValues(stop=p[3], start=p[5], step=None)
+            p[0] = AST.RangeValues(stop=p[5], start=p[3], step=None)
         else:
-            p[0] = AST.RangeValues(stop=p[3], start=p[5], step=p[7])
+            p[0] = AST.RangeValues(stop=p[5], start=p[3], step=p[7])
 
     # for list and tuples
     def p_for_loop_lst(self, p):
