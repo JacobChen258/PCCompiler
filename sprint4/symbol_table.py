@@ -33,10 +33,12 @@ def generate_global_functions_for_typechecking():
     result = {
         'print': Functions([])
     }
-    for type_name in ['int', 'float', 'bool']:
+    for type_name in ['int', 'float', 'bool', 'str']:
         result['input_' + type_name] = Functions([
             C_Function(hashed_name='input_' + type_name, param_types=[], return_type=A_Type(PrimitiveType(type_name))),
             Function(param_names=[], param_types=[], return_type=A_Type(PrimitiveType(type_name))),
+            C_Function(hashed_name='input_' + type_name + '_s', param_types=[C_Type('str_t')], return_type=A_Type(PrimitiveType(type_name))),
+            Function(param_names=[], param_types=[A_Type(PrimitiveType('str'))], return_type=A_Type(PrimitiveType(type_name))),
         ])
         result['print'].functions.extend([
             C_Function(hashed_name='print_' + type_name, param_types=[C_Type(type_name + '_t')], return_type=A_Type(PrimitiveType('none'))),
