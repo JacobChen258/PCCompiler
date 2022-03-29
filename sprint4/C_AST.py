@@ -200,8 +200,6 @@ class CCodeGenerator:
 
     def generate_code(self, root):
         structure = self.gen(root)
-        print("====================")
-        print(structure)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
         clean_up = self.generate_clean_up()
@@ -546,14 +544,17 @@ int main() {{
         return init
 
     def convert_v_type(self,node: Type):
-        if isinstance(node.value,str):
+        if isinstance(node.value, str):
             assert node.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.replace('_t', '_v')
         elif not isinstance(node.value, NonPrimitiveType):
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.value.value.replace('_t', '_v')
+        elif not isinstance(node.value, Type):
+            assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
+            return node.value.value.value.replace('_t', '_v')
         else:
-            return "list_v"
+            return 'list_v'
 
     def get_temp_val(self, tmp):
         if tmp in self.temp_dict.keys():

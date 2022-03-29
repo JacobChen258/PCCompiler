@@ -250,7 +250,6 @@ class CASTGenerator:
         if ir_node.name not in self.temp_st.scope_stack[-1]:
             try:
                 type_t = self.temp_st.lookup_variable(name=ir_node.val)
-                print(type_t)
             except Exception:
                 id_type = st.lookup_variable(ir_node.name)
                 assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
