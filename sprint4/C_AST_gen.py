@@ -250,6 +250,7 @@ class CASTGenerator:
         if ir_node.name not in self.temp_st.scope_stack[-1]:
             try:
                 type_t = self.temp_st.lookup_variable(name=ir_node.val)
+                print(type_t)
             except Exception:
                 id_type = st.lookup_variable(ir_node.name)
                 assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
@@ -258,7 +259,7 @@ class CASTGenerator:
                 id_type = st.lookup_variable(ir_node.name)
                 type_t = self.convert_NonPrimitive_Type(id_type)
                 self.list_len[ir_node.name] = self.list_len.get(ir_node.val)
-                if not self.list_len[ir_node.name]:
+                if ir_node.val not in self.list_len:
                     Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
                 while self.empty_non_prim:
                     obj = self.empty_non_prim.pop()
@@ -519,6 +520,7 @@ class CASTGenerator:
         idx = C_AST.Id(ir_node.idx_reg)
         type_t = self.temp_st.lookup_variable(ir_node.obj_reg)
         type_t = C_AST.Type(type_t.value.value.value)
+        self.temp_st.declare_variable(ir_node.result_reg,type_t)
         return [C_AST.NonPrimitiveIndex(result,obj,type_t,idx)]
 
     # Used for non primitive type from st
