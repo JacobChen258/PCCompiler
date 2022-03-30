@@ -265,7 +265,7 @@ class TypeChecker:
         obj_type = self.typecheck(node.obj,st)
         val_type = self.typecheck(node.val,st)
         assert isinstance(obj_type.value,NonPrimitiveType)
-        assert obj_type.value.name == 'list'
+        if obj_type.value.name != 'list': raise Exception(f'Cannot use append on type {obj_type.value.name}')
         assert obj_type.value.value == val_type
 
     def check_NonPrimitiveIndex(self,node:AST.NonPrimitiveIndex,st:SymbolTable):
