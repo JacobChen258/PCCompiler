@@ -193,8 +193,10 @@ class CCodeGenerator:
         self.state_in_function_declaration = False
         self.array_cleanup = []
         self.temp_dict = {}
+        self.temp_list_dict = {}
 
     def generate_code(self, root):
+        print("START!!!!!!!!!!!!!!!!")
         structure = self.gen(root)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
@@ -222,6 +224,10 @@ class CCodeGenerator:
             else:
                 code = "    " * indent + line + "\n"
             result += code
+        for tmp in self.temp_list_dict.keys():
+            var = self.temp_list_dict[tmp]
+            if var != None:
+                result = result.replace(tmp, var)
         return result
 
     def generate_clean_up(self):
@@ -281,7 +287,7 @@ int main() {{
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
         name = self.gen(node.id)
-        if name[0] == '_':
+        #if name[0] == '_':
             self.temp_dict[name] = None
             return None
         return f"{type_t} {name};"
@@ -407,6 +413,9 @@ int main() {{
                 return None
             elif assign_value in self.temp_dict.keys():
                 assign_value = self.get_temp_val(assign_value)
+            elif assign_value in self.temp_list_dict.keys():
+                self.temp_list_dict[assign_value] = assign_var
+                return None
             return f"{assign_var} = {assign_value};"
         elif isinstance(node.val, bool):
             assign_value = str(node.val).lower()
@@ -415,6 +424,9 @@ int main() {{
                 return None
             elif assign_value in self.temp_dict.keys():
                 assign_value = self.get_temp_val(assign_value)
+            elif assign_value in self.temp_list_dict.keys():
+                self.temp_list_dict[assign_value] = assign_var
+                return None
             return f"{assign_var} = {assign_value};"
         elif node.val == "none-placeholder":
             if temp_var:
@@ -428,6 +440,9 @@ int main() {{
                 return None
             elif assign_value in self.temp_dict.keys():
                 assign_value = self.get_temp_val(assign_value)
+            elif assign_value in self.temp_list_dict.keys():
+                self.temp_list_dict[assign_value] = assign_var
+                return None
             return f"{assign_var} = {assign_value};"
 
     def gen_String(self, node: String):
@@ -445,6 +460,7 @@ int main() {{
         type_t = self.gen(node.type)
         type_t = type_t[:-1]+"v"
         value = self.gen(node.value)
+        value = self.get_temp_val(value)
         if node.idx == 'end':
             return f"list_add({type_t},{obj},{value});\n"
 
@@ -453,15 +469,23 @@ int main() {{
 
     def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
         head = self.gen(node.head)
+        if isinstance(head, str) and head[0] == '_':
+            self.temp_list_dict[head] = None
         init = f"list_t * {head} = list_init({len(node.value)});\n"
         self.array_cleanup.append(head)
+        print("Node")
+        print(node)
+        print("Node Type")
+        print(node.type)
+        print("Bool")
+        print(node.type.value.__class__.__name__)
         val_type = self.convert_v_type(node.type)
         for item in node.value:
             init += f"list_init_add({val_type},{self.gen(node.head)},{self.gen(item)});\n"
         return init
 
     def convert_v_type(self,node: Type):
-        if not isinstance(node.value, NonPrimitiveType):
+        if not isinstance(node.value, NonPrimitiveType) and node.value.__class__.__name__ != "NonPrimitiveType":
             assert node.value.value.value in ['str_t', 'int_t', 'float_t', 'bool_t', 'str_t', 'none_t']
             return node.value.value.value.replace('_t', '_v')
         else:

@@ -10,7 +10,6 @@ class TypeChecker:
             self.typecheck(node,st)
 
     def typecheck(self, node, st=None) -> Union[Type, None]:
-        print(node)
         method = 'check_' + node.__class__.__name__
         result_type = getattr(self, method, self.generic_typecheck)(node, st)
         assert isinstance(result_type, AST.Type) or result_type is None, f"Got: {result_type}"
@@ -119,7 +118,6 @@ class TypeChecker:
 
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
-        st.push_scope()
         var_t = None
         try:
             var_t = st.lookup_variable(node.var.name)
@@ -129,7 +127,6 @@ class TypeChecker:
             raise ParseError('For loop variant type mismatch')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
-        st.pop_scope()
         return None
 
 
@@ -268,7 +265,7 @@ class TypeChecker:
         obj_type = self.typecheck(node.obj,st)
         val_type = self.typecheck(node.val,st)
         assert isinstance(obj_type.value,NonPrimitiveType)
-        assert obj_type.value.name == 'list'
+        if obj_type.value.name != 'list': raise Exception(f'Cannot use append on type {obj_type.value.name}')
         assert obj_type.value.value == val_type
 
     def check_NonPrimitiveIndex(self,node:AST.NonPrimitiveIndex,st:SymbolTable):
