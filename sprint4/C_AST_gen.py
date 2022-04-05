@@ -273,7 +273,7 @@ class CASTGenerator:
 
     def gen_IR_GetLength(self, ir_node:IR_GetLength, st=None):
         length = self.list_len.get(ir_node.pointer_reg)
-        if not length:
+        if length is None:
             raise Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
         self.get_length[length] = ir_node.pointer_reg
         # return self.gen_IR_Assignment(IR_Assignment(name=ir_node.result_reg, val=length))
