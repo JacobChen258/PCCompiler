@@ -23,12 +23,12 @@
       "stop": {
         "NODE": "PrimitiveLiteral",
         "name": "int",
-        "value": 10
+        "value": 3
       },
       "start": {
         "NODE": "PrimitiveLiteral",
         "name": "int",
-        "value": 3
+        "value": 10
       },
       "step": null
     },

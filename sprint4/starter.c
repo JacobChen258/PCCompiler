@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 
-#define NONE_LITERAL 42;
+#define NONE_LITERAL 42
+#define MAX_ALLOCATED_OBJ_COUNT 256
 
 typedef double float_t;
 typedef long long int_t;
-typedef char char_t;
+typedef char *char_t;
 typedef int bool_t;
 typedef int none_t;
 typedef struct list list_t;
@@ -30,10 +32,62 @@ union data
   list_t list_v;
 };
 
+char_t *allocated_str[MAX_ALLOCATED_OBJ_COUNT];
+int allocated_str_count = 0;
+
+list_t *allocated_list[MAX_ALLOCATED_OBJ_COUNT];
+int allocated_list_count = 0;
+
+char_t allocate_str(int length)
+{
+  if (allocated_str_count == MAX_ALLOCATED_OBJ_COUNT)
+  {
+    printf("Out of memory for string\n");
+    exit(1);
+  }
+  char_t str = (char_t)malloc(length);
+  allocated_str[allocated_str_count] = str;
+  allocated_str_count++;
+  return str;
+}
+
+char_t str_init(const char *str)
+{
+  int_t len = strlen(str);
+  char_t new_str = allocate_str(len + 1);
+  strcpy(new_str, str);
+  return new_str;
+}
+
+char_t str_concat(char_t str1, char_t str2)
+{
+  int_t len1 = strlen(str1);
+  int_t len2 = strlen(str2);
+  char_t new_str = allocate_str(len1 + len2 + 1);
+  strcpy(new_str, str1);
+  strcpy(new_str + len1, str2);
+  return new_str;
+}
+
+void str_clean_up()
+{
+  for (int i = 0; i < allocated_str_count; i++)
+  {
+    free(allocated_str[i]);
+  }
+}
+
 list_t *list_init(int_t length)
 {
   list_t *list = malloc(sizeof(data_t));
   list->data = malloc(length * sizeof(void *));
+  if (allocated_list_count == MAX_ALLOCATED_OBJ_COUNT)
+  {
+    printf("Out of memory for list\n");
+    exit(1);
+  }
+  allocated_list[allocated_list_count] = list;
+  allocated_list_count++;
   list->length = length;
   list->uninitialized_length = length;
   return list;
@@ -73,6 +127,14 @@ void list_free(list_t *list)
   free(list);
 }
 
+void list_clean_up()
+{
+  for (int i = 0; i < allocated_list_count; i++)
+  {
+    list_free(allocated_list[i]);
+  }
+}
+
 data_t list_get_internal(list_t *list, int_t index)
 {
   if (list->uninitialized_length != 0)
@@ -86,6 +148,36 @@ data_t list_get_internal(list_t *list, int_t index)
     exit(1);
   }
   return list->data[index];
+}
+
+list_t *list_slice(list_t *list, int_t start, int_t end)
+{
+  if (list->uninitialized_length != 0)
+  {
+    printf("RUNTIME ERROR: List initialization is not complete. Length is %lld, uninitialized length is %lld\n", list->length, list->uninitialized_length);
+    exit(1);
+  }
+  if (start < 0 || start >= list->length)
+  {
+    printf("RUNTIME ERROR: Start index out of bounds. Trying to access %lld, length is %lld\n", start, list->length);
+    exit(1);
+  }
+  if (end < 0 || end >= list->length)
+  {
+    printf("RUNTIME ERROR: End index out of bounds. Trying to access %lld, length is %lld\n", end, list->length);
+    exit(1);
+  }
+  if (start > end)
+  {
+    printf("RUNTIME ERROR: Start index is greater than end index. start=%lld, end=%lld\n", start, end);
+    exit(1);
+  }
+  list_t *new_list = list_init(end - start + 1);
+  for (int_t i = start; i <= end; i++)
+  {
+    list_init_add_internal(new_list, list->data[i]);
+  }
+  return new_list;
 }
 
 void input_helper_invalid_input()
