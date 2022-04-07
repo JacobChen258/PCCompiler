@@ -1,7 +1,9 @@
 from __future__ import annotations
+from distutils.command.config import dump_file
 from tempfile import TemporaryDirectory
 from typing import Union, List, Literal
 from dataclasses import dataclass
+import json
 
 
 @dataclass
@@ -687,7 +689,7 @@ int main() {{
         type_t = type_t[:-1] + "v"
         value = self.get_val(self.gen(node.value))
         if node.idx == 'end':
-            return f"list_add({type_t}, {obj}, {value});\n"
+            return f"list_add({type_t}, {obj}, {value});"
 
     def gen_NonPrimitiveIndex(self, node: NonPrimitiveIndex):
         idx_reg = self.gen(node.result)
@@ -704,12 +706,12 @@ int main() {{
         head = self.gen(node.head)
         if isinstance(head, str) and head[0] == '_':
             self.temp_list_dict[head] = None
-        init = f"list_t * {head} = list_init({len(node.value)});\n"
+        init = [f"list_t * {head} = list_init({len(node.value)});"]
         val_type = self.convert_v_type(node.type)
         for item in node.value:
             value = self.get_val(self.gen(item))
-            init += f"list_init_add({val_type},{self.gen(node.head)},{value});\n"
-        return init
+            init.append(f"list_init_add({val_type},{self.gen(node.head)},{value});")
+        return ("").join(init)
 
     def convert_v_type(self,node: Type):
         if isinstance(node.value, str):
@@ -806,7 +808,6 @@ int main() {{
                 temp_dict.pop(var,None)
             result = eval(f"{expr}",temp_dict)
             if type(result) == str:
-                import json
                 return json.dumps(result)
         except:
             result = expr

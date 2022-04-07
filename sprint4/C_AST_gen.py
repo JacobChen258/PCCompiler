@@ -255,8 +255,12 @@ class CASTGenerator:
                 assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
             # Assume all non primitives will eventually be assigned to a value
             if type_t.value.__class__.__name__ == 'NonPrimitiveType':
-                id_type = st.lookup_variable(ir_node.name)
-                type_t = self.convert_NonPrimitive_Type(id_type)
+                try:
+                    id_type = st.lookup_variable(ir_node.name)
+                    type_t = self.convert_NonPrimitive_Type(id_type)
+                except:
+                    # if it is not in global scope, then we will need to manually match
+                    type_t = type_t.value
                 self.list_len[ir_node.name] = self.list_len.get(ir_node.val)
                 if ir_node.val not in self.list_len:
                     Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
