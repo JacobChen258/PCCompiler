@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from ply import yacc
 from lex import pythonLexer
 from lex import tokens

@@ -1,7 +1,7 @@
 import C_AST
 from ir_gen import *
 from symbol_table import SymbolTable
-from typing import Union, List
+from typing import List
 from AST import Type as A_Type, NonPrimitiveType
 
 
