@@ -437,5 +437,3 @@ class IRGen:
 
     def gen_Id(self, node: AST.Id):
         return node.name
-
-

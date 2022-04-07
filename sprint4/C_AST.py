@@ -192,7 +192,6 @@ class CCodeGenerator:
         self.function_declarations = []
         self.function_definitions = []
         self.state_in_function_declaration = False
-        self.array_cleanup = []
         self.temp_dict = {}
         self.temp_list_dict = {}
         self.generated_code = []
@@ -211,8 +210,7 @@ class CCodeGenerator:
         print(structure)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
-        clean_up = self.generate_clean_up()
-        return self.code_template(declarations_str, definitions_str, formatted, clean_up)
+        return self.code_template(declarations_str, definitions_str, formatted)
 
     def generate_function_code(self):
         declarations_str = ";\n".join(self.function_declarations)
@@ -241,17 +239,7 @@ class CCodeGenerator:
                 result = result.replace(tmp, var)
         return result
 
-    def generate_clean_up(self):
-        clean_up = ''
-        for array in self.array_cleanup:
-            if array in self.temp_list_dict.keys():
-                array_val = self.temp_list_dict[array]
-            if not array_val:
-                array_val = array
-            clean_up += f"list_free({array_val});\n"
-        return clean_up
-
-    def code_template(self, function_declarations, function_definitions, main_code, clean_up):
+    def code_template(self, function_declarations, function_definitions, main_code):
         if len(function_declarations) == 0:
             function_code = ""
         else:
@@ -274,9 +262,8 @@ int main() {{
 {main_code}
 /***** End of main *****/
 
-/***** Memory clean up *****/
-{clean_up}
-/***** End of Memory clean up *****/
+    str_clean_up();
+    list_clean_up();
 
     return 0;
 }}
@@ -598,7 +585,7 @@ int main() {{
                 self.gen(node.body)
                 return None
         return (
-               "for (" + assign_string + " " + comp_string + " " + step_string + "){",
+               "for (" + assign_string + " " + comp_string + " " + step_string + ") {",
                [f"{assign_var} = list_get(int_v, {lst}, i);"],
                self.gen(node.body),
                "}",
@@ -608,11 +595,14 @@ int main() {{
         assign_var = self.gen(node.id)
         result = None
         temp_var = False
+
         if assign_var in self.temp_dict.keys():
             temp_var = True
-        if isinstance(assign_var,str) and assign_var[0] == '_':
+
+        if isinstance(assign_var, str) and assign_var[0] == '_':
             self.temp_dict[assign_var] = None
             temp_var = True
+
         if not self.pre_run:
             if isinstance(node.val, (Id, FunctionCall, String)):
                 assign_value = self.gen(node.val)
@@ -621,12 +611,18 @@ int main() {{
                     if isinstance(node.val, FunctionCall) and node.val.name[:6] == "print_":
                         return f"{assign_value};"
                     return None
+
                 elif assign_value in self.temp_dict.keys():
                     assign_value = self.get_temp_val(assign_value)
+
                 elif assign_value in self.temp_list_dict.keys():
                     self.temp_list_dict[assign_value] = assign_var
                     return None
+
+                # MARK
+
                 result = f"{assign_var} = {assign_value};"
+
             elif isinstance(node.val, bool):
                 assign_value = str(node.val).lower()
                 if temp_var:
@@ -653,7 +649,8 @@ int main() {{
                 elif assign_value in self.temp_list_dict.keys():
                     self.temp_list_dict[assign_value] = assign_var
                     return None
-                result = f"{assign_var} = {assign_value};"
+                result = f"{assign_var} = {assign_value}"
+
         if not temp_var and assign_var not in self.variants:
             if self.pre_run:
                 self.variants.append(assign_var)
@@ -661,9 +658,14 @@ int main() {{
                 if type(node.val) == str and node.val != '_':
                     value = self._eval(node)
                     self.var_dict[assign_var] = value
-                    result = f"{assign_var} = {value};"
+                    # MARK: TODO: Remove
+                    # if isinstance(value, str):
+                    #     result = f"{assign_var} = str_init(\"{value}\")"
+                    # else:
+                    result = f"{assign_var} = {value}"
                 else:
                     self.var_dict[assign_var] = assign_value
+
         return result
 
     def gen_String(self, node: String):
@@ -680,10 +682,10 @@ int main() {{
     def gen_LstAdd(self, node: LstAdd):
         obj = self.gen(node.obj)
         type_t = self.gen(node.type)
-        type_t = type_t[:-1]+"v"
+        type_t = type_t[:-1] + "v"
         value = self.get_val(self.gen(node.value))
         if node.idx == 'end':
-            return f"list_add({type_t},{obj},{value});\n"
+            return f"list_add({type_t}, {obj}, {value});\n"
 
     def gen_NonPrimitiveIndex(self, node: NonPrimitiveIndex):
         idx_reg = self.gen(node.result)
@@ -694,14 +696,13 @@ int main() {{
         if idx_reg[0] == "_":
             self.temp_dict[idx_reg] = f"list_get({type_v},{self.gen(node.obj)},{idx})"
         else:
-            return f"{self.gen(node.result)}=list_get({type_v},{self.gen(node.obj)},{idx})"
+            return f"{self.gen(node.result)} = list_get({type_v},{self.gen(node.obj)},{idx})"
 
     def gen_NonPrimitiveLiteral(self, node: NonPrimitiveLiteral):
         head = self.gen(node.head)
         if isinstance(head, str) and head[0] == '_':
             self.temp_list_dict[head] = None
         init = f"list_t * {head} = list_init({len(node.value)});\n"
-        self.array_cleanup.append(head)
         val_type = self.convert_v_type(node.type)
         for item in node.value:
             value = self.get_val(self.gen(item))
@@ -800,7 +801,7 @@ int main() {{
         except:
             result = expr
         return result
-    
+
     def eval_RangeValues(self,node:RangeValues):
         start = self.look_up_temp(node.start)
         step = self.look_up_temp(node.step)

@@ -254,7 +254,7 @@ class CASTGenerator:
                 id_type = st.lookup_variable(ir_node.name)
                 assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
             # Assume all non primitives will eventually be assigned to a value
-            if type_t.value.__class__.__name__ == 'NonPrimitiveType':
+            if isinstance(type_t.value, NonPrimitiveType):
                 id_type = st.lookup_variable(ir_node.name)
                 type_t = self.convert_NonPrimitive_Type(id_type)
                 self.list_len[ir_node.name] = self.list_len.get(ir_node.val)
