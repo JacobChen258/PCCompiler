@@ -665,11 +665,7 @@ int main() {{
                 if type(node.val) == str and node.val != '_':
                     value = self._eval(node)
                     self.var_dict[assign_var] = value
-                    # MARK: TODO: Remove
-                    # if isinstance(value, str):
-                    #     result = f"{assign_var} = str_init(\"{value}\")"
-                    # else:
-                    result = f"{assign_var} = {value}"
+                    result = f"{assign_var} = {value};"
                 else:
                     self.var_dict[assign_var] = assign_value
 
@@ -679,7 +675,6 @@ int main() {{
         # Using json.dumps to do string escape
         import json
         return json.dumps(node.val)
-        # return "{" + ", ".join("\'" + i + "\'" for i in node.val) + ", \' \\0\'}"
 
     def gen_ReturnStatement(self, node: ReturnStatement):
         assert self.state_in_function_declaration, "Cannot have return statement outside of a function declaration"
