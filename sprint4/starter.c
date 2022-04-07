@@ -6,10 +6,11 @@
 
 #define NONE_LITERAL 42
 #define MAX_ALLOCATED_OBJ_COUNT 256
+#define MAX_STR_LEN 99999
 
 typedef double float_t;
 typedef long long int_t;
-typedef char *char_t;
+typedef char *str_t;
 typedef int bool_t;
 typedef int none_t;
 typedef struct list list_t;
@@ -26,44 +27,44 @@ union data
 {
   int_t int_v;
   float_t float_v;
-  char_t char_v;
+  str_t str_v;
   bool_t bool_v;
   none_t none_v;
   list_t list_v;
 };
 
-char_t *allocated_str[MAX_ALLOCATED_OBJ_COUNT];
+str_t *allocated_str[MAX_ALLOCATED_OBJ_COUNT];
 int allocated_str_count = 0;
 
 list_t *allocated_list[MAX_ALLOCATED_OBJ_COUNT];
 int allocated_list_count = 0;
 
-char_t allocate_str(int length)
+str_t allocate_str(int length)
 {
   if (allocated_str_count == MAX_ALLOCATED_OBJ_COUNT)
   {
     printf("Out of memory for string\n");
     exit(1);
   }
-  char_t str = (char_t)malloc(length);
+  str_t str = (str_t)malloc(length);
   allocated_str[allocated_str_count] = str;
   allocated_str_count++;
   return str;
 }
 
-char_t str_init(const char *str)
+str_t str_init(char *str)
 {
   int_t len = strlen(str);
-  char_t new_str = allocate_str(len + 1);
+  str_t new_str = allocate_str(len + 1);
   strcpy(new_str, str);
   return new_str;
 }
 
-char_t str_concat(char_t str1, char_t str2)
+str_t str_concat(str_t str1, str_t str2)
 {
   int_t len1 = strlen(str1);
   int_t len2 = strlen(str2);
-  char_t new_str = allocate_str(len1 + len2 + 1);
+  str_t new_str = allocate_str(len1 + len2 + 1);
   strcpy(new_str, str1);
   strcpy(new_str + len1, str2);
   return new_str;
@@ -217,13 +218,15 @@ start:
       goto start;
     }
     break;
-  case 'c':
-    printf(" (expecting char): ");
-    if (scanf("%c", &value.char_v) != 1)
+  case 's':
+    printf(" (expecting string): ");
+    char str_tmp[MAX_STR_LEN];
+    if (scanf("%s", str_tmp) != 1)
     {
       input_helper_invalid_input();
       goto start;
     }
+    value.str_v = str_init(str_tmp);
     break;
   case 'b':
     printf(" (expecting bool): ");
@@ -248,7 +251,7 @@ int print_internal(int items_count, ...)
 
   for (int i = 0; i < items_count; i++)
   {
-    char type = va_arg(valist, /* char_t */ int);
+    char type = va_arg(valist, /* str_t */ int);
     switch (type)
     {
     case 'i':
@@ -258,7 +261,7 @@ int print_internal(int items_count, ...)
       printf("%lf", va_arg(valist, float_t));
       break;
     case 'c':
-      printf("%c", va_arg(valist, /* char_t */ int));
+      printf("%c", va_arg(valist, /* str_t */ int));
       break;
     case 'b':
       printf("%s", va_arg(valist, bool_t) ? "true" : "false");
@@ -292,10 +295,12 @@ int print_internal(int items_count, ...)
 #define input_int() input(int_v, "Enter a number")
 #define input_float() input(float_v, "Enter a number")
 #define input_bool() input(int_v, "Enter 0 or 1")
+#define input_str() input(str_v, "Enter a string")
 
 #define input_int_s(X) input(int_v, X)
 #define input_float_s(X) input(float_v, X)
 #define input_bool_s(X) input(int_v, X)
+#define input_str_s(X) input(str_v, X)
 
 #define print_int(X) print_internal(1, 'i', X)
 #define print_float(X) print_internal(1, 'f', X)
