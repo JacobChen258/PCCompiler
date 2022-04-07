@@ -191,7 +191,7 @@ class TypeChecker:
         return int_type
 
     def check_BinaryOperation(self, node: AST.BinaryOperation, st: SymbolTable) -> Type:
-        numbers_only_operations = ["+", "-", "*", "/", "<", "<=", "=>", ">"]
+        numbers_only_operations = ["-", "*", "/", "<", "<=", "=>", ">"]
         left = self.typecheck(node.left,  st)
         right = self.typecheck(node.right, st)
         if node.operator in numbers_only_operations:
@@ -205,8 +205,8 @@ class TypeChecker:
             except ParseError:
                 try:
                     #case when comparing bool, str etc
-                    t = self.assert_same_type(left, right)
-                    return t
+                    self.assert_same_type(left, right)
+                    return left
                 except ParseError:
                     raise ParseError(f"Type mismatch on Binary Operator left={left} right={right}")
 
