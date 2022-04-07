@@ -163,6 +163,11 @@ class NonPrimitiveIndex(Node):
     obj: Expression
     idx: Expression
 
+@dataclass
+class NonPrimitiveSlicing(Node):
+    obj: Expression
+    start: Union[Expression,None]
+    end: Union[Expression,None]
 
 
 

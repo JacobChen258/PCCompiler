@@ -263,7 +263,7 @@ class CASTGenerator:
                     type_t = type_t.value
                 self.list_len[ir_node.name] = self.list_len.get(ir_node.val)
                 if ir_node.val not in self.list_len:
-                    Exception(f'C_AST_Gen Error: {ir_node.pointer_reg} is not previously defined as non-primitive')
+                    Exception(f'C_AST_Gen Error: {ir_node.name} is not previously defined as non-primitive')
                 while self.empty_non_prim:
                     obj = self.empty_non_prim.pop()
                     obj.type = C_AST.Type(type_t)
@@ -529,6 +529,20 @@ class CASTGenerator:
         type_t = C_AST.Type(type_t.value.value.value)
         self.temp_st.declare_variable(ir_node.result_reg,type_t)
         return [C_AST.NonPrimitiveIndex(result,obj,type_t,idx)]
+
+    def gen_IR_NonPrimitiveSlicing(self,ir_node: IR_NonPrimitiveSlicing,st=None):
+        obj = C_AST.Id(ir_node.obj_reg)
+        result_reg = C_AST.Id(ir_node.result_reg)
+        start = None
+        end = None
+        if ir_node.start_reg:
+            start = C_AST.Id(ir_node.start_reg)
+        if ir_node.end_reg:
+            end = C_AST.Id(ir_node.end_reg)
+        type_t = self.temp_st.lookup_variable(ir_node.obj_reg)
+        self.temp_st.declare_variable(ir_node.result_reg, type_t)
+        return [C_AST.NonPrimitiveSlicing(result_reg,obj,start,end,type_t)]
+
 
     # Used for non primitive type from st
     def convert_NonPrimitive_Type(self,node:A_Type):

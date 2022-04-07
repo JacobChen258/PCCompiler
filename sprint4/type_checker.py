@@ -278,3 +278,15 @@ class TypeChecker:
 
     def check_Id(self,node: AST.Id,st:SymbolTable)->Type:
         return st.lookup_variable(node.name)
+
+    def check_NonPrimitiveSlicing(self,node:AST.NonPrimitiveSlicing,st:SymbolTable):
+        obj_type = self.typecheck(node.obj,st)
+        if node.start:
+            start_t = self.typecheck(node.start)
+            assert isinstance(start_t.value, PrimitiveType)
+            assert start_t.value.value == 'int'
+        if node.end:
+            end_t = self.typecheck(node.end)
+            assert isinstance(end_t.value, PrimitiveType)
+            assert end_t.value.value == 'int'
+        return obj_type

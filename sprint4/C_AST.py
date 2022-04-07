@@ -189,6 +189,14 @@ class NonPrimitiveLiteral:
     type: NonPrimitiveType
     value: List[Union[Id, PrimitiveLiteral]]
 
+@dataclass
+class NonPrimitiveSlicing:
+    result_reg: Id
+    obj: Id
+    start: Union[Id,None]
+    end: Union[Id,None]
+    type: NonPrimitiveType
+
 class CCodeGenerator:
     def __init__(self):
         self.function_declarations = []
@@ -198,6 +206,9 @@ class CCodeGenerator:
         self.temp_list_dict = {}
         self.generated_code = []
         self.decl_scope = [[]]
+        self.list_type_dict = {}
+        self.list_decl_dict = []
+        self.list_len_dict = {}
 
         self.is_inloop = False
         self.pre_run = False
@@ -210,10 +221,6 @@ class CCodeGenerator:
 
     def generate_code(self, root):
         structure = self.gen(root)
-        print(structure)
-        print(self.temp_dict)
-        print(self.var_dict)
-        print(self.variants)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
         return self.code_template(declarations_str, definitions_str, formatted)
@@ -307,9 +314,10 @@ int main() {{
 
     def gen_Declaration(self, node: Declaration):
         type_t = self.gen(node.type)
-        if type_t == "list_t *":
-            return None
         name = self.gen(node.id)
+        if type_t == "list_t *":
+            self.list_type_dict[name] = type_t
+            return None
         if name[0] == '_':
             self.temp_dict[name] = None
             return None
@@ -372,7 +380,6 @@ int main() {{
                     op_a = self._eval(node.operand_a)
                     op_b = self._eval(node.operand_b)
                     self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
-                    print(self.temp_dict[left])
                 else:
                     value = self._eval(node)
                     self.var_dict[left] = value
@@ -506,9 +513,8 @@ int main() {{
                 result = (f"while ({cond})" " {",
                       body,
                       "}",)
-                print(self.variants)
                 self.variants = []
-                self.in_loop = False
+                self.is_inloop = False
                 return result
             elif self.pre_run:
                 self.gen(node.body)
@@ -550,9 +556,8 @@ int main() {{
                     body,
                     "}",
                 )
-                print(self.variants)
                 self.variants = []
-                self.in_loop = False
+                self.is_inloop = False
                 return result
             elif self.pre_run:
                 self.gen(node.body)
@@ -586,9 +591,8 @@ int main() {{
                     body,
                     "}",
                 )
-                print(self.variants)
                 self.variants = []
-                self.in_loop = False
+                self.is_inloop = False
                 return result
             elif self.pre_run:
                 self.gen(node.body)
@@ -657,7 +661,20 @@ int main() {{
                     assign_value = self.get_temp_val(assign_value)
                 elif assign_value in self.temp_list_dict.keys():
                     self.temp_list_dict[assign_value] = assign_var
+                    self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
                     return None
+                if (assign_value in self.temp_list_dict.values() or assign_value in self.list_decl_dict or \
+                    (type(assign_value) == str and "list_slice" in assign_value)) and\
+                        assign_var not in self.temp_list_dict.values():
+                    if assign_var not in self.list_decl_dict:
+                        self.list_decl_dict.append(assign_var)
+                        type_t = self.list_type_dict[assign_var]
+                        if "list_slice" in assign_value:
+                            params = assign_value.split("(")[1].split(")")[0].split(",")
+                            self.list_len_dict[assign_var] = eval(f"{params[2]}-{params[1]}")
+                        else:
+                            self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
+                        return "".join([f"{type_t} {assign_var};", f"{assign_var} = {assign_value}"])
                 result = f"{assign_var} = {assign_value}"
 
         if not temp_var and assign_var not in self.variants:
@@ -670,7 +687,6 @@ int main() {{
                     result = f"{assign_var} = {value};"
                 else:
                     self.var_dict[assign_var] = assign_value
-
         return result
 
     def gen_String(self, node: String):
@@ -711,7 +727,23 @@ int main() {{
         for item in node.value:
             value = self.get_val(self.gen(item))
             init.append(f"list_init_add({val_type},{self.gen(node.head)},{value});")
-        return ("").join(init)
+        self.list_len_dict[head] = len(node.value)
+        return "".join(init)
+
+    def gen_NonPrimitiveSlicing(self, node: NonPrimitiveSlicing):
+        obj = self.gen(node.obj)
+        result_reg = self.gen(node.result_reg)
+        if node.start:
+            start = self.get_val(self.gen(node.start))
+        else:
+            start = 0
+        if node.end:
+            end = self.get_val(self.gen(node.end))
+        else:
+            end = self.list_len_dict[obj]
+        result = f"list_slice({obj},{start},{end})"
+        self.temp_dict[result_reg] = result
+        return None
 
     def convert_v_type(self,node: Type):
         if isinstance(node.value, str):
@@ -753,9 +785,6 @@ int main() {{
     def eval_BinaryOperation(self, node: BinaryOperation):
         left = self._eval(node.operand_a)
         right = self._eval(node.operand_b)
-
-        print("left: ",left)
-        print("right: ",right)
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
                 and isinstance(right, (bool, int, float)):
             temp_dict = self.var_dict.copy()

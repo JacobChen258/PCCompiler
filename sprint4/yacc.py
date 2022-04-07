@@ -340,17 +340,36 @@ class pythonParser:
         else:
             p[0] = AST.Assignment(left=AST.Id(name=p[1]), type=p[3], right=p[5])
 
-    def p_list_append(self,p):
+    def p_list_append(self, p):
         """
         statement_no_new_line : expression DOT APPEND LPAREN expression RPAREN
         """
         p[0] = AST.LstAppend(obj=p[1], val=p[5])
 
-    def p_non_prim_index(self,p):
+    def p_non_prim_index(self, p):
         """
         expression : expression LBRACKET expression RBRACKET
         """
-        p[0] = AST.NonPrimitiveIndex(obj=p[1],idx=p[3])
+        p[0] = AST.NonPrimitiveIndex(obj=p[1], idx=p[3])
+
+    def p_non_prim_slicing(self, p):
+        """
+        expression  : expression LBRACKET expression COLON RBRACKET
+                    | expression LBRACKET expression COLON expression RBRACKET
+                    | expression LBRACKET COLON RBRACKET
+        """
+        if len(p) == 6:
+            p[0] = AST.NonPrimitiveSlicing(obj=p[1], start=p[3], end=None)
+        elif len(p) == 7:
+            p[0] = AST.NonPrimitiveSlicing(obj=p[1], start=p[3], end=p[5])
+        else:
+            p[0] = AST.NonPrimitiveSlicing(obj=p[1], start=None, end=None)
+
+    def p_non_prim_slicing_r(self, p):
+        """
+        expression : expression LBRACKET COLON expression RBRACKET
+        """
+        p[0] = AST.NonPrimitiveSlicing(obj=p[1], start=None, end=p[4])
 
     def p_empty(self, p):
         """empty :"""

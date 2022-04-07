@@ -177,6 +177,12 @@ class IR_NonPrimitiveIndex:
 class IR_ForLoopVar:
     reg: str
 
+@dataclass
+class IR_NonPrimitiveSlicing:
+    result_reg: str
+    obj_reg: str
+    start_reg: Union[str,None]
+    end_reg: Union[str,None]
 
 class IRGen:
     def __init__(self):
@@ -437,3 +443,22 @@ class IRGen:
 
     def gen_Id(self, node: AST.Id):
         return node.name
+
+    def gen_NonPrimitiveSlicing(self,node:AST.NonPrimitiveSlicing):
+        obj_reg = self.generate(node.obj)
+        result_reg = self.inc_register()
+        start_reg = None
+        end_reg = None
+        if node.start:
+            start_reg = self.generate(node.start)
+        if node.end:
+            end_reg = self.generate(node.end)
+        if start_reg and end_reg:
+            self.add_code(IR_NonPrimitiveSlicing(result_reg,obj_reg,start_reg,end_reg))
+        elif start_reg:
+            self.add_code(IR_NonPrimitiveSlicing(result_reg, obj_reg, start_reg, None))
+        elif end_reg:
+            self.add_code(IR_NonPrimitiveSlicing(result_reg, obj_reg, None, end_reg))
+        else:
+            self.add_code(IR_NonPrimitiveSlicing(result_reg, obj_reg, None, None))
+        return result_reg
