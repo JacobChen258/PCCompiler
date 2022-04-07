@@ -201,13 +201,17 @@ class CCodeGenerator:
         self.pre_run = False
         self.eval_mode = True  # Optimization flag
         self.variants = []
-        self.var_dict = {'true':'true','false':'false','NONE_LITERAL':'NONE_LITERAL'}
+        self.var_dict = {}
+        #self.var_dict = {'true':'true','false':'false','NONE_LITERAL':'NONE_LITERAL'}
         self.has_if_head = False
         self.ignore_if = False
 
     def generate_code(self, root):
         structure = self.gen(root)
         print(structure)
+        print(self.temp_dict)
+        print(self.var_dict)
+        print(self.variants)
         formatted = self.generate_code_formatter(structure)
         declarations_str, definitions_str = self.generate_function_code()
         return self.code_template(declarations_str, definitions_str, formatted)
@@ -363,7 +367,10 @@ int main() {{
         if self.eval_mode:
             if not self.pre_run:
                 if left[0] == "_":
-                    self.temp_dict[left] = f"{op_a} {node.operator} {op_b}"
+                    op_a = self._eval(node.operand_a)
+                    op_b = self._eval(node.operand_b)
+                    self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
+                    print(self.temp_dict[left])
                 else:
                     value = self._eval(node)
                     self.var_dict[left] = value
@@ -750,6 +757,8 @@ int main() {{
         left = self._eval(node.operand_a)
         right = self._eval(node.operand_b)
 
+        print("left: ",left)
+        print("right: ",right)
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
                 and isinstance(right, (bool, int, float)):
             temp_dict = self.var_dict.copy()
@@ -776,6 +785,9 @@ int main() {{
                 for var in self.variants:
                     temp_dict.pop(var,None)
                 result = eval(f"{expr}",temp_dict)
+                if type(result) == str:
+                    import json
+                    return json.dumps(result)
             except:
                 result = expr
             return result
@@ -798,6 +810,9 @@ int main() {{
             for var in self.variants:
                 temp_dict.pop(var,None)
             result = eval(f"{expr}",temp_dict)
+            if type(result) == str:
+                import json
+                return json.dumps(result)
         except:
             result = expr
         return result
