@@ -110,6 +110,8 @@ class CASTGenerator:
                              self.temp_st.lookup_variable(ir_node.right_reg).value]
                 if 'float_t' in operand_t:
                     type_t = 'float_t'
+                elif 'str_t' in operand_t:
+                    type_t = 'str_t'
                 else:
                     type_t = 'int_t'
             self.temp_st.declare_variable(name=ir_node.result_reg, type=C_AST.Type(value=type_t))
