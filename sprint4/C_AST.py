@@ -207,6 +207,7 @@ class CCodeGenerator:
         self.list_type_dict = {}
         self.list_decl_dict = []
         self.list_len_dict = {}
+        self.converted_str_lst = {}
 
         self.is_inloop = False
         self.pre_run = False
@@ -377,6 +378,10 @@ int main() {{
                 if left[0] == "_":
                     op_a = self._eval(node.operand_a)
                     op_b = self._eval(node.operand_b)
+                    if type(op_a) == type(op_b) == str and (('"' in op_a or 'input_str()' == op_a) and \
+                                                            ('"' in op_b or 'input_str()' == op_b)):
+                        self.temp_dict[left] = f'str_concat({op_a},{op_b})'
+                        return
                     self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
                 else:
                     value = self._eval(node)
@@ -617,6 +622,8 @@ int main() {{
         if not self.pre_run:
             if isinstance(node.val, (Id, FunctionCall, String)):
                 assign_value = self.gen(node.val)
+                if isinstance(node.val, String):
+                    self.converted_str_lst[assign_var] = assign_value
                 if temp_var:
                     self.temp_dict[assign_var] = assign_value
                     if isinstance(node.val, FunctionCall) and node.val.name[:6] == "print_":
@@ -803,15 +810,19 @@ int main() {{
     def eval_Id(self, node: Id):
         if node.name[0] == "_":
             expr = self.look_up_temp(node.name)
-            result = None
             try:
+                if node.name in self.converted_str_lst:
+                    return self.converted_str_lst[node.name]
                 temp_dict = self.var_dict.copy()
                 for var in self.variants:
                     temp_dict.pop(var,None)
                 result = eval(f"{expr}",temp_dict)
                 if type(result) == str:
                     import json
-                    return json.dumps(result)
+                    result = json.dumps(result)
+                    print("result :",result, " name: ",node.name)
+                    self.converted_str_lst[node.name] = result
+                    return result
             except:
                 result = expr
             return result
@@ -828,13 +839,19 @@ int main() {{
 
     def eval_Assignment(self,node:Assignment):
         expr = self.look_up_temp(node.val)
-        result = None
+        name = self.gen(node.id)
         try:
+            if node.val in self.converted_str_lst:
+                result = self.converted_str_lst[node.val]
+                self.converted_str_lst[name] = result
+                return result
             temp_dict = self.var_dict.copy()
             for var in self.variants:
                 temp_dict.pop(var,None)
-            result = eval(f"{expr}",temp_dict)
+            result = eval(f"{expr}", temp_dict)
             if type(result) == str:
+                result = json.dumps(result)
+                self.converted_str_lst[name] = result
                 return json.dumps(result)
         except:
             result = expr
