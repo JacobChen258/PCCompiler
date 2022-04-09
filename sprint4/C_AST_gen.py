@@ -119,7 +119,7 @@ class CASTGenerator:
 
     def gen_IR_UnaryOperation(self, ir_node: IR_UnaryOperation, st=None):
         result_node = C_AST.Id(name=ir_node.result_reg)
-        operand_node = C_AST.Id(name=ir_node.left_reg)
+        operand_node = C_AST.Id(name=ir_node.operand_reg)
         operation_node = C_AST.UnaryOperation(left=result_node, operator=ir_node.operator, operand=operand_node)
         if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             if ir_node.operator == "!":
