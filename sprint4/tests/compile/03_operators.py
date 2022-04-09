@@ -15,6 +15,10 @@ o2: int = ib / ia
 o3: int = ib + ia
 o4: int = ib - ia
 o5: int = -ia
+o6: int = +ia
+o7: int = +-ia
+o8: int = -+ia
+o9: int = ---+++---+++---+++ia
 
 o11: float = fb * fa
 o12: float = fb / fa
@@ -26,6 +30,7 @@ o22: bool = bt & bf
 o23: bool = bt or bf
 o24: bool = bt | bf
 o25: bool = not bf
+o26: bool = not not not not not bf
 
 o31: int = 1 + 2 * 3 / 4 - 5
 o32: int = 1 + 2 * 3 / (4 - 5)

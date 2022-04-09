@@ -32,10 +32,11 @@ def from_blocks_to_ir(blocks):
     ir_generator.generate_IR(blocks)
     return ir_generator.IR
 
-def from_ir_st_to_c(ir, st):
+def from_ir_st_to_c(ir, st, opt_on):
     c_ast_generator = CASTGenerator()
     c_ast = c_ast_generator.generate_AST(ir, st)
     c_code_generator = CCodeGenerator()
+    c_code_generator.eval_mode = opt_on
     return c_code_generator.generate_code(c_ast)
 
 def check_if_code_compiles(filename, output):
@@ -65,7 +66,7 @@ def test_compile(test_name):
     with open(f'./tests/compile/{test_name}_IR.txt', 'w+') as f:
         f.write('\n'.join(repr(ir_line) for ir_line in ir) + '\n')
 
-    code = from_ir_st_to_c(ir, st)
+    code = from_ir_st_to_c(ir, st, opt_on=False)
 
     with open(f'./tests/compile/{test_name}.c', 'w+') as f:
         f.write(code)

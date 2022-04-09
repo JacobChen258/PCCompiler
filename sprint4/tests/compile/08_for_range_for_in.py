@@ -6,7 +6,7 @@ result1: int = 0
 for v in a:
 	result1 = result1 + v
 
-result2: float = 0
+result2: float = 0.0
 for v in b:
 	result2 = result2 + v
 
