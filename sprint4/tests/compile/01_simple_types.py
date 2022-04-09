@@ -8,8 +8,4 @@ fc: float = 0.0
 fd: float = 10.0
 bt: bool = True
 bf: bool = False
-sa: str = ""
-sb: str = "hello!"
-sc: str = '"quoted"'
 nn: None = None
-
