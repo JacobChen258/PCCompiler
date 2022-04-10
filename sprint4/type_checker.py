@@ -118,7 +118,6 @@ class TypeChecker:
 
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
-        st.push_scope()
         var_t = None
         try:
             var_t = st.lookup_variable(node.var.name)
@@ -128,7 +127,6 @@ class TypeChecker:
             raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}. Processing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
-        st.pop_scope()
         return None
 
 
