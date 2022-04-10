@@ -7,8 +7,8 @@ for v in a:
 	result1 = result1 + v
 
 result2: float = 0.0
-for v in b:
-	result2 = result2 + v
+for w in b:
+	result2 = result2 + w
 
 result3: int = 0
 for v in c:
