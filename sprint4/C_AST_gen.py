@@ -121,7 +121,7 @@ class CASTGenerator:
 
     def gen_IR_UnaryOperation(self, ir_node: IR_UnaryOperation, st=None):
         result_node = C_AST.Id(name=ir_node.result_reg)
-        operand_node = C_AST.Id(name=ir_node.left_reg)
+        operand_node = C_AST.Id(name=ir_node.operand_reg)
         operation_node = C_AST.UnaryOperation(left=result_node, operator=ir_node.operator, operand=operand_node)
         if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             if ir_node.operator == "!":
@@ -498,8 +498,9 @@ class CASTGenerator:
                 head += self.gen(cur_node, st)
 
             cur_node = self.ir.pop(0)
+
         false_label = cur_node.if_false.label
-        result_stmt = C_AST.ForLoopList(var=C_AST.Id(name=cur_id), indexVar=C_AST.Id(cur_index), length=cur_list_len, Lst=C_AST.Id(cur_list_reg),  body=C_AST.Block([]))
+        result_stmt = C_AST.ForLoopList(var=C_AST.Id(name=cur_id), indexVar=C_AST.Id(cur_index), length=cur_list_len, Lst=C_AST.Id(cur_list_reg), body=C_AST.Block([]))
 
         continue_sig = True
         while continue_sig:
@@ -508,10 +509,11 @@ class CASTGenerator:
             if val and val == false_label:
                 continue_sig = False
             elif val:
-                result_stmt.body.lst+= val
+                result_stmt.body.lst += val
 
         if decl_stmt:
             return head + [decl_stmt] + [result_stmt]
+
         return head + [result_stmt]
 
 

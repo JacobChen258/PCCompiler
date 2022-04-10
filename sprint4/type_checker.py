@@ -95,13 +95,13 @@ class TypeChecker:
             if variable_type != rhs_type:
                 # TODO: RHS could have None if the list is empty
                 if (isinstance(variable_type.value, NonPrimitiveType) and isinstance(rhs_type.value, NonPrimitiveType)) and variable_type.value.name == rhs_type.value.name:
-                        return variable_type
-                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
+                    return variable_type
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}. Processing {node}')
         else:
             # Variable already exists, check the type of RHS
             rhs_type = self.typecheck(node.right, st)
             if variable_type != rhs_type:
-                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}')
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}. Processing {node}')
 
         return variable_type
 
@@ -118,15 +118,17 @@ class TypeChecker:
 
     def check_ForLoopList(self, node: AST.ForLoopList, st: SymbolTable) -> None:
         list_type = self.typecheck(node.Lst, st)
+        st.push_scope()
         var_t = None
         try:
             var_t = st.lookup_variable(node.var.name)
         except Exception:
             st.declare_variable(node.var.name, list_type.value.value)
         if var_t and var_t != list_type:
-            raise ParseError('For loop variant type mismatch')
+            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}. Processing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
+        st.pop_scope()
         return None
 
 
@@ -139,7 +141,7 @@ class TypeChecker:
         except Exception:
             st.declare_variable(node.var.name, list_type)
         if var_t and var_t != list_type:
-            raise ParseError('For loop variant type mismatch')
+            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}. Processing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()
