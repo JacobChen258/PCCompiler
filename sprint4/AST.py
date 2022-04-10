@@ -36,14 +36,23 @@ class PrimitiveType(Node):
         self.value = value
         assert value in ['str', 'int', 'float', 'bool', 'none']
 
+    def __str__(self):
+        return self.value
+
 @dataclass
 class NonPrimitiveType(Node):
     name: Union['tuple', 'list']
     value: PrimitiveType
 
+    def __str__(self):
+        return f'{self.name} of {str(self.value)}'
+
 @dataclass
 class Type(Node):
     value: Union[PrimitiveType, NonPrimitiveType]
+
+    def __str__(self):
+        return f"Type<{str(self.value)}>"
 
 @dataclass
 class Expression(Node):

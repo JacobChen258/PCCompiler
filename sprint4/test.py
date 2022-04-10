@@ -90,6 +90,11 @@ def check_if_code_compiles(filename, output):
     proc = subprocess.run(f'gcc {filename} -o {output}', shell=True, stdout=subprocess.PIPE, universal_newlines=True)
     assert proc.returncode == 0, f"gcc return code was {proc.returncode}\n{proc.stderr}"
 
+def execute_program(filename, input=""):
+    import subprocess
+    proc = subprocess.run(f'{filename}', shell=True, stdout=subprocess.PIPE, universal_newlines=True, input=input)
+    return (proc.returncode, proc.stdout)
+
 
 test_names_compile = [f.replace('.py', '') for f in os.listdir(f'./tests/error/') if f.endswith('.py')]
 @pytest.mark.parametrize("test_name", test_names_compile)
@@ -111,21 +116,45 @@ def test_error(test_name):
     first_line, second_line = read(f'{d}/{test_name}.py').split('\n')[:2]
     assert first_line.startswith('#'), "Expect first line to be a comment for this test"
     assert second_line.startswith('#'), "Expect second line to be a comment for this test"
+    expected_words = second_line.replace('#', '').strip().split()
 
-    try:
-        compiler(
-            input_file=f'{d}/{test_name}.py',
-            c=f'{d}/{test_name}.c',
-            executable=f'{d}/{test_name}',
-            opt_on='[OPT_ON]' in first_line,
-            ir_tmp=f'{d}/{test_name}_IR.txt',
-        )
-    except Exception as e:
-        # Expect every word in second line to appear in the error message
-        expected_words = second_line.replace('#', '').strip().split()
+    if '[RUNTIME]' in first_line:
+        try:
+            compiler(
+                input_file=f'{d}/{test_name}.py',
+                c=f'{d}/{test_name}.c',
+                executable=f'{d}/{test_name}',
+                opt_on='[OPT_ON]' in first_line,
+                ir_tmp=f'{d}/{test_name}_IR.txt',
+            )
+        except Exception as e:
+            raise Exception(f"Does not expect error at this stage, got: {e}")
+
+        code, stdout = execute_program(f'{d}/{test_name}', input='')
+        assert code == 1, f"Expected runtime error, got: {code=} {stdout=}"
+
         for word in expected_words:
-            assert word in str(e), f"Expect error message to contain {word}"
+            first_line = str(stdout).split('\n')[0]
+            assert word in first_line, f"Expect error message to contain {word}\n\nGot Error:{str(stdout)}"
         if len(expected_words) == 0:
-            raise Exception("Got error: " + str(e))
+            raise Exception("Got stdout: " + str(stdout))
+
+
     else:
-        raise Exception("Expected an error to be thrown")
+        try:
+            compiler(
+                input_file=f'{d}/{test_name}.py',
+                c=f'{d}/{test_name}.c',
+                executable=f'{d}/{test_name}',
+                opt_on='[OPT_ON]' in first_line,
+                ir_tmp=f'{d}/{test_name}_IR.txt',
+            )
+        except Exception as e:
+            # Expect every word in second line to appear in the error message
+            for word in expected_words:
+                first_line = str(e).split('\n')[0]
+                assert word in first_line, f"Expect error message to contain {word}\n\nGot Error:{str(e)}"
+            if len(expected_words) == 0:
+                raise Exception("Got error: " + str(e))
+        else:
+            raise Exception("Expected an error to be thrown")

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Union
 import AST
 
-cond_label_stack = []
-cond_label_idx_stack = []
+# self.cond_label_stack = []
+# self.cond_label_idx_stack = []
 
 
 @dataclass
@@ -189,6 +189,9 @@ class IRGen:
         self.IR = []
         self.register_count = 0
         self.label_count = 0
+        self.cond_label_stack = []
+        self.cond_label_idx_stack = []
+
 
     def generate_IR(self, nodes):
         for node in nodes:
@@ -374,28 +377,26 @@ class IRGen:
         return result_reg
 
     def gen_IfStmt(self, node: AST.IfStmt):
-        global cond_label_stack, cond_label_idx_stack
         cond = self.generate(node.ifCond)
 
         fbranch_label = self.inc_label()
-        cond_label_stack.append(self.inc_label())  # record the
+        self.cond_label_stack.append(self.inc_label())  # record the
 
         # Skip to the false_body if the condition is not met
         self.add_code(IR_IfStmt(if_false=IR_Goto(fbranch_label), cond_reg=cond))
         for stmt in node.body.lst:
             self.generate(stmt)
         # End of true body
-        self.add_code(IR_Goto(cond_label_stack[-1]))
+        self.add_code(IR_Goto(self.cond_label_stack[-1]))
 
         # mark false and true labels
         # record the idx of true label for elif and else insertion
         # it is possible that false label has no content
         self.mark_label(fbranch_label)
-        cond_label_idx_stack.append(len(self.IR))
-        self.mark_label(cond_label_stack[-1])
+        self.cond_label_idx_stack.append(len(self.IR))
+        self.mark_label(self.cond_label_stack[-1])
 
     def gen_ElifStmt(self, node: AST.ElifStmt):
-        global cond_label_stack, cond_label_idx_stack
         # copy the whole IR to make sure that
         # subsequent conditional stmts are in place
         ir_copy = self.IR[:]
@@ -406,16 +407,15 @@ class IRGen:
         self.add_code(IR_ElifStmt(elif_false=IR_Goto(fbranch_label), cond_reg=cond))
         for stmt in node.body.lst:
             self.generate(stmt)
-        self.add_code(IR_Goto(cond_label_stack[-1]))
+        self.add_code(IR_Goto(self.cond_label_stack[-1]))
         self.mark_label(fbranch_label)
         len_elif = len(self.IR)
         # insert elif IR
-        self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
+        self.IR = ir_copy[:self.cond_label_idx_stack[-1]] + self.IR + ir_copy[self.cond_label_idx_stack[-1]:]
         # update the true label index
-        cond_label_idx_stack[-1] += len_elif
+        self.cond_label_idx_stack[-1] += len_elif
 
     def gen_ElseStmt(self, node: AST.ElseStmt):
-        global cond_label_stack, cond_label_idx_stack
         # copy the whole IR to make sure that
         # subsequent conditional stmts are in place
         ir_copy = self.IR[:]
@@ -424,10 +424,10 @@ class IRGen:
         for stmt in node.body.lst:
             self.generate(stmt)
         # insert else IR
-        self.IR = ir_copy[:cond_label_idx_stack[-1]] + self.IR + ir_copy[cond_label_idx_stack[-1]:]
+        self.IR = ir_copy[:self.cond_label_idx_stack[-1]] + self.IR + ir_copy[self.cond_label_idx_stack[-1]:]
         # pop cond_label and cond_label_idx
-        cond_label_idx_stack.pop(-1)
-        cond_label_stack.pop(-1)
+        self.cond_label_idx_stack.pop(-1)
+        self.cond_label_stack.pop(-1)
 
     def gen_LstAppend(self, node: AST.LstAppend):
         obj_reg = self.generate(node.obj)

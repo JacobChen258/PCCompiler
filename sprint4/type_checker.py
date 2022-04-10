@@ -66,7 +66,7 @@ class TypeChecker:
                 f"at node: {repr(node)}")
 
 
-    def assert_same_type(self, t1: Type, t2: Type):
+    def assert_same_type(self, t1: Type, t2: Type, context=None):
         """
         Helper function to check if two given type node is that of the
         same type. Precondition is that both t1 and t2 are that of class Type
@@ -79,8 +79,21 @@ class TypeChecker:
             raise ParseError(f"Different class type: t1={t1.__class__.__name__} t2={t2.__class__.__name__}")
 
         if repr(t1.value) != repr(t2.value): # Handles nested types
-            raise ParseError(f"Different type: t1={repr(t1)} t2={repr(t2)}")
+            if context:
+                raise ParseError(f"Encountered different type while {context}: t1={t1} t2={t2}")
+            else:
+                raise ParseError(f"Encountered different type: t1={t1} t2={t2}")
 
+    def assert_expect_type_to_be(self, t1: Type, t2: Type, friendly_name: str):
+        assert isinstance(t1, Type)
+        assert isinstance(t2, Type)
+
+        if not (isinstance(t1.value, AST.PrimitiveType) and isinstance(t2.value, AST.PrimitiveType)) and \
+                not (isinstance(t1.value, AST.NonPrimitiveType) and isinstance(t2.value, AST.NonPrimitiveType)):
+            raise ParseError(f"Different class type: t1={t1.__class__.__name__} t2={t2.__class__.__name__}")
+
+        if repr(t1.value) != repr(t2.value): # Handles nested types
+            raise ParseError(f"Expect {friendly_name} to be {t2}, but got {t1}")
 
     def check_Assignment(self, node: AST.Assignment, st: SymbolTable) -> Type:
         variable_name = node.left.name
@@ -96,23 +109,23 @@ class TypeChecker:
                 # TODO: RHS could have None if the list is empty
                 if (isinstance(variable_type.value, NonPrimitiveType) and isinstance(rhs_type.value, NonPrimitiveType)) and variable_type.value.name == rhs_type.value.name:
                     return variable_type
-                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}. Processing {node}')
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}.\nProcessing {node}')
         else:
             # Variable already exists, check the type of RHS
             rhs_type = self.typecheck(node.right, st)
             if variable_type != rhs_type:
-                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}. Processing {node}')
+                raise ParseError(f'Assignment type mismatch. RHS should be {variable_type} instead of {rhs_type}.\nProcessing {node}')
 
         return variable_type
 
 
     def check_RangeValues(self, node: AST.RangeValues, st: SymbolTable) -> None:
         int_type = Type(PrimitiveType('int'))
-        self.assert_same_type(int_type, self.typecheck(node.start.value, st))
+        self.assert_expect_type_to_be(self.typecheck(node.start.value, st), int_type, 'range start')
         if node.stop is not None:
-            self.assert_same_type(int_type, self.typecheck(node.stop.value, st))
+            self.assert_expect_type_to_be(self.typecheck(node.stop.value, st), int_type, 'range stop')
         if node.step is not None:
-            self.assert_same_type(int_type, self.typecheck(node.step.value, st))
+            self.assert_expect_type_to_be(self.typecheck(node.step.value, st), int_type, 'range step')
         return None
 
 
@@ -124,7 +137,7 @@ class TypeChecker:
         except Exception:
             st.declare_variable(node.var.name, list_type.value.value)
         if var_t and var_t != list_type.value.value:
-            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type.value.value}. Processing {node}')
+            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type.value.value}.\nProcessing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         return None
@@ -139,7 +152,7 @@ class TypeChecker:
         except Exception:
             st.declare_variable(node.var.name, list_type)
         if var_t and var_t != list_type:
-            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}. Processing {node}')
+            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}.\nProcessing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         st.pop_scope()
@@ -177,7 +190,7 @@ class TypeChecker:
                 self.assert_same_type(left, float_type)
                 is_float = True
             except ParseError:
-                raise ParseError(f"Invalid Type on Binary Operator left={left}")
+                raise ParseError(f"Invalid type on Binary Operator left={left}")
         try:
             self.assert_same_type(right, int_type)
         except ParseError:
@@ -185,7 +198,7 @@ class TypeChecker:
                 self.assert_same_type(right, float_type)
                 is_float = True
             except ParseError:
-                raise ParseError(f"Invalid Type on Binary Operator right={right}")
+                raise ParseError(f"Invalid type on Binary Operator right={right}")
         if is_float:
             return float_type
         return int_type
@@ -226,13 +239,13 @@ class TypeChecker:
                     self.assert_same_type(right, float_type)
                     return float_type
                 except ParseError:
-                    raise ParseError(f"Invalid Type on Unary Operator right={right}")
+                    raise ParseError(f"Invalid type on Unary Operator right={right}")
         else:
             try:
                 self.assert_same_type(right, cond_type)
                 return cond_type
             except ParseError:
-                raise ParseError(f"Invalid Type on Unary Operator right={right}")
+                raise ParseError(f"Invalid type on Unary Operator right={right}")
 
     def check_IfStmt(self, node:AST.IfStmt, st: SymbolTable) -> None:
         self.typecheck(node.ifCond, st)
