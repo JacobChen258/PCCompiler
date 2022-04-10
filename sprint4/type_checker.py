@@ -123,8 +123,8 @@ class TypeChecker:
             var_t = st.lookup_variable(node.var.name)
         except Exception:
             st.declare_variable(node.var.name, list_type.value.value)
-        if var_t and var_t != list_type:
-            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type}. Processing {node}')
+        if var_t and var_t != list_type.value.value:
+            raise ParseError(f'For loop variant type mismatch. Got {var_t}, list type is {list_type.value.value}. Processing {node}')
         for body_statement in node.body.lst:
             self.typecheck(body_statement, st)
         return None

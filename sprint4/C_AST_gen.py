@@ -490,8 +490,9 @@ class CASTGenerator:
                 cur_index = cur_node.idx_reg
                 list_t = self.temp_st.lookup_variable(cur_node.obj_reg)
                 if list_t.value.__class__.__name__ == "NonPrimitiveType" and list_t.value.value.__class__.__name__ == "Type":
-                    self.temp_st.declare_variable(cur_id, list_t.value.value)
-                    decl_stmt = C_AST.Declaration(id=C_AST.Id(cur_id),type=list_t.value.value)
+                    if cur_id not in self.temp_st.scope_stack[-1]:
+                        self.temp_st.declare_variable(cur_id, list_t.value.value)
+                        decl_stmt = C_AST.Declaration(id=C_AST.Id(cur_id),type=list_t.value.value)
                 else:
                     assert f"For list type error on {cur_id}"
             else:
