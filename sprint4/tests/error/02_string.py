@@ -1,0 +1,3 @@
+# Unterminated string
+#
+a: str = "

@@ -254,7 +254,7 @@ class CASTGenerator:
                 type_t = self.temp_st.lookup_variable(name=ir_node.val)
             except Exception:
                 id_type = st.lookup_variable(ir_node.name)
-                assert isinstance(id_type.value, NonPrimitiveType), f"Parse Error Reference undefined {ir_node.val}"
+                assert isinstance(id_type.value, NonPrimitiveType), f"Referencing undefined ir variable {ir_node.val}"
             # Assume all non primitives will eventually be assigned to a value
             if type_t.value.__class__.__name__ == 'NonPrimitiveType':
                 try:

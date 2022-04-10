@@ -15,10 +15,7 @@ o2: int = ib / ia
 o3: int = ib + ia
 o4: int = ib - ia
 o5: int = -ia
-o6: int = +ia
-o7: int = +-ia
-o8: int = -+ia
-o9: int = ---+++---+++---+++ia
+o9: int = -----------ia
 
 o11: float = fb * fa
 o12: float = fb / fa

@@ -1,0 +1,3 @@
+# Undefined variable
+#
+print(a)

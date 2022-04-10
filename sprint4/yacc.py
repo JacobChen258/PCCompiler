@@ -375,8 +375,7 @@ class pythonParser:
         pass
 
     def p_error(self, p):
-        print("Syntax error at token", p)
-        exit()
+        raise Exception(f"Unable to parse at line={self.lexer.lexLineNo[1]} col={self.lexer.lexLineNo[0]}. At token", p)
 
     def build(self, **kwargs):
         self.tokens = tokens

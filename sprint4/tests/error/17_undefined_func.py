@@ -1,0 +1,3 @@
+# Undefined function
+#
+func()

@@ -9,3 +9,6 @@ tb: (bool) = (True,False,True)
 sa: str = ""
 sb: str = "hello!"
 sc: str = '"quoted"'
+sd: str = 'escaped\''
+sd: str = "escaped \\ backslash"
+sd: str = "more escaped '\"\\"
