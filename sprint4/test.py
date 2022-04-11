@@ -10,7 +10,7 @@ def test_compile(test_name):
         input_file=f'{d}/{test_name}.py',
         c=f'{d}/{test_name}.c',
         executable=f'{d}/{test_name}',
-        opt_on=False,
+        opt_on='03_' in test_name,
         ir_tmp=f'{d}/{test_name}_IR.txt',
     )
 
