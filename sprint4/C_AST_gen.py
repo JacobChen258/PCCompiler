@@ -96,10 +96,6 @@ class CASTGenerator:
         result_node = C_AST.Id(name=ir_node.result_reg)
         left_node = C_AST.Id(name=ir_node.left_reg)
         right_node = C_AST.Id(name=ir_node.right_reg)
-        operation_node = C_AST.BinaryOperation(left=result_node,
-                                               operator=ir_node.operator,
-                                               operand_a=left_node,
-                                               operand_b=right_node)
         if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             # need assignment
             # should we consider string here?
@@ -115,21 +111,37 @@ class CASTGenerator:
                 else:
                     type_t = 'int_t'
             self.temp_st.declare_variable(name=ir_node.result_reg, type=C_AST.Type(value=type_t))
+            operation_node = C_AST.BinaryOperation(left=result_node,
+                                                   type=C_AST.Type(type_t),
+                                                   operator=ir_node.operator,
+                                                   operand_a=left_node,
+                                                   operand_b=right_node)
             decl_node = C_AST.Declaration(id=result_node, type=C_AST.Type(value=type_t))
             return [decl_node, operation_node]
+        else:
+            type_t = self.temp_st.lookup_variable(ir_node.result_reg)
+            operation_node = C_AST.BinaryOperation(left=result_node,
+                                                   type=C_AST.Type(type_t),
+                                                   operator=ir_node.operator,
+                                                   operand_a=left_node,
+                                                   operand_b=right_node)
         return [operation_node]
 
     def gen_IR_UnaryOperation(self, ir_node: IR_UnaryOperation, st=None):
         result_node = C_AST.Id(name=ir_node.result_reg)
         operand_node = C_AST.Id(name=ir_node.operand_reg)
-        operation_node = C_AST.UnaryOperation(left=result_node, operator=ir_node.operator, operand=operand_node)
         if ir_node.result_reg not in self.temp_st.scope_stack[-1]:
             if ir_node.operator == "!":
                 type_t = "bool_t"
             else:
                 type_t = self.temp_st.lookup_variable(ir_node.operand_reg).value
             decl_node = C_AST.Declaration(id=result_node, type=C_AST.Type(value=type_t))
+            self.temp_st.declare_variable(ir_node.result_reg,C_AST.Type(type_t))
+            operation_node = C_AST.UnaryOperation(left=result_node,type=C_AST.Type(type_t), operator=ir_node.operator, operand=operand_node)
             return [decl_node, operation_node]
+        else:
+            type_t = self.temp_st.lookup_variable(ir_node.result_reg)
+            operation_node = C_AST.UnaryOperation(left=result_node,type=C_AST.Type(type_t),operator=ir_node.operator, operand=operand_node)
         return [operation_node]
 
     def gen_IR_FunctionCall(self, ir_node: IR_FunctionCall, st=None):

@@ -38,6 +38,7 @@ class Declaration:
 @dataclass
 class UnaryOperation:
     left: Id
+    type: Type
     operator: str
     operand: Id
 
@@ -45,6 +46,7 @@ class UnaryOperation:
 @dataclass
 class BinaryOperation:
     left: Id
+    type: Type
     operator: str
     operand_a: Id
     operand_b: Id
@@ -341,40 +343,30 @@ int main() {{
     def gen_UnaryOperation(self, node: UnaryOperation):
         left = self.gen(node.left)
         op = self.gen(node.operand)
+        operator = self.convert_operator(node.operator)
         if self.eval_mode:
             if not self.pre_run:
                 if left[0] == "_":
-                    self.temp_dict[left] = f'{node.operator} {op}'
+                    if op[0] == "_":
+                        op = self.look_up_temp(op)
+                    self.temp_dict[left] = f'{operator} {op}'
                 else:
                     value = self._eval(node)
+                    if node.type.value == "int_t" and isinstance(value,float):
+                        value = int(value)
                     self.var_dict[left] = value
                     return f"{left} = {value};"
             elif left[0] != "_" and left not in self.variants:
                 self.variants.append(left)
         else:
             if left[0] == "_":
-                self.temp_dict[left] = f'{node.operator} {op}'
+                self.temp_dict[left] = f'{operator} {op}'
             else:
-                return f"{self.gen(node.left)} = {node.operator} {self.gen(node.operand)};"
-
-
-    #helper function for binary op
-    def check_both_numbers(self, a, b, operator):
-        if (isinstance(a, int) or isinstance(a, float)) and (isinstance(b, int) or isinstance(b, float)) :
-            if operator == '+':
-                return a + b
-            if operator == '*':
-                return a * b
-            if operator == '-':
-                return a - b
-            if operator == '/':
-                assert b != 0, "Cannot Divide by zero"
-                return a/b
-        return None
+                return f"{self.gen(node.left)} = {operator} {self.gen(node.operand)};"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
-        # TODO: adding string. Need to check type of the operands, use helper function
         left = self.gen(node.left)
+        operator = self.convert_operator(node.operator)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
         if self.eval_mode:
@@ -382,19 +374,31 @@ int main() {{
                 if left[0] == "_":
                     op_a = self._eval(node.operand_a)
                     op_b = self._eval(node.operand_b)
+                    if node.type.value == 'int_t':
+                        if isinstance(op_a,float):
+                            op_a = int(op_a)
+                        if isinstance(op_b,float):
+                            op_b = int(op_b)
                     if type(op_a) == type(op_b) == str and (('"' in op_a or 'input_str()' == op_a) and \
                                                             ('"' in op_b or 'input_str()' == op_b)):
                         self.temp_dict[left] = f'str_concat({op_a},{op_b})'
                         return
-                    self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
+                    if node.type.value == 'int_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_a,(int,float,bool)):
+                        self.temp_dict[left] = int(eval(f'{op_a} {operator} {op_b}'))
+                    elif node.type.value == 'float_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_a,(int,float,bool)):
+                        self.temp_dict[left] = float(eval(f'{op_a} {operator} {op_b}'))
+                    else:
+                        self.temp_dict[left] = f'{op_a} {operator} {op_b}'
                 else:
                     value = self._eval(node)
+                    if node.type.value == 'int_t' and isinstance(value,float):
+                        value = int(value)
                     self.var_dict[left] = value
                     return f"{left} = {value};"
             elif left[0] != "_" and left not in self.variants:
                 self.variants.append(left)
         else:
-            value = f"{op_a} {node.operator} {op_b}"
+            value = f"{op_a} {operator} {op_b}"
             if left[0] == "_":
                 self.temp_dict[left] = value
             else:
@@ -845,6 +849,14 @@ int main() {{
         except AttributeError:
             return node
 
+    def convert_operator(self, op):
+        if op == "and" or op == "&":
+            return "&&"
+        elif op == "or" or op == "|":
+            return "||"
+        elif op == "not":
+            return "!"
+        return op
     def look_up_temp(self, temp_reg):
         cur_val = temp_reg
         while cur_val != None:
@@ -857,23 +869,29 @@ int main() {{
         right = self._eval(node.operand_b)
         left = self.get_prop_val(left)
         right = self.get_prop_val(right)
+        operator = self.convert_operator(node.operator)
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
                 and isinstance(right, (bool, int, float)):
             temp_dict = self.var_dict.copy()
             for var in self.variants:
                 temp_dict.pop(var,None)
-            return eval(f"{left} {node.operator} {right}",temp_dict)
-        return f"{left} {node.operator} {right}"
+            if node.type.value == "int_t":
+                return int(eval(f"{left} {operator} {right}",temp_dict))
+            return eval(f"{left} {operator} {right}",temp_dict)
+        return f"{left} {operator} {right}"
 
     def eval_UnaryOperation(self, node: UnaryOperation):
         operand = self._eval(node.operand)
-        if self.gen(node.left) not in self.variants and isinstance(operand, (bool, int, float)):
+        operator = self.convert_operator(node.operator)
+        if self.gen(node.left) not in self.variants:
             temp_dict = self.var_dict.copy()
             for var in self.variants:
                 temp_dict.pop(var,None)
             operand = self.get_prop_val(operand)
-            return eval(f"{node.operator} {operand}",temp_dict)
-        return f"{node.operator} {operand}"
+            if node.type.value == "int_t":
+                return int(eval(f"{operator} {operand}",temp_dict))
+            return eval(f"{operator} {operand}",temp_dict)
+        return f"{operator} {operand}"
 
     def eval_Id(self, node: Id):
         if node.name[0] == "_":

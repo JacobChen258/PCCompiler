@@ -4,7 +4,7 @@ from lex import pythonLexer
 
 case1 = Block([
     Declaration(Id('var1'), Type('int_t')),
-    BinaryOperation(Id('var1'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
+    BinaryOperation(Id('var1'),Type('int_t'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
 ])
 
 case1_out = """
@@ -27,11 +27,11 @@ var1 = var1 + var2;
 
 case2 = Block([
     Declaration(Id('var1'), Type('int_t')),
-    BinaryOperation(Id('var1'), '+', operand_a=Id('var1'), operand_b=Id('var1')),
+    BinaryOperation(Id('var1'),Type('int_t'), '+', operand_a=Id('var1'), operand_b=Id('var1')),
     IfStmt(ifCond=Id('var1'), body=Block([
-        BinaryOperation(Id('var1'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
+        BinaryOperation(Id('var1'),Type('int_t'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
         IfStmt(ifCond=Id('var1'), body=Block([
-            BinaryOperation(Id('var1'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
+            BinaryOperation(Id('var1'),Type('int_t'), '+', operand_a=Id('var1'), operand_b=Id('var2')),
         ])),
     ])),
 ])
