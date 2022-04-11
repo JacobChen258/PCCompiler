@@ -399,17 +399,19 @@ int main() {{
                 return f"{left} = {value};"
 
     def gen_Parameter(self, node: Parameter):
-        return f"{self.gen(node.paramType)} {self.gen(node.var)}"
+        var = self.gen(node.var)
+        self.var_table.set_variable(var, var)
+        return f"{self.gen(node.paramType)} {var}"
 
     def gen_ParameterLst(self, node: ParameterLst):
         return ", ".join(self.gen(param) for param in node.lst)
 
     def gen_FunctionDeclaration(self, node: FunctionDeclaration):
         assert not self.state_in_function_declaration, "Cannot declare function inside of a function"
+        self.var_table.push_scope()
         function_declaration = f"{self.gen(node.returnType)} {self.gen(node.name)}({self.gen(node.lst)})"
         self.function_declarations.append(function_declaration)
         self.state_in_function_declaration = True
-        self.var_table.push_scope()
         self.function_definitions.append((
             function_declaration + " {",
             self.gen(node.body),
@@ -423,7 +425,7 @@ int main() {{
         arg_list = []
         for i in node.lst:
             arg_list.append(self.var_table.lookup(i))
-        arg_string = ", ".join(i for i in arg_list)
+        arg_string = ", ".join(str(i) for i in arg_list)
         return node.name + "(" + arg_string + ")"
 
     def gen_IfStmt(self, node: IfStmt):
@@ -545,11 +547,13 @@ int main() {{
             stop_val = self.var_table.lookup(stop_val)
         if self.var_table.is_temp(step_val):
             step_val = self.var_table.lookup(step_val)
+        self.var_table.push_scope()
         assign_string = self.gen_Assignment(Assignment(id=node.var, val=node.rangeVal.start))
         comp_string = f"{node.var.name} < {stop_val};"
         step_string = f"{node.var.name} += {step_val}"
         if self.eval_mode:
             ranges = self._eval(node.rangeVal)
+            print(ranges)
             if type(ranges[2]) == int and type(ranges[0]) == int and  ranges[0] >= ranges[2]:
                 return None
             if not self.is_inloop:
@@ -557,7 +561,6 @@ int main() {{
                 self.pre_run = True
                 self.gen(node.body)
                 self.pre_run = False
-                self.var_table.push_scope()
                 body = self.gen(node.body)
                 self.var_table.pop_scope()
                 if not body:
@@ -573,7 +576,9 @@ int main() {{
                 return result
             elif self.pre_run:
                 self.gen(node.body)
+                self.var_table.pop_scope()
                 return None
+        self.var_table.pop_scope()
         return (
                "for (" + assign_string + " " + comp_string + " " + step_string + "){",
                self.gen(node.body),
@@ -582,19 +587,20 @@ int main() {{
 
     def gen_ForLoopList(self, node: ForLoopList):
         idx = self.var_table.lookup(node.indexVar.name)
-        assign_var = self.var_table.lookup(node.var.name)
+        assign_var = self.gen(node.var)
         lst = self.var_table.lookup(node.Lst.name)
         assign_string = f"int_t i = 0;"
         comp_string = f"i < {node.length};"
         step_string = f"i += {idx}"
-        self.var_dict["i"] = 0
+        self.var_table.push_scope()
+        self.var_table.set_variable(assign_var, assign_var)
+        self.var_table.set_variable("i" ,"i")
         if self.eval_mode:
             if not self.is_inloop:
                 self.is_inloop = True
                 self.pre_run = True
                 self.gen(node.body)
                 self.pre_run = False
-                self.var_table.push_scope()
                 body = self.gen(node.body)
                 self.var_table.pop_scope()
                 if not body:
@@ -611,6 +617,8 @@ int main() {{
                 return result
             elif self.pre_run:
                 self.gen(node.body)
+                self.var_table[-1].pop(assign_var)
+                self.var_table.pop_scope()
                 return None
         return (
                "for (" + assign_string + " " + comp_string + " " + step_string + ") {",
@@ -621,85 +629,68 @@ int main() {{
 
     def gen_Assignment(self, node: Assignment):
         assign_var = self.gen(node.id)
-        result = None
         temp_var = False
-
+        print(node)
         if self.var_table.is_temp(assign_var):
             temp_var = True
-
         if not self.pre_run:
-            if isinstance(node.val, (Id, FunctionCall, String)):
+            assign_value = node.val
+            print(assign_value)
+            # value pre-processing and early termination
+            if isinstance(node.val, bool):
+                assign_value = str(node.val).lower()
+            elif isinstance(node.val, (Id, FunctionCall, String)):
                 assign_value = self.gen(node.val)
                 if isinstance(node.val, String):
                     self.converted_str_lst[assign_var] = assign_value
-                if temp_var:
-                    self.var_table.set_temp(assign_var,assign_value)
-                    if isinstance(node.val, FunctionCall) and node.val.name[:6] == "print_":
-                        return f"{assign_value};"
-                    return None
-
-                elif assign_value in self.var_table.temp_dict:
-                    assign_value = self.var_table.lookup(assign_value)
-
-                elif assign_value in self.temp_list_dict.keys():
-                    self.temp_list_dict[assign_value] = assign_var
-                    return None
-
-                # MARK
-
-                result = f"{assign_var} = {assign_value};"
-
-            elif isinstance(node.val, bool):
-                assign_value = str(node.val).lower()
-                if temp_var:
-                    self.var_table.set_temp(assign_var,assign_value)
-                    return None
-                elif assign_value in self.var_table.temp_dict:
-                    assign_value = self.var_table.lookup(assign_value)
-                elif assign_value in self.temp_list_dict.keys():
-                    self.temp_list_dict[assign_value] = assign_var
-                    return None
-                result = f"{assign_var} = {assign_value};"
-            elif node.val == "none-placeholder":
-                if temp_var:
-                    self.var_table.set_temp(assign_var,"NONE_LITERAL")
-                    return None
-                result = f"{assign_var} = NONE_LITERAL;"
-            else:
-                assign_value = node.val
-                if temp_var:
-                    self.var_table.set_temp(assign_var,assign_value)
-                    return None
-                elif assign_value in self.var_table.temp_dict:
-                    assign_value = self.var_table.lookup(assign_value)
-                elif assign_value in self.temp_list_dict.keys():
-                    self.temp_list_dict[assign_value] = assign_var
-                    self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
-                    return None
-                if (assign_value in self.temp_list_dict.values() or assign_value in self.list_decl_dict or \
-                    (type(assign_value) == str and "list_slice" in assign_value)) and\
-                        assign_var not in self.temp_list_dict.values():
-                    if assign_var not in self.list_decl_dict:
-                        self.list_decl_dict.append(assign_var)
-                        type_t = self.list_type_dict[assign_var]
-                        if "list_slice" in assign_value:
-                            params = assign_value.split("(")[1].split(")")[0].split(",")
-                            self.list_len_dict[assign_var] = eval(f"{params[2]}-{params[1]}")
-                        else:
-                            self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
-                        return "".join([f"{type_t} {assign_var};", f"{assign_var} = {assign_value}"])
-                result = f"{assign_var} = {assign_value}"
-
-        if not temp_var and assign_var not in self.variants:
-            if self.pre_run:
-                self.variants.append(assign_var)
-            else:
-                if type(node.val) == str and node.val != '_':
-                    value = self._eval(node)
-                    self.var_table.set_variable(assign_var,value)
-                    result = f"{assign_var} = {value};"
+                elif temp_var and isinstance(node.val, FunctionCall) and node.val.name[:6] == "print_":
+                    return f"{assign_value};"
+            elif isinstance(assign_value,str) and self.var_table.is_temp(assign_value):
+                assign_value = self.var_table.lookup_temp(assign_value)
+            # update and lookup value table
+            if temp_var:
+                if node.val == "none-placeholder":
+                    self.var_table.set_temp(assign_var, "NONE_LITERAL")
                 else:
-                    self.var_table.set_variable(assign_var, assign_value)
+                    self.var_table.set_temp(assign_var, assign_value)
+                return None
+            elif assign_value in self.temp_list_dict.keys():
+                self.temp_list_dict[assign_value] = assign_var
+                self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
+                return None
+            # handle list slicing
+            if assign_value and assign_var not in self.temp_list_dict.values() and assign_var not in self.list_decl_dict and \
+                    (assign_value in self.temp_list_dict.values() or assign_value in self.list_decl_dict or
+                     (type(assign_value) == str and "list_slice" in assign_value)):
+                self.list_decl_dict.append(assign_var)
+                type_t = self.list_type_dict[assign_var]
+                if "list_slice" in assign_value:
+                    params = assign_value.split("(")[1].split(")")[0].split(",")
+                    end = params[2]
+                    start = params[1]
+                    if isinstance(end,str):
+                        end = self.var_table.lookup(end)
+                    if isinstance(start,str):
+                        start = self.var_table.lookup(start)
+                    self.list_len_dict[assign_var] = eval(f"{end}-{start}")
+                else:
+                    self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
+                return "".join([f"{type_t} {assign_var};", f"{assign_var} = {assign_value}"])
+            result = f"{assign_var} = {assign_value}"
+        else:
+            if not temp_var:
+                self.variants.append(assign_var)
+            return None
+        # optimization
+        if self.eval_mode and assign_var not in self.variants:
+            if isinstance(node.val, FunctionCall):
+                self.var_table.set_variable(assign_var, assign_var)
+            elif not self.var_table.is_temp(node.val):
+                value = self._eval(node)
+                self.var_table.set_variable(assign_var,value)
+                result = f"{assign_var} = {value};"
+            else:
+                self.var_table.set_variable(assign_var, assign_value)
         return result
 
     def gen_String(self, node: String):
@@ -829,7 +820,7 @@ int main() {{
         return self.gen(node)
 
     def eval_Assignment(self,node:Assignment):
-        expr = self.look_up_temp(node.val)
+        expr = self.var_table.lookup(node.val)
         name = self.gen(node.id)
         try:
             if node.val in self.converted_str_lst:
@@ -846,10 +837,11 @@ int main() {{
                 return json.dumps(result)
         except:
             result = expr
+        print("result ",result)
         return result
 
     def eval_RangeValues(self,node:RangeValues):
-        start = self.var_table.lookup_temp(node.start)
-        step = self.var_table.lookup_temp(node.step)
-        stop = self.var_table.lookup_temp(node.stop)
-        return [eval(f"{start}",self.var_dict),eval(f"{step}",self.var_dict),eval(f"{stop}",self.var_dict)]
+        start = self.var_table.lookup(node.start)
+        step = self.var_table.lookup(node.step)
+        stop = self.var_table.lookup(node.stop)
+        return [eval(f"{start}",self.var_table.var_stack[-1]),eval(f"{step}",self.var_table.var_stack[-1]),eval(f"{stop}",self.var_table.var_stack[-1])]
