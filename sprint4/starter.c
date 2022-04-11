@@ -47,7 +47,7 @@ str_t allocate_str(int length)
     exit(1);
   }
   str_t str = (str_t)malloc(length);
-  allocated_str[allocated_str_count] = str;
+  allocated_str[allocated_str_count] = &str;
   allocated_str_count++;
   return str;
 }
