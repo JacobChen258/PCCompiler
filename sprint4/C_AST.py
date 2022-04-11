@@ -204,10 +204,15 @@ class CCodeGenerator:
         self.temp_list_dict = {}
         self.generated_code = []
         self.decl_scope = [[]]
+<<<<<<< HEAD
         self.list_type_dict = {}
         self.list_decl_dict = []
         self.list_len_dict = {}
         self.converted_str_lst = {}
+=======
+        self.propagation = {} # [variable_value, scope_counter, state] state being whether the variable should be propgated or not
+        self.scope_counter = 0
+>>>>>>> constant_propagation
 
         self.is_inloop = False
         self.pre_run = False
@@ -292,6 +297,7 @@ int main() {{
     def gen_Block(self, node: Block):
         result = []
         self.decl_scope.append([])
+        self.scope_counter += 1
         for x in node.lst:
             code = self.gen(x)
             if code:
@@ -303,6 +309,7 @@ int main() {{
                 else:
                     result.append(code)
         self.decl_scope.pop()
+        self.scope_counter -= 1
         return result
 
     def gen_Expression(self, node: Expression):
@@ -370,6 +377,9 @@ int main() {{
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
+
+        print("REGULAR")
+
         left = self.gen(node.left)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
@@ -618,7 +628,9 @@ int main() {{
         if isinstance(assign_var, str) and assign_var[0] == '_':
             self.temp_dict[assign_var] = None
             temp_var = True
-
+        #assign_var_propogation = None
+        #if assign_var in self.propagation.keys() and not temp_var:
+            #self.propagation[assign_var] = [None, self.scope_counter, True]
         if not self.pre_run:
             if isinstance(node.val, (Id, FunctionCall, String)):
                 assign_value = self.gen(node.val)
@@ -638,7 +650,8 @@ int main() {{
                     return None
 
                 # MARK
-
+                assign_value = self.get_prop_val(assign_value)
+                self.set_prop_val(assign_var, assign_value)
                 result = f"{assign_var} = {assign_value};"
 
             elif isinstance(node.val, bool):
@@ -651,11 +664,14 @@ int main() {{
                 elif assign_value in self.temp_list_dict.keys():
                     self.temp_list_dict[assign_value] = assign_var
                     return None
+                assign_value = self.get_prop_val(assign_value)
+                self.set_prop_val(assign_var, assign_value)
                 result = f"{assign_var} = {assign_value};"
             elif node.val == "none-placeholder":
                 if temp_var:
                     self.temp_dict[assign_var] = "NONE_LITERAL"
                     return None
+                self.set_prop_val(assign_var, "NONE_LITERAL")
                 result = f"{assign_var} = NONE_LITERAL;"
             else:
                 assign_value = node.val
@@ -668,6 +684,7 @@ int main() {{
                     self.temp_list_dict[assign_value] = assign_var
                     self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
                     return None
+<<<<<<< HEAD
                 if (assign_value in self.temp_list_dict.values() or assign_value in self.list_decl_dict or \
                     (type(assign_value) == str and "list_slice" in assign_value)) and\
                         assign_var not in self.temp_list_dict.values():
@@ -680,6 +697,10 @@ int main() {{
                         else:
                             self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
                         return "".join([f"{type_t} {assign_var};", f"{assign_var} = {assign_value}"])
+=======
+                assign_value = self.get_prop_val(assign_value)
+                self.set_prop_val(assign_var, assign_value)
+>>>>>>> constant_propagation
                 result = f"{assign_var} = {assign_value}"
 
         if not temp_var and assign_var not in self.variants:
@@ -709,6 +730,7 @@ int main() {{
         type_t = self.gen(node.type)
         type_t = type_t[:-1] + "v"
         value = self.get_val(self.gen(node.value))
+        value = self.get_prop_val(value)
         if node.idx == 'end':
             return f"list_add({type_t}, {obj}, {value});"
 
@@ -731,6 +753,7 @@ int main() {{
         val_type = self.convert_v_type(node.type)
         for item in node.value:
             value = self.get_val(self.gen(item))
+            value = self.get_prop_val(value)
             init.append(f"list_init_add({val_type},{self.gen(node.head)},{value});")
         self.list_len_dict[head] = len(node.value)
         return "".join(init)
@@ -772,6 +795,24 @@ int main() {{
         if name[0] == "_":
             return self.get_temp_val(name)
         return name
+    # set progagation dictionary for the variable and value
+    def set_prop_val(self, name, val):
+        if name in self.propagation.keys():
+            prop = self.propagation[name]
+            if not prop[2]: # Don't set variable if the variable state is not 
+                return None
+            if self.scope_counter > prop[1]: # if the variable is being assigned in a if statement, while loop etc, the variable should not continue to propogate
+                prop[2] = False
+                return None
+        if isinstance(val, (bool,int,float)) or val == "NONE_LITERAL":
+            self.propagation[name] = [val, self.scope_counter, True]
+
+    def get_prop_val(self, name):
+        if self.eval_mode and name in self.propagation.keys():
+            prop = self.propagation[name]
+            if prop[2]: # 
+                return prop[0]
+        return name
 
     def _eval(self, node):
         method = 'eval_' + node.__class__.__name__
@@ -790,6 +831,17 @@ int main() {{
     def eval_BinaryOperation(self, node: BinaryOperation):
         left = self._eval(node.operand_a)
         right = self._eval(node.operand_b)
+<<<<<<< HEAD
+=======
+
+
+        print("left: ",left)
+        print("right: ",right)
+
+        left = self.get_prop_val(left)
+        right = self.get_prop_val(right)
+
+>>>>>>> constant_propagation
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
                 and isinstance(right, (bool, int, float)):
             temp_dict = self.var_dict.copy()
@@ -804,6 +856,7 @@ int main() {{
             temp_dict = self.var_dict.copy()
             for var in self.variants:
                 temp_dict.pop(var,None)
+            operand = self.get_prop_val(operand)
             return eval(f"{node.operator} {operand}",temp_dict)
         return f"{node.operator} {operand}"
 
