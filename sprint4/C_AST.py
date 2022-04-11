@@ -204,15 +204,12 @@ class CCodeGenerator:
         self.temp_list_dict = {}
         self.generated_code = []
         self.decl_scope = [[]]
-<<<<<<< HEAD
         self.list_type_dict = {}
         self.list_decl_dict = []
         self.list_len_dict = {}
         self.converted_str_lst = {}
-=======
         self.propagation = {} # [variable_value, scope_counter, state] state being whether the variable should be propgated or not
         self.scope_counter = 0
->>>>>>> constant_propagation
 
         self.is_inloop = False
         self.pre_run = False
@@ -684,7 +681,6 @@ int main() {{
                     self.temp_list_dict[assign_value] = assign_var
                     self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
                     return None
-<<<<<<< HEAD
                 if (assign_value in self.temp_list_dict.values() or assign_value in self.list_decl_dict or \
                     (type(assign_value) == str and "list_slice" in assign_value)) and\
                         assign_var not in self.temp_list_dict.values():
@@ -697,10 +693,8 @@ int main() {{
                         else:
                             self.list_len_dict[assign_var] = self.list_len_dict[assign_value]
                         return "".join([f"{type_t} {assign_var};", f"{assign_var} = {assign_value}"])
-=======
                 assign_value = self.get_prop_val(assign_value)
                 self.set_prop_val(assign_var, assign_value)
->>>>>>> constant_propagation
                 result = f"{assign_var} = {assign_value}"
 
         if not temp_var and assign_var not in self.variants:
@@ -831,17 +825,10 @@ int main() {{
     def eval_BinaryOperation(self, node: BinaryOperation):
         left = self._eval(node.operand_a)
         right = self._eval(node.operand_b)
-<<<<<<< HEAD
-=======
-
-
         print("left: ",left)
         print("right: ",right)
-
         left = self.get_prop_val(left)
         right = self.get_prop_val(right)
-
->>>>>>> constant_propagation
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
                 and isinstance(right, (bool, int, float)):
             temp_dict = self.var_dict.copy()
