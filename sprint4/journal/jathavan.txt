@@ -4,11 +4,13 @@ Group Members: Litao Chen, Yifei Yin
 Sprint: 3
 
 Contributions:
-Jathavn Sellathurai (%)
+Jathavn Sellathurai (20%)
+- Constant folding and constant propagation
+
+Litao chen (40%)
+- Fixed many bugs and issues from sprint 3
+- dead code removal with if statements etc
 
 
-Litao chen (%)
-
-
-Yifei Yin (%)
-
+Yifei Yin (40%)
+- Created much of the test scripts and test cases
