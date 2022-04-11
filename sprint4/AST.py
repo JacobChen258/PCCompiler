@@ -4,29 +4,6 @@ from dataclasses import dataclass
 
 class Node():
     pass
-    # def children(self):
-    #     pass
-    # attr_names = ()
-
-# class NodeVisitor():
-#     def visit(self, node):
-#         method = 'visit_' + type(node).__name__
-#         visitor = getattr(self, method, self.visit_generic)
-#         return visitor(node)
-
-#     def visit_generic(self, node, offset=0):
-#         lead = ' ' * offset
-#         output = lead + node.__class__.__name__ + ': '
-#         if node.attr_names:
-#             vlist = [getattr(node, n) for n in node.attr_names]
-#             output += ', '.join(str(v) for v in vlist)
-
-#         for child_name, child in node.children():
-#             visitor = self.visit(child, offset + 2)
-#             if visitor is not None:
-#                 output += '\n' + visitor
-
-#         return output
 
 @dataclass
 class PrimitiveType(Node):
