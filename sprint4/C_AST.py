@@ -374,9 +374,6 @@ int main() {{
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         # TODO: adding string. Need to check type of the operands, use helper function
-
-        print("REGULAR")
-
         left = self.gen(node.left)
         op_a = self.get_val(self.gen(node.operand_a))
         op_b = self.get_val(self.gen(node.operand_b))
@@ -402,16 +399,6 @@ int main() {{
                 self.temp_dict[left] = value
             else:
                 return f"{left} = {value};"
-        """optimize = self.check_both_numbers(op_a,op_b,node.operator)
-        if left[0] == "_":
-            if optimize != None:
-                self.temp_dict[left] = optimize
-            else:
-                self.temp_dict[left] = f'{op_a} {node.operator} {op_b}'
-        else:
-            if optimize != None:
-                return f"{left} = {optimize}"
-            return f"{left} = {op_a} {node.operator} {op_b};"""
 
     def gen_Parameter(self, node: Parameter):
         return f"{self.gen(node.paramType)} {self.gen(node.var)}"
@@ -445,17 +432,31 @@ int main() {{
     def gen_IfStmt(self, node: IfStmt):
         if self.eval_mode:
             eval_cond = self._eval(node.ifCond)
-            if eval_cond == True or eval_cond == "true":
-                self.has_if_head = True
-                self.ignore_if = True
-                body = self.gen(node.body)
-                if not body:
-                    return None
-                return ("").join(body)
-            elif eval_cond == False or eval_cond == "false" or eval_cond == "NONE_LITERAL":
+            if str(eval_cond) == 'False' or eval_cond == "false" or eval_cond == "NONE_LITERAL":
                 self.has_if_head = False
                 self.ignore_if = False
                 return None
+            else:
+                self.has_if_head = True
+                if not self.pre_run:
+                    self.pre_run = True
+                    self.gen(node.body)
+                    for var in self.variants:
+                        if var in self.propagation:
+                            self.propagation[var][2] = False
+                        self.var_dict[var] = var
+                    self.pre_run = False
+                body = self.gen(node.body)
+                if not body:
+                    return None
+                if str(eval_cond) == 'True' or eval_cond == "true":
+                    self.ignore_if = True
+                    return "".join(body)
+                return (
+                    f"if ({eval_cond})" " {",
+                    body,
+                    "}",
+                )
         else:
             eval_cond = self.get_val(self.gen(node.ifCond))
         return (
@@ -469,22 +470,36 @@ int main() {{
             if self.ignore_if:
                 return None
             eval_cond = self._eval(node.elifCond)
+            if not self.pre_run:
+                self.pre_run = True
+                self.gen(node.body)
+                for var in self.variants:
+                    if var in self.propagation:
+                        self.propagation[var][2] = False
+                    self.var_dict[var] = var
+                self.pre_run = False
             body = self.gen(node.body)
             if not body:
                 return None
-            if eval_cond == True or eval_cond == "true":
+            if str(eval_cond) == 'False' or eval_cond == "false" or eval_cond == "NONE_LITERAL":
+                return None
+            else:
                 if self.has_if_head:
                     return (
                         f"else if ({eval_cond})" " {",
                         body,
                         "}",
                     )
-                else:
+                elif str(eval_cond) == 'True' or eval_cond == "true":
                     self.has_if_head = True
                     self.ignore_if = True
-                    return ("").join(body)
-            elif eval_cond == False or eval_cond == "false" or eval_cond == "NONE_LITERAL":
-                return None
+                    return "".join(body)
+                else:
+                    return (
+                        f"if ({eval_cond})" " {",
+                        body,
+                        "}",
+                    )
         else:
             eval_cond = self.get_val(self.gen(node.elifCond))
         return (
@@ -494,12 +509,20 @@ int main() {{
         )
 
     def gen_ElseStmt(self, node: ElseStmt):
-        body = self.gen(node.body)
         if self.eval_mode:
+            if not self.pre_run:
+                self.pre_run = True
+                self.gen(node.body)
+                for var in self.variants:
+                    if var in self.propagation:
+                        self.propagation[var][2] = False
+                    self.var_dict[var] = var
+                self.pre_run = False
+            body = self.gen(node.body)
             if self.ignore_if or not body:
                 return None
             if not self.has_if_head:
-                return ("").join(body)
+                return "".join(body)
         return (
             "else {",
             self.gen(node.body),
@@ -511,12 +534,16 @@ int main() {{
         if self.eval_mode:
             if not self.is_inloop:
                 eval_cond = self._eval(node.cond)
-                if eval_cond == False or eval_cond == "false":
+                if str(eval_cond) == 'False' or eval_cond == "false":
                     return None
                 self.is_inloop = True
                 self.pre_run = True
                 self.gen(node.body)
                 self.pre_run = False
+                for var in self.variants:
+                    if var in self.propagation:
+                        self.propagation[var][2] = False
+                    self.var_dict[var] = var
                 body = self.gen(node.body)
                 if not body:
                     return None
@@ -558,6 +585,10 @@ int main() {{
                 self.pre_run = True
                 self.gen(node.body)
                 self.pre_run = False
+                for var in self.variants:
+                    if var in self.propagation:
+                        self.propagation[var][2] = False
+                    self.var_dict[var] = var
                 body = self.gen(node.body)
                 if not body:
                     return None
@@ -592,6 +623,10 @@ int main() {{
                 self.pre_run = True
                 self.gen(node.body)
                 self.pre_run = False
+                for var in self.variants:
+                    if var in self.propagation:
+                        self.propagation[var][2] = False
+                    self.var_dict[var] = var
                 body = self.gen(node.body)
                 if not body:
                     return None
@@ -618,16 +653,12 @@ int main() {{
         assign_var = self.gen(node.id)
         result = None
         temp_var = False
-
         if assign_var in self.temp_dict.keys():
             temp_var = True
 
         if isinstance(assign_var, str) and assign_var[0] == '_':
             self.temp_dict[assign_var] = None
             temp_var = True
-        #assign_var_propogation = None
-        #if assign_var in self.propagation.keys() and not temp_var:
-            #self.propagation[assign_var] = [None, self.scope_counter, True]
         if not self.pre_run:
             if isinstance(node.val, (Id, FunctionCall, String)):
                 assign_value = self.gen(node.val)
@@ -696,7 +727,6 @@ int main() {{
                 assign_value = self.get_prop_val(assign_value)
                 self.set_prop_val(assign_var, assign_value)
                 result = f"{assign_var} = {assign_value}"
-
         if not temp_var and assign_var not in self.variants:
             if self.pre_run:
                 self.variants.append(assign_var)
@@ -825,8 +855,6 @@ int main() {{
     def eval_BinaryOperation(self, node: BinaryOperation):
         left = self._eval(node.operand_a)
         right = self._eval(node.operand_b)
-        print("left: ",left)
-        print("right: ",right)
         left = self.get_prop_val(left)
         right = self.get_prop_val(right)
         if self.gen(node.left) not in self.variants and isinstance(left, (bool, int, float))\
@@ -857,10 +885,9 @@ int main() {{
                 for var in self.variants:
                     temp_dict.pop(var,None)
                 result = eval(f"{expr}",temp_dict)
-                if type(result) == str:
+                if type(result) == str and result not in self.var_dict:
                     import json
                     result = json.dumps(result)
-                    print("result :",result, " name: ",node.name)
                     self.converted_str_lst[node.name] = result
                     return result
             except:
@@ -889,7 +916,7 @@ int main() {{
             for var in self.variants:
                 temp_dict.pop(var,None)
             result = eval(f"{expr}", temp_dict)
-            if type(result) == str:
+            if type(result) == str and result not in self.var_dict:
                 result = json.dumps(result)
                 self.converted_str_lst[name] = result
                 return json.dumps(result)

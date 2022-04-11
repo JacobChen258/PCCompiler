@@ -226,7 +226,9 @@ class CASTGenerator:
             cond_ast = []
             cur_node = ir_node
             while cur_node.__class__.__name__ != 'IR_ElifStmt':
-                cond_ast += self.gen(cur_node, st)
+                temp_val = self.gen(cur_node,st)
+                if temp_val:
+                    cond_ast += temp_val
                 cur_node = self.ir.pop(0)
             if_stmt = if_stmt[:self.end_if_labels[-1][1]] + cond_ast + if_stmt[self.end_if_labels[-1][1]:]
             self.end_if_labels[-1][1] += len(cond_ast)
