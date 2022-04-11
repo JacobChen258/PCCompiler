@@ -1,12 +1,21 @@
 Name: Yifei Yin
 Student Number: 1004910670
 Group Members: Yifei Yin, Jathavan Sellathurai, Litao Chen
-Sprint: 3
+Sprint: 4
 
 Contributions:
 
 Yifei Yin %
+- Added string helpers to starter.c
+- Created new individual tests to demo the features of the compiler
+- Setup new testing suite files
+- Created new user friendly "compiler" function
+- Modified error messages so that they are consistent and easy to understand
+- Added documentation for project overview, testing, file structure and playground
 
 Jathavan Sellathurai %
+-
 
 Litao Chen %
+-
+
