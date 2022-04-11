@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from AST import Type as A_Type
 from C_AST import Type as C_Type
-from typing import Union, List, Dict
+from typing import Union, List
 from AST import ParameterLst, PrimitiveType
 from copy import deepcopy
 import random
@@ -72,16 +72,16 @@ class SymbolTable(object):
     def create_name(self,name):
         return name+str(self.random.pop())
 
-    def declare_variable(self, name: str, type: Union[A_Type,C_Type], line_number=-1):
+    def declare_variable(self, name: str, type: Union[A_Type,C_Type]):
         """
         Add a new variable.
         Need to do duplicate variable declaration error checking.
         """
         if name in self.scope_stack[-1]:
-            raise ParseError("Redeclaring variable named \"" + name + "\"", line_number)
+            raise ParseError("Redeclaring variable named \"" + name + "\"")
         self.scope_stack[-1][name] = Variable(type=type)
 
-    def lookup_variable(self, name: str, line_number=-1):
+    def lookup_variable(self, name: str):
         """
         Return the type of the variable named 'name', or throw
         a ParseError if the variable is not declared in the scope.
@@ -92,10 +92,10 @@ class SymbolTable(object):
                 found = scope[name]
                 assert isinstance(found, Variable), f"When looking for {name}, found function when expecting variable"
                 return found.type
-        raise ParseError("Referencing undefined variable \"" + name + "\"", line_number)
+        raise ParseError("Referencing undefined variable \"" + name + "\"")
 
 
-    def declare_function(self, name: str, params: ParameterLst, return_type: Union[Union[A_Type,C_Type], None], line_number=-1):
+    def declare_function(self, name: str, params: ParameterLst, return_type: Union[Union[A_Type,C_Type], None]):
         param_types = [param.paramType for param in params]
         param_names = [param.var for param in params]
         function_to_be_declared = Function(param_names,param_types, return_type)
@@ -106,16 +106,16 @@ class SymbolTable(object):
                         assert isinstance(scope[name], Functions), "Expect function, got probably Variable"
                         for f in scope[name].functions:
                             if repr(f.param_types) == repr(param_types) or f.param_names == param_names:
-                                raise ParseError("Re-declaring function with same param types \""+name+"\"", line_number)
+                                raise ParseError("Re-declaring function with same param types \""+name+"\"")
                 self.scope_stack[-1][name].functions.append(function_to_be_declared)
                 return
             else:
-                raise ParseError("Function \"" + name + "\" is previously declared as variable", line_number)
+                raise ParseError("Function \"" + name + "\" is previously declared as variable")
         self.func_call_stack.append(function_to_be_declared.return_type)
         self.scope_stack[-1][name] = Functions([function_to_be_declared])
 
 
-    def lookup_function(self, name: str, param_types: List[Union[A_Type,C_Type]], line_number=-1):
+    def lookup_function(self, name: str, param_types: List[Union[A_Type,C_Type]]):
         for scope in reversed(self.scope_stack):
             if name in scope:
                 assert isinstance(scope[name], Functions), "Expect function, got probably Variable"
@@ -124,7 +124,7 @@ class SymbolTable(object):
                         return f.return_type
                 print('Failed:', repr(f.param_types), repr(param_types))
 
-        raise ParseError("Referencing undefined function \"" + name + "\"", line_number)
+        raise ParseError("Referencing undefined function \"" + name + "\"")
 
     def get_func_by_name(self,name:str,param_names:List[str]):
         for scope in reversed(self.scope_stack):
@@ -135,7 +135,7 @@ class SymbolTable(object):
         raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"")
 
     def declare_C_function(self, name: str, param_types: List[Union[A_Type, C_Type]],
-                         return_type: Union[Union[A_Type, C_Type], None], line_number=-1):
+                         return_type: Union[Union[A_Type, C_Type], None]):
         hash_name = self.create_name(name)
         function_to_be_declared = C_Function(hash_name,param_types, return_type)
         if name in self.scope_stack[-1]:
@@ -145,15 +145,15 @@ class SymbolTable(object):
         return hash_name
 
     # return the modified name and return type
-    def get_C_function(self, name: str, param_types: List[C_Type], line_number=-1):
+    def get_C_function(self, name: str, param_types: List[C_Type]):
         for scope in reversed(self.scope_stack):
             if name in scope:
                 for f in scope[name].functions:
                     if repr(f.param_types) == repr(param_types):
                         return f.hashed_name, f.return_type
-        raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"", line_number)
+        raise ParseError("C_Gen: Referencing undefined function \"" + name + "\"")
 
-    def update_variable(self, name: str, type: Union[A_Type, C_Type], line_number=-1):
+    def update_variable(self, name: str, type: Union[A_Type, C_Type]):
         found = None
         for scope in reversed(self.scope_stack):
             if name in scope:
