@@ -45,9 +45,9 @@ int main() {
 int_t var1;
 var1 = var1 + var1;
 if (var1 + var1) {
-    var1 = var1 + var1 + var2;
-    if (var1 + var1 + var2) {
-        var1 = var1 + var1 + var2 + var2;
+    var1 = var1 + var2;
+    if (var1) {
+        var1 = var1 + var2;
     }
 }
 
@@ -114,4 +114,5 @@ def lexer():
 @pytest.mark.parametrize("input_data, expected", cases)
 def test_main_c_ast(input_data, expected):
     result = CCodeGenerator().generate_code(input_data)
+    print(result)
     assert result.strip() == expected.strip()
