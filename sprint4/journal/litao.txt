@@ -4,8 +4,19 @@ Group Members: Jathavan Sellathurai, Yifei Yin, and Litao Chen
 Sprint: 3
 
 Contributions:
- Yifei Yin (%)
+ Yifei Yin (35%)
+ - setup test suits
+ - string and list helper, extensioon
+ - debugging
+ - organize compiler structure
 
- Jathavan Sellathurai (%)
+ Jathavan Sellathurai (35%)
+ - constant folding
+ - constant propagation
+ - debugging
 
  Litao Chen (30%)
+ - string and list extension
+ - dead code block removal
+ - constant folding
+ - debugging
