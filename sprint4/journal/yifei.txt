@@ -5,7 +5,7 @@ Sprint: 4
 
 Contributions:
 
-Yifei Yin %
+Yifei Yin 33%
 - Added string helpers to starter.c
 - Created new individual tests to demo the features of the compiler
 - Setup new testing suite files
@@ -13,9 +13,13 @@ Yifei Yin %
 - Modified error messages so that they are consistent and easy to understand
 - Added documentation for project overview, testing, file structure and playground
 
-Jathavan Sellathurai %
--
+Jathavan Sellathurai 33%
+- implemented constant folding
+- implemented constant propagation
+- fixed various bugs that are found during testing
 
-Litao Chen %
--
-
+Litao Chen 33%
+- implemented string and list extension
+- implemented dead code removal
+- implemented constant folding
+- fixed various bugs that are found during testing
