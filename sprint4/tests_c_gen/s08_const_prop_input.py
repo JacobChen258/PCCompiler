@@ -4,12 +4,10 @@ def f(a: int) -> int:
 a: int = 5
 b: int = a
 c: int = b + a
-d: int = f(60)
 
-if d < 15:
+
+if  f(60) < 15:
 	a = 7
 
-e: int = a + 5
-
-lst: [int] = [4,b,6,d]
+lst: [int] = [4,b,6,a]
 

@@ -763,7 +763,6 @@ int main() {{
                 return None
         if isinstance(val, (bool,int,float)) or val == "NONE_LITERAL":
             self.propagation[name] = [val, self.scope_counter, True]
-        else:
 
     def get_prop_val(self, name):
         if self.eval_mode and name in self.propagation.keys():
