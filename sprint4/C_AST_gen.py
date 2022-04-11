@@ -407,6 +407,7 @@ class CASTGenerator:
                 continue_sig = False
             elif val:
                 func_node.body.lst += val
+        self.temp_st.pop_scope()
         return [func_node]
 
     def convert_types(self, param_types: List[A_Type]):
