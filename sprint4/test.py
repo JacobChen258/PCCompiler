@@ -64,3 +64,30 @@ def test_error(test_name):
                 raise Exception("Got error: " + str(e))
         else:
             raise Exception("Expected an error to be thrown")
+
+
+test_names_opt = [f.replace('.py', '') for f in os.listdir(f'./tests/opt/') if f.endswith('.py')]
+@pytest.mark.parametrize("test_name", test_names_opt)
+def test_opt(test_name):
+    d= './tests/opt'
+    compiler(
+        input_file=f'{d}/{test_name}.py',
+        c=f'{d}/{test_name}_opt_on.c',
+        executable=f'{d}/{test_name}_opt_on',
+        opt_on=True,
+        ir_tmp=None,
+    )
+
+    compiler(
+        input_file=f'{d}/{test_name}.py',
+        c=f'{d}/{test_name}_opt_off.c',
+        executable=f'{d}/{test_name}_opt_off',
+        opt_on=False,
+        ir_tmp=None,
+    )
+
+    output_on = execute_program(f'{d}/{test_name}_opt_on', input='')[1]
+    output_off = execute_program(f'{d}/{test_name}_opt_off', input='')[1]
+
+    assert output_on == output_off, f"Expect opt_on to be the same as opt_off\n\nGot:\n{output_on=}\n{output_off=}"
+

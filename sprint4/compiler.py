@@ -72,7 +72,7 @@ def compiler(input_file, c, executable, opt_on=False, ir_tmp=None):
     try:
         code = from_ir_st_to_c(ir, st, opt_on=opt_on)
     except Exception as e:
-        raise Exception("Unable to generate target: " +  e.args[0])
+        raise Exception("Unable to generate target: " + e.args[0])
 
     write(c, code)
 
@@ -112,9 +112,7 @@ if __name__ == '__main__':
     try:
         compiler(input_file, c_file, output_file, opt_on=args.opt, ir_tmp=ir_tmp_file)
     except Exception as e:
-        print('Unable to compile')
-        print(e)
-        exit(1)
+        raise
     else:
         print('Successfully compiled to C code')
 

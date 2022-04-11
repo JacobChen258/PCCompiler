@@ -375,7 +375,7 @@ class pythonParser:
         pass
 
     def p_error(self, p):
-        raise Exception(f"Unable to parse at line={self.lexer.lexLineNo[1]} col={self.lexer.lexLineNo[0]}. At token", p)
+        raise Exception(f"Unable to parse at line={self.lexer.lexLineNo[1]} col={self.lexer.lexLineNo[0]}. At token" + str(p))
 
     def build(self, **kwargs):
         self.tokens = tokens
