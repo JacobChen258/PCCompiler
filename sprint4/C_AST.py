@@ -349,20 +349,20 @@ int main() {{
                 if left[0] == "_":
                     if op[0] == "_":
                         op = self.look_up_temp(op)
-                    self.temp_dict[left] = f'{operator} {op}'
+                    self.temp_dict[left] = f'({operator} {op})'
                 else:
                     value = self._eval(node)
                     if node.type.value == "int_t" and isinstance(value,float):
                         value = int(value)
                     self.var_dict[left] = value
-                    return f"{left} = {value};"
+                    return f"({left} = {value});"
             elif left[0] != "_" and left not in self.variants:
                 self.variants.append(left)
         else:
             if left[0] == "_":
-                self.temp_dict[left] = f'{operator} {op}'
+                self.temp_dict[left] = f'({operator} {op})'
             else:
-                return f"{self.gen(node.left)} = {operator} {self.gen(node.operand)};"
+                return f"{self.gen(node.left)} = ({operator} {self.gen(node.operand)});"
 
     def gen_BinaryOperation(self, node: BinaryOperation):
         left = self.gen(node.left)
@@ -383,12 +383,12 @@ int main() {{
                                                             ('"' in op_b or 'input_str()' == op_b)):
                         self.temp_dict[left] = f'str_concat({op_a},{op_b})'
                         return
-                    if node.type.value == 'int_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_a,(int,float,bool)):
+                    if node.type.value == 'int_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_b,(int,float,bool)):
                         self.temp_dict[left] = int(eval(f'{op_a} {operator} {op_b}'))
-                    elif node.type.value == 'float_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_a,(int,float,bool)):
+                    elif node.type.value == 'float_t' and isinstance(op_a,(int,float,bool)) and isinstance(op_b,(int,float,bool)):
                         self.temp_dict[left] = float(eval(f'{op_a} {operator} {op_b}'))
                     else:
-                        self.temp_dict[left] = f'{op_a} {operator} {op_b}'
+                        self.temp_dict[left] = f'({op_a} {operator} {op_b})'
                 else:
                     value = self._eval(node)
                     if node.type.value == 'int_t' and isinstance(value,float):
@@ -398,7 +398,7 @@ int main() {{
             elif left[0] != "_" and left not in self.variants:
                 self.variants.append(left)
         else:
-            value = f"{op_a} {operator} {op_b}"
+            value = f"({op_a} {operator} {op_b})"
             if left[0] == "_":
                 self.temp_dict[left] = value
             else:
