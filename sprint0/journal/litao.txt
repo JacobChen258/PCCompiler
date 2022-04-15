@@ -1,0 +1,23 @@
+Name: Litao Chen
+Student Number: 1004545842
+Group Members: Jathavan Sellathurai, Yifei Yin, and Litao Chen
+Sprint: 1
+
+Contributions: 
+ Yifei Yin (40%)
+  - Yifei drafted the lexical specification.
+  - Yifei provided all the code examples.
+  - Yifei wrote the list, tuple, and if-block in language specification.
+  - Yifei wrote the list, tuple, and if-block in lexical specification.
+
+
+ Jathavan Sellathurai (30%)
+  - Jathavan wrote the string, function declaration and function-call in language specification.
+  - Jathavan wrote the string, function declaration and function-call in lexical specification.
+
+
+ Litao Chen (30%)
+    - I wrote the integer, float, bool, while-loop and for-loop in language specification.
+    - I wrote the integer, float, bool, while-loop and for-loop in lexical specification.
+    - I organized and formated the lexical specification.
+

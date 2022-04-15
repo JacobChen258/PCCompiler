@@ -1,0 +1,25 @@
+Name: Litao Chen
+Student Number: 1004545842
+Group Members: Jathavan Sellathurai, Yifei Yin, and Litao Chen
+Sprint: 2
+
+Contributions: 
+ Yifei Yin (35%)
+ - Add starter code for typechecker and ir
+ - Set up the test environment for ir
+ - Complete partial typechecker and ir
+ - Full attendance for group meeting
+
+s
+ Jathavan Sellathurai (35%)
+ - Complete partial typechecker
+ - Complete function decl, function call, list, string in IR
+ - Provide design ideas
+ - Full attendance for group meeting
+
+
+ Litao Chen (30%)
+ - Complete partial typechecker and ir
+ - Add some test cases for ir
+ - Fix bugs and resolve conflicts in parser
+ - Full attendance for group meeting

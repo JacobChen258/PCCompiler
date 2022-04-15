@@ -1,0 +1,16 @@
+Name: Jathavan Sellathurai
+Student Number: 1003403872
+Group Members: Litao Chen, Yifei Yin
+Sprint: 0
+
+Contributions: 
+Jathavn Sellathurai (20%)
+ - I wrote the function and string specififaction in the document as well as in the lexical txt file
+
+
+Litao chen (45%)
+  - Litao wrote much of the pdf file as well as the lexical specification. Litao deserves 100% in this course
+
+Yifei Yin (35%)
+
+ - Yifei wrote much of the pdf file as well as the lexical specification. Yifei deserves 100% in this course

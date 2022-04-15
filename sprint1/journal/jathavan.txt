@@ -1,0 +1,22 @@
+Name: Jathavan Sellathurai
+Student Number: 1003403872
+Group Members: Litao Chen, Yifei Yin
+Sprint: 0
+
+Contributions:
+Jathavn Sellathurai (26%)
+- Allowed parser to handle indetation and newline
+- Added AST and parsing for is-elif-else statements, for and while loops, function declaration and call 
+
+
+Litao chen (32%)
+- Created starter code for lex and parser
+- Added parser code for list, tuple. binary operations
+- Helped with the BNF and specification document
+- Litao deserves a 100 percent in this course
+
+Yifei Yin (32%)
+- Added test scripts for the lex and parser
+- Created starter code for AST
+- Helped with the specification document
+- Yifei deserves a 100 percent in this course
