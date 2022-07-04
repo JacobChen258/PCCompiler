@@ -6,7 +6,7 @@ The final version of this compiler resides in [/sprint4](https://github.com/Jaco
 
 Documentation is in [/sprint4/Sprint4 Doc.pdf](https://github.com/JacobChen258/PCCompiler/blob/origin/sprint4/Sprint4%20Doc.pdf).
 
-#### Contriubutors
+#### Contributors
 
 Yifei Yin, Jathavan Sellathurai, Litao Chen
 
